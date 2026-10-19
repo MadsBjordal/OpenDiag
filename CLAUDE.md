@@ -1,0 +1,11 @@
+# OpenDiag: project conventions
+
+- **Spec:** the master development prompt + the owner's confirmed architecture decisions (Windows and Android first-class; separate diagnostics and configuration; compatibility database from Phase 1; Phase 1 criteria in `docs/backlog.md`). Record notable choices in `docs/decisions.md`.
+- **Honesty rules:** never fabricate ECU definitions, parameters, specs, test results or compatibility. Statuses: Implemented and tested / Implemented but not hardware-verified / Partially implemented / Simulated only / Planned / Unsupported. Only real-hardware evidence (per OS) moves a function to "tested" (`docs/compatibility.md`, `crates/opendiag-engine/src/catalog.rs`).
+- **Safety:** every non-read request goes through `opendiag-safety` (`may_send` + `Authorization`). Never add a path around it; level 4 is never implemented. Clearing codes: `crates/opendiag-engine/src/clear.rs`.
+- **Owner** is not a professional developer and uses Windows: explain in plain language, give explicit steps, and at the end of a milestone say how to run it and what to test by hand.
+- **Layout:** Rust crates in `crates/` (core, isotp, obd, safety, elm327, transport, sim, knowledge, definitions, store, engine, api, cli); UI in `apps/ui` (React + TS, every text via `t()`); Tauri shell in `apps/desktop/src-tauri` (Android project in `gen/android`); Android USB/Bluetooth bridge in `plugins/tauri-plugin-opendiag-transport`.
+- **UI ↔ engine:** JSON commands (`Cmd` in `crates/opendiag-api/src/lib.rs`) mirrored by `apps/ui/src/types.ts`. Tauri IPC in the app; `opendiag serve` (127.0.0.1:7878) in a browser.
+- **Commands:** `cargo test`; `pnpm --filter @opendiag/ui typecheck|test|build`; `pnpm tauri dev|build`; `pnpm tauri android build --apk`.
+- **Privacy:** local only, VIN masked in exports and hidden in logs by default; nothing uploads automatically.
+- **Data:** knowledge and definitions are JSON with sources; validated by tests (`cargo test -p opendiag-knowledge`, `opendiag validate-definition`).

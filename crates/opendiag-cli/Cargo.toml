@@ -1,0 +1,19 @@
+[package]
+name = "opendiag-cli"
+description = "OpenDiag on the command line: scan, live data, definition checks, and the development bridge for the UI."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "opendiag"
+path = "src/main.rs"
+
+[dependencies]
+serde_json.workspace = true
+tiny_http = "0.12"
+opendiag-core.workspace = true
+opendiag-api = { workspace = true, features = ["serial"] }
+opendiag-engine.workspace = true
+opendiag-store.workspace = true
+opendiag-definitions.workspace = true

@@ -29,10 +29,22 @@ pub enum IsoTpError {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Frame {
-    Single { data: Vec<u8> },
-    First { total_len: usize, data: Vec<u8> },
-    Consecutive { seq: u8, data: Vec<u8> },
-    FlowControl { status: u8, block_size: u8, st_min: u8 },
+    Single {
+        data: Vec<u8>,
+    },
+    First {
+        total_len: usize,
+        data: Vec<u8>,
+    },
+    Consecutive {
+        seq: u8,
+        data: Vec<u8>,
+    },
+    FlowControl {
+        status: u8,
+        block_size: u8,
+        st_min: u8,
+    },
 }
 
 /// Parses the data bytes of one CAN frame (PCI byte first).
@@ -47,21 +59,33 @@ pub fn parse(frame: &[u8]) -> Result<Frame, IsoTpError> {
             if frame.len() < 1 + len {
                 return Err(IsoTpError::TooShort);
             }
-            Ok(Frame::Single { data: frame[1..1 + len].to_vec() })
+            Ok(Frame::Single {
+                data: frame[1..1 + len].to_vec(),
+            })
         }
         0x1 => {
             if frame.len() < 2 {
                 return Err(IsoTpError::TooShort);
             }
             let total_len = (((pci & 0x0F) as usize) << 8) | frame[1] as usize;
-            Ok(Frame::First { total_len, data: frame[2..].to_vec() })
+            Ok(Frame::First {
+                total_len,
+                data: frame[2..].to_vec(),
+            })
         }
-        0x2 => Ok(Frame::Consecutive { seq: pci & 0x0F, data: frame[1..].to_vec() }),
+        0x2 => Ok(Frame::Consecutive {
+            seq: pci & 0x0F,
+            data: frame[1..].to_vec(),
+        }),
         0x3 => {
             if frame.len() < 3 {
                 return Err(IsoTpError::TooShort);
             }
-            Ok(Frame::FlowControl { status: pci & 0x0F, block_size: frame[1], st_min: frame[2] })
+            Ok(Frame::FlowControl {
+                status: pci & 0x0F,
+                block_size: frame[1],
+                st_min: frame[2],
+            })
         }
         other => Err(IsoTpError::UnknownType(other)),
     }
@@ -178,7 +202,10 @@ mod tests {
         let frames = segment(&[0x41, 0x0C, 0x1A, 0xF8], Some(0)).unwrap();
         assert_eq!(frames, vec![vec![0x04, 0x41, 0x0C, 0x1A, 0xF8, 0, 0, 0]]);
         let mut r = Reassembler::new();
-        assert_eq!(r.push(&frames[0]).unwrap(), Some(vec![0x41, 0x0C, 0x1A, 0xF8]));
+        assert_eq!(
+            r.push(&frames[0]).unwrap(),
+            Some(vec![0x41, 0x0C, 0x1A, 0xF8])
+        );
     }
 
     #[test]
@@ -219,7 +246,10 @@ mod tests {
         r.push(&frames[0]).unwrap();
         assert_eq!(
             r.push(&frames[2]),
-            Err(IsoTpError::OutOfOrder { expected: 1, got: 2 })
+            Err(IsoTpError::OutOfOrder {
+                expected: 1,
+                got: 2
+            })
         );
         assert!(!r.in_progress());
     }
@@ -239,7 +269,11 @@ mod tests {
     fn flow_control_parses() {
         assert_eq!(
             parse(&[0x30, 0x00, 0x0A]).unwrap(),
-            Frame::FlowControl { status: 0, block_size: 0, st_min: 10 }
+            Frame::FlowControl {
+                status: 0,
+                block_size: 0,
+                st_min: 10
+            }
         );
     }
 }

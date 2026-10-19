@@ -12,6 +12,10 @@ members = [
   "crates/opendiag-definitions",
   "crates/opendiag-store",
   "crates/opendiag-engine",
+  "crates/opendiag-api",
+  "crates/opendiag-cli",
+  "apps/desktop/src-tauri",
+  "plugins/tauri-plugin-opendiag-transport",
 ]
 # `cargo test` at the root runs everything except the Tauri shell (needs a WebView toolkit).
 default-members = [
@@ -26,6 +30,8 @@ default-members = [
   "crates/opendiag-definitions",
   "crates/opendiag-store",
   "crates/opendiag-engine",
+  "crates/opendiag-api",
+  "crates/opendiag-cli",
 ]
 
 [workspace.package]
@@ -33,7 +39,7 @@ version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/MadsBjordal/OpenDiag"
-rust-version = "1.77"
+rust-version = "1.87"
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -49,13 +55,13 @@ opendiag-isotp = { path = "crates/opendiag-isotp" }
 opendiag-obd = { path = "crates/opendiag-obd" }
 opendiag-safety = { path = "crates/opendiag-safety" }
 opendiag-elm327 = { path = "crates/opendiag-elm327" }
-opendiag-transport = { path = "crates/opendiag-transport" }
+opendiag-transport = { path = "crates/opendiag-transport", default-features = false }
 opendiag-sim = { path = "crates/opendiag-sim" }
 opendiag-knowledge = { path = "crates/opendiag-knowledge" }
 opendiag-definitions = { path = "crates/opendiag-definitions" }
 opendiag-store = { path = "crates/opendiag-store" }
-opendiag-engine = { path = "crates/opendiag-engine" }
-opendiag-api = { path = "crates/opendiag-api" }
+opendiag-engine = { path = "crates/opendiag-engine", default-features = false }
+opendiag-api = { path = "crates/opendiag-api", default-features = false }
 
 [profile.release]
 lto = "thin"

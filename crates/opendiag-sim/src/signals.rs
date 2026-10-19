@@ -39,24 +39,60 @@ pub fn at(t: f64, engine: Engine, running: bool, low_voltage: bool) -> Signals {
         (1.0 - (phase - 45.0) / 15.0, 0.0)
     };
     let wobble = (t * 1.7).sin();
-    let mut rpm = if running { idle + (top - idle) * drive * (0.6 + 0.4 * accel) + 25.0 * wobble } else { 0.0 };
+    let mut rpm = if running {
+        idle + (top - idle) * drive * (0.6 + 0.4 * accel) + 25.0 * wobble
+    } else {
+        0.0
+    };
     if rpm < 0.0 {
         rpm = 0.0;
     }
-    let top_speed = if engine == Engine::MotorcyclePetrol { 90.0 } else { 70.0 };
-    let speed = if running { (top_speed * drive).round() } else { 0.0 };
-    let coolant = if running { (20.0 + t * 0.6).min(89.0) + wobble } else { 20.0 };
-    let throttle = if running { 3.0 + 40.0 * accel * drive + 12.0 * drive } else { 0.0 };
-    let load = if running { 18.0 + 50.0 * accel * drive + 10.0 * drive } else { 0.0 };
+    let top_speed = if engine == Engine::MotorcyclePetrol {
+        90.0
+    } else {
+        70.0
+    };
+    let speed = if running {
+        (top_speed * drive).round()
+    } else {
+        0.0
+    };
+    let coolant = if running {
+        (20.0 + t * 0.6).min(89.0) + wobble
+    } else {
+        20.0
+    };
+    let throttle = if running {
+        3.0 + 40.0 * accel * drive + 12.0 * drive
+    } else {
+        0.0
+    };
+    let load = if running {
+        18.0 + 50.0 * accel * drive + 10.0 * drive
+    } else {
+        0.0
+    };
     let map = match (running, engine) {
         (false, _) => 101.0,
         (true, Engine::Diesel) => 101.0 + 110.0 * drive * (0.5 + 0.5 * accel),
         (true, _) => 32.0 + 55.0 * accel * drive + 10.0 * drive,
     };
-    let maf = if running { rpm / 1000.0 * load / 6.0 } else { 0.0 };
+    let maf = if running {
+        rpm / 1000.0 * load / 6.0
+    } else {
+        0.0
+    };
     let stft = if running { 3.0 * (t * 2.3).sin() } else { 0.0 };
-    let ltft = if running && engine == Engine::Petrol { 13.3 } else { 0.0 };
-    let o2 = if running { 0.45 + 0.4 * (t * 3.1).sin() } else { 0.0 };
+    let ltft = if running && engine == Engine::Petrol {
+        13.3
+    } else {
+        0.0
+    };
+    let o2 = if running {
+        0.45 + 0.4 * (t * 3.1).sin()
+    } else {
+        0.0
+    };
     let voltage = match (low_voltage, running) {
         (true, _) => 10.6,
         (false, true) => 14.1 + 0.05 * wobble,
@@ -76,8 +112,16 @@ pub fn at(t: f64, engine: Engine, running: bool, low_voltage: bool) -> Signals {
         o2,
         voltage,
         timing: if running { 10.0 + 15.0 * drive } else { 0.0 },
-        rail_kpa: if running { 30000.0 + 90000.0 * drive } else { 0.0 },
-        fuel_rate: if running { 0.8 + 6.0 * drive * (0.5 + accel) } else { 0.0 },
+        rail_kpa: if running {
+            30000.0 + 90000.0 * drive
+        } else {
+            0.0
+        },
+        fuel_rate: if running {
+            0.8 + 6.0 * drive * (0.5 + accel)
+        } else {
+            0.0
+        },
     }
 }
 

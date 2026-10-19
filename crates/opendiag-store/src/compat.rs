@@ -109,7 +109,13 @@ impl CompatRecord {
     }
 
     fn check(&self) -> Result<()> {
-        for (name, v) in [("make", &self.make), ("adapter", &self.adapter), ("os", &self.os), ("function", &self.function), ("app_version", &self.app_version)] {
+        for (name, v) in [
+            ("make", &self.make),
+            ("adapter", &self.adapter),
+            ("os", &self.os),
+            ("function", &self.function),
+            ("app_version", &self.app_version),
+        ] {
             if v.trim().is_empty() {
                 return Err(StoreError::Invalid(format!("{name} is required")));
             }
@@ -162,7 +168,8 @@ fn row_to_record(r: &rusqlite::Row) -> rusqlite::Result<CompatRecord> {
         os: r.get("os")?,
         protocol: r.get("protocol")?,
         function: r.get("function")?,
-        result: serde_json::from_value(serde_json::Value::String(res)).unwrap_or(TestResult::Partial),
+        result: serde_json::from_value(serde_json::Value::String(res))
+            .unwrap_or(TestResult::Partial),
         verification: Verification::parse(&ver).unwrap_or(Verification::UnverifiedLocal),
         app_version: r.get("app_version")?,
         evidence: serde_json::from_str(&ev).unwrap_or_default(),
@@ -180,7 +187,11 @@ impl Store {
         let key = rec.combo_key();
         let existing: Option<CompatRecord> = self
             .conn
-            .query_row("SELECT * FROM compat_records WHERE combo_key = ?1", [&key], row_to_record)
+            .query_row(
+                "SELECT * FROM compat_records WHERE combo_key = ?1",
+                [&key],
+                row_to_record,
+            )
             .optional()?;
         let mut new = rec.clone();
         new.updated_at = now();
@@ -242,9 +253,19 @@ impl Store {
                AND (?4 IS NULL OR os LIKE ?4) AND (?5 IS NULL OR function = ?5)
              ORDER BY make, model, year, function",
         )?;
-        let like = |v: &Option<String>| v.as_ref().filter(|s| !s.is_empty()).map(|s| format!("%{s}%"));
+        let like = |v: &Option<String>| {
+            v.as_ref()
+                .filter(|s| !s.is_empty())
+                .map(|s| format!("%{s}%"))
+        };
         let rows = st.query_map(
-            params![like(&f.make), like(&f.model), like(&f.adapter), like(&f.os), f.function.as_ref().filter(|s| !s.is_empty())],
+            params![
+                like(&f.make),
+                like(&f.model),
+                like(&f.adapter),
+                like(&f.os),
+                f.function.as_ref().filter(|s| !s.is_empty())
+            ],
             row_to_record,
         )?;
         Ok(rows.collect::<std::result::Result<_, _>>()?)
@@ -254,7 +275,14 @@ impl Store {
         let mut st = self
             .conn
             .prepare("SELECT version, changed_at, change_note, data_json FROM compat_history WHERE uuid = ?1 ORDER BY version")?;
-        let rows = st.query_map([uuid], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?)))?;
+        let rows = st.query_map([uuid], |r| {
+            Ok((
+                r.get::<_, i64>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+                r.get::<_, String>(3)?,
+            ))
+        })?;
         let mut out = Vec::new();
         for row in rows {
             let (v, at, note, json) = row?;
@@ -269,7 +297,9 @@ impl Store {
     pub fn submit_compat(&self, rec: &CompatRecord) -> Result<i64> {
         rec.check()?;
         if rec.evidence.is_empty() {
-            return Err(StoreError::Invalid("a submission needs evidence (log excerpt, photo reference, test notes)".into()));
+            return Err(StoreError::Invalid(
+                "a submission needs evidence (log excerpt, photo reference, test notes)".into(),
+            ));
         }
         let mut r = rec.clone();
         r.verification = Verification::CommunityReported;
@@ -287,12 +317,24 @@ impl Store {
              WHERE ?1 IS NULL OR status = ?1 ORDER BY id DESC",
         )?;
         let rows = st.query_map([status], |r| {
-            Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?, r.get::<_, String>(4)?))
+            Ok((
+                r.get::<_, i64>(0)?,
+                r.get::<_, String>(1)?,
+                r.get::<_, String>(2)?,
+                r.get::<_, String>(3)?,
+                r.get::<_, String>(4)?,
+            ))
         })?;
         let mut out = Vec::new();
         for row in rows {
             let (id, json, status, note, at) = row?;
-            out.push(Submission { id, record: serde_json::from_str(&json)?, status, moderator_note: note, created_at: at });
+            out.push(Submission {
+                id,
+                record: serde_json::from_str(&json)?,
+                status,
+                moderator_note: note,
+                created_at: at,
+            });
         }
         Ok(out)
     }
@@ -306,13 +348,20 @@ impl Store {
             .find(|s| s.id == id)
             .ok_or_else(|| StoreError::Invalid("no such submission".into()))?;
         if sub.status != "pending" && sub.status != "needs_evidence" {
-            return Err(StoreError::Invalid(format!("submission already {}", sub.status)));
+            return Err(StoreError::Invalid(format!(
+                "submission already {}",
+                sub.status
+            )));
         }
         let status = match decision {
             "approve" => "approved",
             "reject" => "rejected",
             "needs_evidence" => "needs_evidence",
-            _ => return Err(StoreError::Invalid("decision must be approve, reject or needs_evidence".into())),
+            _ => {
+                return Err(StoreError::Invalid(
+                    "decision must be approve, reject or needs_evidence".into(),
+                ))
+            }
         };
         if status != "approved" && note.trim().is_empty() {
             return Err(StoreError::Invalid("say why in the note".into()));
@@ -325,7 +374,10 @@ impl Store {
             let mut r = sub.record;
             r.verification = Verification::CommunityTested;
             r.source = format!("submission:{id}");
-            return Ok(Some(self.record_compat(&r, &format!("approved submission {id}: {note}"))?));
+            return Ok(Some(self.record_compat(
+                &r,
+                &format!("approved submission {id}: {note}"),
+            )?));
         }
         Ok(None)
     }
@@ -346,12 +398,19 @@ impl Store {
     pub fn import_snapshot(&self, json: &str, source: &str) -> Result<usize> {
         let snap: Snapshot = serde_json::from_str(json)?;
         if snap.format != SNAPSHOT_FORMAT {
-            return Err(StoreError::Invalid(format!("unknown snapshot format {}", snap.format)));
+            return Err(StoreError::Invalid(format!(
+                "unknown snapshot format {}",
+                snap.format
+            )));
         }
         let sha = hex::encode(Sha256::digest(json.as_bytes()));
         if self
             .conn
-            .query_row("SELECT 1 FROM compat_snapshots WHERE sha256 = ?1", [&sha], |_| Ok(()))
+            .query_row(
+                "SELECT 1 FROM compat_snapshots WHERE sha256 = ?1",
+                [&sha],
+                |_| Ok(()),
+            )
             .optional()?
             .is_some()
         {
@@ -365,7 +424,13 @@ impl Store {
             }
             // Until snapshots are signed, nothing imported is more than community-tested.
             if r.verification > Verification::CommunityTested {
-                r.notes = format!("{} [imported as {}; capped until signed snapshots exist]", r.notes, r.verification.as_str()).trim().into();
+                r.notes = format!(
+                    "{} [imported as {}; capped until signed snapshots exist]",
+                    r.notes,
+                    r.verification.as_str()
+                )
+                .trim()
+                .into();
                 r.verification = Verification::CommunityTested;
             }
             r.source = format!("snapshot:{}", snap.snapshot_id);
@@ -447,7 +512,15 @@ mod tests {
         win.os = "windows".into();
         s.record_compat(&win, "win").unwrap();
         assert_eq!(s.compat_records(&CompatFilter::default()).unwrap().len(), 2);
-        assert_eq!(s.compat_records(&CompatFilter { os: Some("windows".into()), ..Default::default() }).unwrap().len(), 1);
+        assert_eq!(
+            s.compat_records(&CompatFilter {
+                os: Some("windows".into()),
+                ..Default::default()
+            })
+            .unwrap()
+            .len(),
+            1
+        );
     }
 
     #[test]
@@ -458,9 +531,17 @@ mod tests {
         assert!(s.submit_compat(&r).is_err());
         r.evidence = vec!["log excerpt".into()];
         let id = s.submit_compat(&r).unwrap();
-        assert!(s.compat_records(&CompatFilter::default()).unwrap().is_empty(), "nothing counts before approval");
+        assert!(
+            s.compat_records(&CompatFilter::default())
+                .unwrap()
+                .is_empty(),
+            "nothing counts before approval"
+        );
         assert!(s.moderate(id, "reject", "").is_err(), "a reason is needed");
-        let approved = s.moderate(id, "approve", "log looks right").unwrap().unwrap();
+        let approved = s
+            .moderate(id, "approve", "log looks right")
+            .unwrap()
+            .unwrap();
         assert_eq!(approved.verification, Verification::CommunityTested);
         assert!(s.moderate(id, "approve", "again").is_err());
     }
@@ -471,16 +552,26 @@ mod tests {
         let mut r = rec();
         r.verification = Verification::UnverifiedLocal;
         a.record_compat(&r, "x").unwrap();
-        let mut snap: serde_json::Value = serde_json::from_str(&a.export_snapshot().unwrap()).unwrap();
+        let mut snap: serde_json::Value =
+            serde_json::from_str(&a.export_snapshot().unwrap()).unwrap();
         snap["records"][0]["verification"] = serde_json::json!("hil_verified");
         let json = snap.to_string();
         let b = Store::open_in_memory().unwrap();
         assert_eq!(b.import_snapshot(&json, "file").unwrap(), 1);
-        assert_eq!(b.import_snapshot(&json, "file").unwrap(), 0, "same file twice");
+        assert_eq!(
+            b.import_snapshot(&json, "file").unwrap(),
+            0,
+            "same file twice"
+        );
         let got = &b.compat_records(&CompatFilter::default()).unwrap()[0];
         assert_eq!(got.verification, Verification::CommunityTested);
         assert!(got.notes.contains("capped"));
         assert_eq!(b.snapshots().unwrap().len(), 1);
-        assert!(b.import_snapshot(r#"{"format":"x","snapshot_id":"1","created_at":"","records":[]}"#, "f").is_err());
+        assert!(b
+            .import_snapshot(
+                r#"{"format":"x","snapshot_id":"1","created_at":"","records":[]}"#,
+                "f"
+            )
+            .is_err());
     }
 }

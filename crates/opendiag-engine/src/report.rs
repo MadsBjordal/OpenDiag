@@ -118,6 +118,26 @@ pub struct ScanReport {
     pub cautions: Vec<String>,
 }
 
+impl ModuleStatus {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Scanned => "Scanned",
+            Self::PartlyScanned => "Partly scanned",
+            Self::NotScanned => "Not scanned",
+        }
+    }
+}
+
+impl DtcKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Stored => "stored",
+            Self::Pending => "pending",
+            Self::Permanent => "permanent",
+        }
+    }
+}
+
 impl ScanReport {
     pub fn dtc_count(&self) -> usize {
         self.dtcs.len()
@@ -129,7 +149,13 @@ impl ScanReport {
             .vin
             .as_ref()
             .and_then(|v| v.manufacturer.clone())
-            .unwrap_or_else(|| if self.simulated { "Simulated vehicle".into() } else { "Vehicle".into() });
+            .unwrap_or_else(|| {
+                if self.simulated {
+                    "Simulated vehicle".into()
+                } else {
+                    "Vehicle".into()
+                }
+            });
         let sim = if self.simulated { "SIMULATED · " } else { "" };
         format!("{sim}{who} · {} fault code(s)", self.dtc_count())
     }
@@ -166,32 +192,89 @@ fn csv_field(s: &str) -> String {
 pub fn to_csv(r: &ScanReport) -> String {
     let mut out = String::from("section,ecu,item,value,unit,status,description\n");
     let mut row = |cols: [&str; 7]| {
-        out.push_str(&cols.iter().map(|c| csv_field(c)).collect::<Vec<_>>().join(","));
+        out.push_str(
+            &cols
+                .iter()
+                .map(|c| csv_field(c))
+                .collect::<Vec<_>>()
+                .join(","),
+        );
         out.push('\n');
     };
-    row(["report", "", "created_at", &r.created_at, "", if r.simulated { "SIMULATED" } else { "" }, &r.health.headline]);
+    row([
+        "report",
+        "",
+        "created_at",
+        &r.created_at,
+        "",
+        if r.simulated { "SIMULATED" } else { "" },
+        &r.health.headline,
+    ]);
     if let Some(v) = &r.vehicle.vin {
-        row(["vehicle", "", "vin", &v.vin, "", "", v.manufacturer.as_deref().unwrap_or("")]);
+        row([
+            "vehicle",
+            "",
+            "vin",
+            &v.vin,
+            "",
+            "",
+            v.manufacturer.as_deref().unwrap_or(""),
+        ]);
     }
     for m in &r.modules {
-        row(["module", m.ecu.as_deref().unwrap_or(""), &m.label, "", "", &format!("{:?}", m.status).to_lowercase(), &m.detail]);
+        row([
+            "module",
+            m.ecu.as_deref().unwrap_or(""),
+            &m.label,
+            "",
+            "",
+            m.status.label(),
+            &m.detail,
+        ]);
     }
     for d in &r.dtcs {
-        row(["dtc", &d.ecu, &d.code, "", "", &format!("{:?}", d.kind).to_lowercase(), &d.explanation.title]);
+        row([
+            "dtc",
+            &d.ecu,
+            &d.code,
+            "",
+            "",
+            d.kind.label(),
+            &d.explanation.title,
+        ]);
     }
     for f in &r.freeze_frames {
         for m in &f.values {
-            row(["freeze_frame", &f.ecu, &m.name, &format!("{:.2}", m.value), &m.unit, f.dtc.as_deref().unwrap_or(""), ""]);
+            row([
+                "freeze_frame",
+                &f.ecu,
+                &m.name,
+                &format!("{:.2}", m.value),
+                &m.unit,
+                f.dtc.as_deref().unwrap_or(""),
+                "",
+            ]);
         }
     }
     for m in &r.measurements {
-        row(["measurement", &m.ecu, &m.name, &format!("{:.2}", m.value), &m.unit, &m.source, ""]);
+        row([
+            "measurement",
+            &m.ecu,
+            &m.name,
+            &format!("{:.2}", m.value),
+            &m.unit,
+            &m.source,
+            "",
+        ]);
     }
     out
 }
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 /// A stand-alone printable HTML page.
@@ -203,25 +286,70 @@ pub fn to_html(r: &ScanReport) -> String {
     if r.simulated {
         h.push_str("<div class=\"sim\">SIMULATED VEHICLE: not a real diagnostic result</div>");
     }
-    h.push_str(&format!("<h1>{}</h1><p class=\"muted\">{} · {} {} · {}</p>", esc(&r.title()), esc(&r.created_at), esc(&r.app), esc(&r.app_version), esc(&r.platform)));
-    h.push_str(&format!("<p><b>{}</b><br>{}</p>", esc(&r.health.headline), esc(&r.health.detail)));
+    h.push_str(&format!(
+        "<h1>{}</h1><p class=\"muted\">{} · {} {} · {}</p>",
+        esc(&r.title()),
+        esc(&r.created_at),
+        esc(&r.app),
+        esc(&r.app_version),
+        esc(&r.platform)
+    ));
+    h.push_str(&format!(
+        "<p><b>{}</b><br>{}</p>",
+        esc(&r.health.headline),
+        esc(&r.health.detail)
+    ));
     h.push_str("<h2>Vehicle and adapter</h2><table>");
-    let vin = r.vehicle.vin.as_ref().map(|v| v.vin.clone()).unwrap_or_else(|| "not reported".into());
+    let vin = r
+        .vehicle
+        .vin
+        .as_ref()
+        .map(|v| v.vin.clone())
+        .unwrap_or_else(|| "not reported".into());
     for (k, v) in [
         ("VIN", vin),
-        ("Manufacturer (from VIN)", r.vehicle.vin.as_ref().and_then(|v| v.manufacturer.clone()).unwrap_or_else(|| "unknown".into())),
-        ("OBD standard", r.vehicle.obd_standard.clone().unwrap_or_else(|| "not reported".into())),
-        ("Fuel type", r.vehicle.fuel_type.clone().unwrap_or_else(|| "not reported".into())),
+        (
+            "Manufacturer (from VIN)",
+            r.vehicle
+                .vin
+                .as_ref()
+                .and_then(|v| v.manufacturer.clone())
+                .unwrap_or_else(|| "unknown".into()),
+        ),
+        (
+            "OBD standard",
+            r.vehicle
+                .obd_standard
+                .clone()
+                .unwrap_or_else(|| "not reported".into()),
+        ),
+        (
+            "Fuel type",
+            r.vehicle
+                .fuel_type
+                .clone()
+                .unwrap_or_else(|| "not reported".into()),
+        ),
         ("Adapter", r.adapter.identity.clone()),
         ("Connection", r.link.name.clone()),
-        ("Protocol", r.protocol.map(|p| p.label().to_string()).unwrap_or_else(|| "unknown".into())),
+        (
+            "Protocol",
+            r.protocol
+                .map(|p| p.label().to_string())
+                .unwrap_or_else(|| "unknown".into()),
+        ),
     ] {
         h.push_str(&format!("<tr><th>{}</th><td>{}</td></tr>", esc(k), esc(&v)));
     }
     h.push_str("</table>");
     h.push_str("<h2>Modules</h2><table><tr><th>System</th><th>Status</th><th>Detail</th></tr>");
     for m in &r.modules {
-        h.push_str(&format!("<tr><td>{}</td><td>{:?}</td><td>{}</td></tr>", esc(&m.label), m.status, esc(&m.detail)));
+        h.push_str(&format!(
+            "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
+            esc(&m.label),
+            m.status.label(),
+            esc(&m.detail)
+        ));
     }
     h.push_str("</table><h2>Fault codes</h2>");
     if r.dtcs.is_empty() {
@@ -230,9 +358,9 @@ pub fn to_html(r: &ScanReport) -> String {
         h.push_str("<table><tr><th>Code</th><th>Type</th><th>Module</th><th>Meaning</th><th>Possible causes (to check)</th></tr>");
         for d in &r.dtcs {
             h.push_str(&format!(
-                "<tr><td><b>{}</b></td><td>{:?}</td><td>{}</td><td>{}<br><span class=\"muted\">{}</span></td><td>{}</td></tr>",
+                "<tr><td><b>{}</b></td><td>{}</td><td>{}</td><td>{}<br><span class=\"muted\">{}</span></td><td>{}</td></tr>",
                 esc(&d.code),
-                d.kind,
+                d.kind.label(),
                 esc(&d.ecu_label),
                 esc(&d.explanation.title),
                 esc(&d.explanation.plain),
@@ -244,9 +372,18 @@ pub fn to_html(r: &ScanReport) -> String {
     if !r.freeze_frames.is_empty() {
         h.push_str("<h2>Freeze frame (values when the fault was stored)</h2>");
         for f in &r.freeze_frames {
-            h.push_str(&format!("<p>{} · {}</p><table>", esc(&f.ecu), esc(f.dtc.as_deref().unwrap_or("-"))));
+            h.push_str(&format!(
+                "<p>{} · {}</p><table>",
+                esc(&f.ecu),
+                esc(f.dtc.as_deref().unwrap_or("-"))
+            ));
             for m in &f.values {
-                h.push_str(&format!("<tr><td>{}</td><td>{:.1} {}</td></tr>", esc(&m.name), m.value, esc(&m.unit)));
+                h.push_str(&format!(
+                    "<tr><td>{}</td><td>{:.1} {}</td></tr>",
+                    esc(&m.name),
+                    m.value,
+                    esc(&m.unit)
+                ));
             }
             h.push_str("</table>");
         }
@@ -254,7 +391,13 @@ pub fn to_html(r: &ScanReport) -> String {
     if !r.measurements.is_empty() {
         h.push_str("<h2>Measurements at scan time</h2><table>");
         for m in &r.measurements {
-            h.push_str(&format!("<tr><td>{}</td><td>{:.2} {}</td><td class=\"muted\">{}</td></tr>", esc(&m.name), m.value, esc(&m.unit), esc(&m.source)));
+            h.push_str(&format!(
+                "<tr><td>{}</td><td>{:.2} {}</td><td class=\"muted\">{}</td></tr>",
+                esc(&m.name),
+                m.value,
+                esc(&m.unit),
+                esc(&m.source)
+            ));
         }
         h.push_str("</table>");
     }
@@ -264,7 +407,12 @@ pub fn to_html(r: &ScanReport) -> String {
     if !r.operations.is_empty() {
         h.push_str("<h2>Operations performed</h2><ul>");
         for o in &r.operations {
-            h.push_str(&format!("<li>{} · {}: {}</li>", esc(&o.at), esc(&o.what), esc(&o.detail)));
+            h.push_str(&format!(
+                "<li>{} · {}: {}</li>",
+                esc(&o.at),
+                esc(&o.what),
+                esc(&o.detail)
+            ));
         }
         h.push_str("</ul>");
     }
@@ -280,24 +428,52 @@ pub fn to_html(r: &ScanReport) -> String {
 pub fn to_text_lines(r: &ScanReport) -> Vec<(bool, String)> {
     let mut l: Vec<(bool, String)> = Vec::new();
     if r.simulated {
-        l.push((true, "SIMULATED VEHICLE - not a real diagnostic result".into()));
+        l.push((
+            true,
+            "SIMULATED VEHICLE - not a real diagnostic result".into(),
+        ));
     }
     l.push((true, r.title()));
-    l.push((false, format!("{} | {} {} | {}", r.created_at, r.app, r.app_version, r.platform)));
+    l.push((
+        false,
+        format!(
+            "{} | {} {} | {}",
+            r.created_at, r.app, r.app_version, r.platform
+        ),
+    ));
     l.push((false, String::new()));
     l.push((true, r.health.headline.clone()));
     l.push((false, r.health.detail.clone()));
     l.push((false, String::new()));
     l.push((true, "Vehicle and adapter".into()));
     if let Some(v) = &r.vehicle.vin {
-        l.push((false, format!("VIN: {}  ({})", v.vin, v.manufacturer.as_deref().unwrap_or("manufacturer unknown"))));
+        l.push((
+            false,
+            format!(
+                "VIN: {}  ({})",
+                v.vin,
+                v.manufacturer.as_deref().unwrap_or("manufacturer unknown")
+            ),
+        ));
     }
-    l.push((false, format!("Adapter: {} via {}", r.adapter.identity, r.link.name)));
-    l.push((false, format!("Protocol: {}", r.protocol.map(|p| p.label()).unwrap_or("unknown"))));
+    l.push((
+        false,
+        format!("Adapter: {} via {}", r.adapter.identity, r.link.name),
+    ));
+    l.push((
+        false,
+        format!(
+            "Protocol: {}",
+            r.protocol.map(|p| p.label()).unwrap_or("unknown")
+        ),
+    ));
     l.push((false, String::new()));
     l.push((true, "Modules".into()));
     for m in &r.modules {
-        l.push((false, format!("{:?}: {} - {}", m.status, m.label, m.detail)));
+        l.push((
+            false,
+            format!("{}: {} - {}", m.status.label(), m.label, m.detail),
+        ));
     }
     l.push((false, String::new()));
     l.push((true, "Fault codes".into()));
@@ -305,15 +481,37 @@ pub fn to_text_lines(r: &ScanReport) -> Vec<(bool, String)> {
         l.push((false, "None reported by the scanned modules.".into()));
     }
     for d in &r.dtcs {
-        l.push((false, format!("{} ({:?}, {}): {}", d.code, d.kind, d.ecu_label, d.explanation.title)));
+        l.push((
+            false,
+            format!(
+                "{} ({}, {}): {}",
+                d.code,
+                d.kind.label(),
+                d.ecu_label,
+                d.explanation.title
+            ),
+        ));
         l.push((false, format!("    {}", d.explanation.plain)));
         if !d.explanation.possible_causes.is_empty() {
-            l.push((false, format!("    Possible causes to check: {}", d.explanation.possible_causes.join("; "))));
+            l.push((
+                false,
+                format!(
+                    "    Possible causes to check: {}",
+                    d.explanation.possible_causes.join("; ")
+                ),
+            ));
         }
     }
     for f in &r.freeze_frames {
         l.push((false, String::new()));
-        l.push((true, format!("Freeze frame {} ({})", f.ecu, f.dtc.as_deref().unwrap_or("-"))));
+        l.push((
+            true,
+            format!(
+                "Freeze frame {} ({})",
+                f.ecu,
+                f.dtc.as_deref().unwrap_or("-")
+            ),
+        ));
         for m in &f.values {
             l.push((false, format!("{}: {:.1} {}", m.name, m.value, m.unit)));
         }
@@ -322,7 +520,10 @@ pub fn to_text_lines(r: &ScanReport) -> Vec<(bool, String)> {
         l.push((false, String::new()));
         l.push((true, "Measurements at scan time".into()));
         for m in &r.measurements {
-            l.push((false, format!("{}: {:.2} {} ({})", m.name, m.value, m.unit, m.source)));
+            l.push((
+                false,
+                format!("{}: {:.2} {} ({})", m.name, m.value, m.unit, m.source),
+            ));
         }
     }
     if !r.notes.is_empty() {
@@ -358,7 +559,7 @@ pub struct Comparison {
 }
 
 pub fn compare(older: &ScanReport, newer: &ScanReport) -> Comparison {
-    let key = |d: &DtcFinding| (d.code.clone(), format!("{:?}", d.kind).to_lowercase());
+    let key = |d: &DtcFinding| (d.code.clone(), d.kind.label().to_string());
     let a: Vec<_> = older.dtcs.iter().map(key).collect();
     let b: Vec<_> = newer.dtcs.iter().map(key).collect();
     let mut c = Comparison {

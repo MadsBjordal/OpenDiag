@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The OpenDiag window may call the engine and listen to its events. Nothing else.",
+  "windows": ["main"],
+  "permissions": ["core:default", "core:event:default"]
+}

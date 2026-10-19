@@ -15,7 +15,13 @@ fn talk(sim: &mut SimAdapter, cmd: &str) -> String {
 }
 
 fn sim(profile: VehicleProfile) -> (SimAdapter, SimControl) {
-    SimAdapter::new(profile, SimSettings { latency_ms: 0, ..Default::default() })
+    SimAdapter::new(
+        profile,
+        SimSettings {
+            latency_ms: 0,
+            ..Default::default()
+        },
+    )
 }
 
 #[test]
@@ -54,7 +60,11 @@ fn refuses_to_clear_while_running_then_clears() {
         talk(&mut s, c);
     }
     assert!(talk(&mut s, "04").starts_with("7F 04 22"));
-    ctl.set(SimSettings { engine_running: false, latency_ms: 0, ..Default::default() });
+    ctl.set(SimSettings {
+        engine_running: false,
+        latency_ms: 0,
+        ..Default::default()
+    });
     assert!(talk(&mut s, "04").starts_with("44"));
     assert!(talk(&mut s, "03").starts_with("43 00"));
     // Permanent codes survive a clear.
@@ -121,7 +131,10 @@ fn faults() {
 
 #[test]
 fn clone_adapter() {
-    let mut set = SimSettings { latency_ms: 0, ..Default::default() };
+    let mut set = SimSettings {
+        latency_ms: 0,
+        ..Default::default()
+    };
     set.faults.clone_adapter = true;
     let (mut s, _) = SimAdapter::new(profiles::car(), set);
     assert!(talk(&mut s, "ATZ").contains("v1.5"));

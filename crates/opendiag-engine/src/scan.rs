@@ -60,11 +60,21 @@ pub(crate) struct DtcRead {
 /// Reads stored, pending and permanent codes from every ECU.
 pub(crate) fn read_all_dtcs(c: &mut Conn) -> DtcRead {
     let is_can = c.elm.is_can();
-    let mut out = DtcRead { findings: Vec::new(), answered: Vec::new(), errors: Vec::new(), permanent_supported: false };
-    for (sid, kind) in [(0x03u8, DtcKind::Stored), (0x07, DtcKind::Pending), (0x0A, DtcKind::Permanent)] {
+    let mut out = DtcRead {
+        findings: Vec::new(),
+        answered: Vec::new(),
+        errors: Vec::new(),
+        permanent_supported: false,
+    };
+    for (sid, kind) in [
+        (0x03u8, DtcKind::Stored),
+        (0x07, DtcKind::Pending),
+        (0x0A, DtcKind::Permanent),
+    ] {
         match c.req(&[sid]) {
             Ok(msgs) => {
-                let mut per_ecu: std::collections::BTreeMap<String, Vec<&EcuMessage>> = Default::default();
+                let mut per_ecu: std::collections::BTreeMap<String, Vec<&EcuMessage>> =
+                    Default::default();
                 for m in &msgs {
                     if m.data.first() == Some(&(sid + 0x40)) {
                         per_ecu.entry(m.ecu.clone()).or_default().push(m);
@@ -88,17 +98,23 @@ pub(crate) fn read_all_dtcs(c: &mut Conn) -> DtcRead {
                 }
             }
             Err(ElmError::NoData) => {}
-            Err(e) => out.errors.push(format!("{}: {e}", match sid {
-                0x03 => "Stored codes",
-                0x07 => "Pending codes",
-                _ => "Permanent codes",
-            })),
+            Err(e) => out.errors.push(format!(
+                "{}: {e}",
+                match sid {
+                    0x03 => "Stored codes",
+                    0x07 => "Pending codes",
+                    _ => "Permanent codes",
+                }
+            )),
         }
     }
     out
 }
 
-pub(crate) fn read_readiness(c: &mut Conn, errors: &mut Vec<String>) -> Vec<(String, readiness::MonitorStatus)> {
+pub(crate) fn read_readiness(
+    c: &mut Conn,
+    errors: &mut Vec<String>,
+) -> Vec<(String, readiness::MonitorStatus)> {
     let mut out = Vec::new();
     match c.req(&[0x01, 0x01]) {
         Ok(msgs) => {
@@ -129,7 +145,11 @@ pub(crate) fn read_freeze_frames(c: &mut Conn, errors: &mut Vec<String>) -> Vec<
     for m in msgs {
         if m.data.len() >= 5 && m.data[0] == 0x42 && m.data[1] == 0x02 {
             if let Some(d) = opendiag_obd::dtc::Dtc::from_bytes(m.data[3], m.data[4]) {
-                frames.push(FreezeFrame { ecu: m.ecu.clone(), dtc: Some(d.0), values: Vec::new() });
+                frames.push(FreezeFrame {
+                    ecu: m.ecu.clone(),
+                    dtc: Some(d.0),
+                    values: Vec::new(),
+                });
             }
         }
     }
@@ -154,8 +174,18 @@ pub(crate) fn read_freeze_frames(c: &mut Conn, errors: &mut Vec<String>) -> Vec<
             Ok(msgs) => {
                 for m in msgs {
                     if m.data.len() >= 3 && m.data[0] == 0x42 && m.data[1] == p {
-                        if let (Some(v), Some(f)) = (def.decode(&m.data[3..]), frames.iter_mut().find(|f| f.ecu == m.ecu)) {
-                            f.values.push(Measurement { key: def.key.into(), name: def.name.into(), value: v, unit: def.unit.into(), ecu: m.ecu.clone(), source: "vehicle (freeze frame)".into() });
+                        if let (Some(v), Some(f)) = (
+                            def.decode(&m.data[3..]),
+                            frames.iter_mut().find(|f| f.ecu == m.ecu),
+                        ) {
+                            f.values.push(Measurement {
+                                key: def.key.into(),
+                                name: def.name.into(),
+                                value: v,
+                                unit: def.unit.into(),
+                                ecu: m.ecu.clone(),
+                                source: "vehicle (freeze frame)".into(),
+                            });
                         }
                     }
                 }
@@ -186,7 +216,11 @@ fn read_identity(c: &mut Conn, errors: &mut Vec<String>) -> VehicleIdentity {
             for m in msgs {
                 if m.data.len() >= 6 && m.data[0] == 0x49 && m.data[1] == 0x00 {
                     // CAN answers carry the 4 bitmap bytes right after the PID; legacy adds a message count byte.
-                    let bm = if is_can { &m.data[2..6] } else { &m.data[m.data.len() - 4..] };
+                    let bm = if is_can {
+                        &m.data[2..6]
+                    } else {
+                        &m.data[m.data.len() - 4..]
+                    };
                     info_pids.insert(m.ecu.clone(), pid::supported_from_bitmap(0, bm));
                 }
             }
@@ -194,7 +228,11 @@ fn read_identity(c: &mut Conn, errors: &mut Vec<String>) -> VehicleIdentity {
         Err(ElmError::NoData) => {}
         Err(e) => errors.push(format!("Vehicle information: {e}")),
     }
-    for (p, label) in [(0x02u8, "VIN"), (0x04, "Calibration ID"), (0x0A, "ECU name")] {
+    for (p, label) in [
+        (0x02u8, "VIN"),
+        (0x04, "Calibration ID"),
+        (0x0A, "ECU name"),
+    ] {
         if !info_pids.values().any(|s| s.contains(&p)) {
             continue;
         }
@@ -207,7 +245,9 @@ fn read_identity(c: &mut Conn, errors: &mut Vec<String>) -> VehicleIdentity {
                 };
                 for ecu in ecus {
                     let mine: Vec<&EcuMessage> = msgs.iter().filter(|m| m.ecu == ecu).collect();
-                    let Some(text) = vin::info_text(&mine, p, is_can) else { continue };
+                    let Some(text) = vin::info_text(&mine, p, is_can) else {
+                        continue;
+                    };
                     match p {
                         0x02 => {
                             if ident.vin.is_none() {
@@ -232,7 +272,10 @@ fn read_identity(c: &mut Conn, errors: &mut Vec<String>) -> VehicleIdentity {
             continue;
         }
         if let Ok(msgs) = c.req(&[0x01, p]) {
-            if let Some(m) = msgs.iter().find(|m| m.data.len() >= 3 && m.data[0] == 0x41 && m.data[1] == p) {
+            if let Some(m) = msgs
+                .iter()
+                .find(|m| m.data.len() >= 3 && m.data[0] == 0x41 && m.data[1] == p)
+            {
                 if set == 0 {
                     ident.obd_standard = Some(pid::obd_standard(m.data[2]).into());
                 } else {
@@ -248,7 +291,13 @@ impl Engine {
     /// Runs the full scan. Every step that fails is reported, never hidden.
     pub fn scan(&mut self, progress: &mut dyn FnMut(ScanProgress)) -> Result<ScanReport> {
         let total = STEPS.len() as u8;
-        let mut step = |n: u8| progress(ScanProgress { step: n, total, label: STEPS[(n - 1) as usize].into() });
+        let mut step = |n: u8| {
+            progress(ScanProgress {
+                step: n,
+                total,
+                label: STEPS[(n - 1) as usize].into(),
+            })
+        };
         step(1);
         let library_explain = |code: &str, lib: &opendiag_knowledge::DtcLibrary| lib.explain(code);
         let platform = self.platform.clone();
@@ -264,9 +313,13 @@ impl Engine {
         let identity = read_identity(c, &mut errors);
         if let Some(v) = &identity.vin {
             warnings.extend(v.warnings.iter().cloned());
-            c.vin = Some(v.vin.clone()).filter(|_| v.valid_format);
+            c.vin = v.valid_format.then(|| v.vin.clone());
         }
-        c.calids = identity.calibration_ids.iter().map(|(_, id)| id.clone()).collect();
+        c.calids = identity
+            .calibration_ids
+            .iter()
+            .map(|(_, id)| id.clone())
+            .collect();
         step(4);
         let ecus = c.ecus.clone();
         step(5);
@@ -289,10 +342,21 @@ impl Engine {
         }
         if c.elm.capabilities().voltage_reading == opendiag_core::Tri::Yes {
             if let Some(v) = c.elm.read_voltage() {
-                measurements.push(Measurement { key: "adapter_voltage".into(), name: "Battery voltage at the diagnostic socket".into(), value: v, unit: "V".into(), ecu: String::new(), source: "adapter".into() });
+                measurements.push(Measurement {
+                    key: "adapter_voltage".into(),
+                    name: "Battery voltage at the diagnostic socket".into(),
+                    value: v,
+                    unit: "V".into(),
+                    ecu: String::new(),
+                    source: "adapter".into(),
+                });
             }
         }
-        if let Some(v) = measurements.iter().find(|m| m.key == "adapter_voltage" || m.key == "module_voltage").map(|m| m.value) {
+        if let Some(v) = measurements
+            .iter()
+            .find(|m| m.key == "adapter_voltage" || m.key == "module_voltage")
+            .map(|m| m.value)
+        {
             if v < 11.8 {
                 warnings.push(format!("Battery voltage is low ({v:.1} V). Low voltage can cause false fault codes and unreliable communication."));
             }
@@ -308,7 +372,13 @@ impl Engine {
         let findings: Vec<DtcFinding> = dtcs
             .findings
             .iter()
-            .map(|(code, kind, ecu)| DtcFinding { code: code.clone(), ecu: ecu.clone(), ecu_label: ecu_label(ecu), kind: *kind, explanation: library_explain(code, lib) })
+            .map(|(code, kind, ecu)| DtcFinding {
+                code: code.clone(),
+                ecu: ecu.clone(),
+                ecu_label: ecu_label(ecu),
+                kind: *kind,
+                explanation: library_explain(code, lib),
+            })
             .collect();
 
         let mut modules: Vec<ModuleResult> = ecus
@@ -319,7 +389,11 @@ impl Engine {
                     category: category(e).into(),
                     ecu: Some(e.clone()),
                     label: format!("{} ({})", category(e), ecu_label(e)),
-                    status: if answered { ModuleStatus::Scanned } else { ModuleStatus::PartlyScanned },
+                    status: if answered {
+                        ModuleStatus::Scanned
+                    } else {
+                        ModuleStatus::PartlyScanned
+                    },
                     detail: if answered {
                         "Generic OBD-II: fault codes, readiness and data read.".into()
                     } else {
@@ -338,9 +412,15 @@ impl Engine {
             });
         }
 
-        let scanned = modules.iter().filter(|m| m.status == ModuleStatus::Scanned).count();
+        let scanned = modules
+            .iter()
+            .filter(|m| m.status == ModuleStatus::Scanned)
+            .count();
         let health = if !findings.is_empty() {
-            let stored = findings.iter().filter(|f| f.kind == DtcKind::Stored).count();
+            let stored = findings
+                .iter()
+                .filter(|f| f.kind == DtcKind::Stored)
+                .count();
             Health {
                 verdict: Verdict::FaultsFound,
                 headline: format!("{} fault code(s) found ({} stored)", findings.len(), stored),
@@ -372,7 +452,15 @@ impl Engine {
             .unwrap_or_default()
             .into_iter()
             .filter(|(_, what, _)| what == "clear_dtcs")
-            .map(|(at, what, d)| Operation { at, what, detail: d.get("summary").and_then(|s| s.as_str()).unwrap_or("").to_string() })
+            .map(|(at, what, d)| Operation {
+                at,
+                what,
+                detail: d
+                    .get("summary")
+                    .and_then(|s| s.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+            })
             .collect();
         let report = ScanReport {
             id: uuid::Uuid::new_v4().to_string(),
@@ -404,9 +492,17 @@ impl Engine {
                 let info = report.vehicle.vin.clone();
                 let make = info.as_ref().and_then(|i| i.manufacturer.clone());
                 let label = if simulated {
-                    report.link.name.trim_start_matches("Simulator: ").to_string()
+                    report
+                        .link
+                        .name
+                        .trim_start_matches("Simulator: ")
+                        .to_string()
                 } else {
-                    format!("{} (…{})", make.clone().unwrap_or_else(|| "Vehicle".into()), &v[v.len().saturating_sub(4)..])
+                    format!(
+                        "{} (…{})",
+                        make.clone().unwrap_or_else(|| "Vehicle".into()),
+                        &v[v.len().saturating_sub(4)..]
+                    )
                 };
                 let id = self.store.upsert_vehicle(&opendiag_store::Vehicle {
                     id: 0,
@@ -428,10 +524,24 @@ impl Engine {
         if let Some(c) = self.conn.as_mut() {
             c.vehicle_id = vehicle_id;
         }
-        let value = serde_json::to_value(&report).map_err(|e| crate::EngineError::Store(e.to_string()))?;
-        let report_id = self.store.save_report(Some(session), vehicle_id, &report.title(), &value, simulated, report.dtc_count() as i64)?;
+        let value =
+            serde_json::to_value(&report).map_err(|e| crate::EngineError::Store(e.to_string()))?;
+        let report_id = self.store.save_report(
+            Some(session),
+            vehicle_id,
+            &report.title(),
+            &value,
+            simulated,
+            report.dtc_count() as i64,
+        )?;
         self.store.log_operation(session, "scan", &serde_json::json!({ "report_id": report_id, "dtcs": report.dtc_count(), "verdict": report.health.verdict }))?;
-        let ok = |b: bool| if b { TestResult::Works } else { TestResult::Fails };
+        let ok = |b: bool| {
+            if b {
+                TestResult::Works
+            } else {
+                TestResult::Fails
+            }
+        };
         self.record_result("read_dtcs", ok(!dtcs.answered.is_empty()), "");
         self.record_result("read_vehicle_info", ok(report.vehicle.vin.is_some()), "");
         self.record_result("read_readiness", ok(!report.readiness.is_empty()), "");
@@ -441,7 +551,8 @@ impl Engine {
         self.record_result("adapter_probe", TestResult::Works, "");
         let mut r = report;
         r.id = report_id.to_string();
-        self.store.update_report(report_id, &serde_json::to_value(&r).unwrap_or_default())?;
+        self.store
+            .update_report(report_id, &serde_json::to_value(&r).unwrap_or_default())?;
         Ok(r)
     }
 

@@ -40,7 +40,12 @@ pub fn vin_from_text(text: &str) -> Option<String> {
     if chars.len() < 17 {
         return None;
     }
-    Some(chars[chars.len() - 17..].iter().collect::<String>().to_ascii_uppercase())
+    Some(
+        chars[chars.len() - 17..]
+            .iter()
+            .collect::<String>()
+            .to_ascii_uppercase(),
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -83,7 +88,11 @@ pub fn check_digit(vin: &str) -> Option<char> {
         sum += transliterate(c)? * W[i];
     }
     let r = sum % 11;
-    Some(if r == 10 { 'X' } else { char::from_digit(r, 10)? })
+    Some(if r == 10 {
+        'X'
+    } else {
+        char::from_digit(r, 10)?
+    })
 }
 
 fn model_years(code: char) -> Vec<u16> {
@@ -144,9 +153,13 @@ pub fn decode(vin: &str) -> VinInfo {
     let vin = vin.trim().to_ascii_uppercase();
     let mut warnings = Vec::new();
     let valid_format = vin.len() == 17
-        && vin.chars().all(|c| c.is_ascii_alphanumeric() && !matches!(c, 'I' | 'O' | 'Q'));
+        && vin
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() && !matches!(c, 'I' | 'O' | 'Q'));
     if !valid_format {
-        warnings.push("This is not a valid 17-character VIN (letters I, O and Q are never used).".into());
+        warnings.push(
+            "This is not a valid 17-character VIN (letters I, O and Q are never used).".into(),
+        );
     }
     let check_digit_ok = if valid_format {
         check_digit(&vin).map(|c| vin.chars().nth(8) == Some(c))
@@ -161,9 +174,24 @@ pub fn decode(vin: &str) -> VinInfo {
         );
     }
     let wmi: String = vin.chars().take(3).collect();
-    let manufacturer = WMI.iter().find(|(w, _)| *w == wmi).map(|(_, m)| m.to_string());
-    let model_years = if valid_format { model_years(vin.chars().nth(9).unwrap_or('0')) } else { Vec::new() };
-    VinInfo { vin, valid_format, check_digit_ok, wmi, manufacturer, model_years, warnings }
+    let manufacturer = WMI
+        .iter()
+        .find(|(w, _)| *w == wmi)
+        .map(|(_, m)| m.to_string());
+    let model_years = if valid_format {
+        model_years(vin.chars().nth(9).unwrap_or('0'))
+    } else {
+        Vec::new()
+    };
+    VinInfo {
+        vin,
+        valid_format,
+        check_digit_ok,
+        wmi,
+        manufacturer,
+        model_years,
+        warnings,
+    }
 }
 
 #[cfg(test)]
@@ -195,7 +223,10 @@ mod tests {
     fn joins_can_and_legacy_vin() {
         let mut can = vec![0x49, 0x02, 0x01];
         can.extend_from_slice(b"1M8GDM9AXKP042788");
-        let m = EcuMessage { ecu: "7E8".into(), data: can };
+        let m = EcuMessage {
+            ecu: "7E8".into(),
+            data: can,
+        };
         let t = info_text(&[&m], 0x02, true).unwrap();
         assert_eq!(vin_from_text(&t).unwrap(), "1M8GDM9AXKP042788");
 
@@ -206,7 +237,10 @@ mod tests {
             .map(|(i, c)| {
                 let mut d = vec![0x49, 0x02, i as u8 + 1];
                 d.extend_from_slice(c);
-                EcuMessage { ecu: "10".into(), data: d }
+                EcuMessage {
+                    ecu: "10".into(),
+                    data: d,
+                }
             })
             .rev() // out of order on purpose
             .collect();

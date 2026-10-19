@@ -24,7 +24,11 @@ impl TcpLink {
             ))
         })?;
         stream.set_nodelay(true).ok();
-        Ok(Self { stream, name: address.to_string(), kind })
+        Ok(Self {
+            stream,
+            name: address.to_string(),
+            kind,
+        })
     }
 }
 
@@ -46,7 +50,11 @@ impl ByteLink for TcpLink {
     }
 
     fn info(&self) -> LinkInfo {
-        LinkInfo { kind: self.kind, name: self.name.clone(), simulated: false }
+        LinkInfo {
+            kind: self.kind,
+            name: self.name.clone(),
+            simulated: false,
+        }
     }
 
     fn close(&mut self) {
@@ -56,9 +64,10 @@ impl ByteLink for TcpLink {
 
 fn io_err(e: std::io::Error) -> LinkError {
     match e.kind() {
-        ErrorKind::ConnectionReset | ErrorKind::ConnectionAborted | ErrorKind::BrokenPipe | ErrorKind::NotConnected => {
-            LinkError::Disconnected
-        }
+        ErrorKind::ConnectionReset
+        | ErrorKind::ConnectionAborted
+        | ErrorKind::BrokenPipe
+        | ErrorKind::NotConnected => LinkError::Disconnected,
         ErrorKind::PermissionDenied => LinkError::Permission(e.to_string()),
         _ => LinkError::Io(e.to_string()),
     }
@@ -91,7 +100,10 @@ mod tests {
         assert_eq!(got, b"ELM327 v1.4b\r\r>");
         server.join().unwrap();
         // The adapter closed the socket.
-        assert_eq!(link.read(&mut buf, Duration::from_millis(200)), Err(LinkError::Disconnected));
+        assert_eq!(
+            link.read(&mut buf, Duration::from_millis(200)),
+            Err(LinkError::Disconnected)
+        );
         assert!(!link.info().simulated);
     }
 

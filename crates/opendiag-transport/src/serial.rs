@@ -20,14 +20,22 @@ impl SerialLink {
             .timeout(Duration::from_millis(50))
             .open()
             .map_err(|e| match e.kind() {
-                serialport::ErrorKind::Io(ErrorKind::PermissionDenied) => LinkError::Permission(format!(
+                serialport::ErrorKind::Io(ErrorKind::PermissionDenied) => {
+                    LinkError::Permission(format!(
                     "{path}: permission denied. On Linux add yourself to the \"dialout\" group; \
                      on Windows close other programs using the port."
-                )),
-                serialport::ErrorKind::NoDevice => LinkError::Open(format!("{path}: the device is gone (unplugged?)")),
+                ))
+                }
+                serialport::ErrorKind::NoDevice => {
+                    LinkError::Open(format!("{path}: the device is gone (unplugged?)"))
+                }
                 _ => LinkError::Open(format!("{path}: {e}")),
             })?;
-        Ok(Self { port, name: format!("{path} @ {baud}"), kind })
+        Ok(Self {
+            port,
+            name: format!("{path} @ {baud}"),
+            kind,
+        })
     }
 
     /// Opens the port at the first baud rate where an adapter answers `ATI`
@@ -40,7 +48,9 @@ impl SerialLink {
                     if link.answers_ati() {
                         return Ok((link, baud));
                     }
-                    last = Some(LinkError::Open(format!("{path}: no ELM327-compatible answer at any common speed")));
+                    last = Some(LinkError::Open(format!(
+                        "{path}: no ELM327-compatible answer at any common speed"
+                    )));
                 }
                 Err(e @ LinkError::Permission(_)) => return Err(e),
                 Err(e) => last = Some(e),
@@ -81,7 +91,9 @@ impl ByteLink for SerialLink {
     }
 
     fn read(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize, LinkError> {
-        self.port.set_timeout(timeout.max(Duration::from_millis(1))).map_err(|e| LinkError::Io(e.to_string()))?;
+        self.port
+            .set_timeout(timeout.max(Duration::from_millis(1)))
+            .map_err(|e| LinkError::Io(e.to_string()))?;
         match self.port.read(buf) {
             Ok(n) => Ok(n),
             Err(e) if e.kind() == ErrorKind::TimedOut || e.kind() == ErrorKind::WouldBlock => Ok(0),
@@ -90,13 +102,19 @@ impl ByteLink for SerialLink {
     }
 
     fn info(&self) -> LinkInfo {
-        LinkInfo { kind: self.kind, name: self.name.clone(), simulated: false }
+        LinkInfo {
+            kind: self.kind,
+            name: self.name.clone(),
+            simulated: false,
+        }
     }
 }
 
 fn io_err(e: std::io::Error) -> LinkError {
     match e.kind() {
-        ErrorKind::BrokenPipe | ErrorKind::NotConnected | ErrorKind::UnexpectedEof => LinkError::Disconnected,
+        ErrorKind::BrokenPipe | ErrorKind::NotConnected | ErrorKind::UnexpectedEof => {
+            LinkError::Disconnected
+        }
         ErrorKind::PermissionDenied => LinkError::Permission(e.to_string()),
         _ => LinkError::Io(e.to_string()),
     }
@@ -111,11 +129,21 @@ pub fn discover() -> Vec<DeviceCandidate> {
         .map(|p| {
             let (kind, detail) = match &p.port_type {
                 SerialPortType::UsbPort(u) => {
-                    let chip = usb_chip_vendor(u.vid).map(|c| format!(" · {c} chip")).unwrap_or_default();
-                    let product = u.product.clone().unwrap_or_else(|| "USB serial device".into());
-                    (LinkKind::UsbSerial, format!("{product} (USB {:04X}:{:04X}){chip}", u.vid, u.pid))
+                    let chip = usb_chip_vendor(u.vid)
+                        .map(|c| format!(" · {c} chip"))
+                        .unwrap_or_default();
+                    let product = u
+                        .product
+                        .clone()
+                        .unwrap_or_else(|| "USB serial device".into());
+                    (
+                        LinkKind::UsbSerial,
+                        format!("{product} (USB {:04X}:{:04X}){chip}", u.vid, u.pid),
+                    )
                 }
-                SerialPortType::BluetoothPort => (LinkKind::BluetoothClassic, "Bluetooth serial port".into()),
+                SerialPortType::BluetoothPort => {
+                    (LinkKind::BluetoothClassic, "Bluetooth serial port".into())
+                }
                 SerialPortType::PciPort => (LinkKind::UsbSerial, "Built-in serial port".into()),
                 SerialPortType::Unknown => (LinkKind::UsbSerial, "Serial port".into()),
             };

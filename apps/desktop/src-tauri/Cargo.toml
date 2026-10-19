@@ -1,0 +1,26 @@
+[package]
+name = "opendiag-desktop"
+description = "OpenDiag app shell (Tauri) for Windows, Linux, macOS and Android."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "opendiag_app"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde_json.workspace = true
+base64 = "0.22"
+opendiag-api = { workspace = true, default-features = false }
+opendiag-engine = { workspace = true, default-features = false }
+opendiag-store.workspace = true
+tauri-plugin-opendiag-transport = { path = "../../../plugins/tauri-plugin-opendiag-transport" }
+
+# Serial ports exist on desktops; Android reaches USB and Bluetooth through the transport plugin.
+[target.'cfg(not(target_os = "android"))'.dependencies]
+opendiag-api = { workspace = true, features = ["serial"] }

@@ -1,0 +1,63 @@
+// Browser smoke test: run the bridge first (cargo run -p opendiag-cli -- serve --db /tmp/e2e.db --ui apps/ui/dist),
+// then: node scripts/e2e-browser.mjs <screenshot dir>. Needs the playwright package (npm i -g playwright).
+import { chromium } from 'playwright';
+const SP = process.argv[2];
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 860 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+const shot = (n) => page.screenshot({ path: `${SP}/shots/${n}.png`, fullPage: false });
+await page.goto('http://127.0.0.1:7878/');
+await page.getByRole('dialog').waitFor();
+await shot('01-notice');
+await page.getByRole('button', { name: 'Continue' }).click();
+await shot('02-home');
+await page.getByRole('button', { name: /Connect to Vehicle/ }).click();
+await page.getByRole('button', { name: /Simulator/ }).click();
+await page.getByText('SIMULATED generic OBD-II petrol car').waitFor();
+await page.locator('.stack > .card').filter({ hasText: 'SIMULATED generic OBD-II petrol car' }).getByRole('button', { name: 'Connect' }).click();
+await page.getByText('Step 3 · Adapter').waitFor();
+await shot('03-connected');
+await page.getByRole('button', { name: /Start the scan/ }).click();
+await page.getByText('fault code(s) found').waitFor({ timeout: 20000 });
+await shot('04-scan');
+await page.screenshot({ path: `${SP}/shots/04b-scan-full.png`, fullPage: true });
+await page.getByRole('button', { name: /Fault codes and clearing/ }).click();
+await page.getByRole('button', { name: 'Clear codes…' }).click();
+await page.getByText('These codes will be erased').waitFor();
+await shot('05-clear-plan');
+for (const cb of await page.getByRole('dialog').getByRole('checkbox').all()) await cb.check();
+await page.getByRole('button', { name: 'Clear the codes' }).click();
+await page.getByText('Nothing was cleared').waitFor();
+await shot('06-clear-blocked');
+await page.getByRole('button', { name: 'Close' }).click();
+// Live data
+await page.goto('http://127.0.0.1:7878/#/live');
+await page.getByRole('button', { name: /Start/ }).click();
+await page.waitForTimeout(3000);
+await shot('07-live');
+// Mobile layout
+await page.setViewportSize({ width: 390, height: 844 });
+await page.goto('http://127.0.0.1:7878/#/home');
+await page.waitForTimeout(500);
+await shot('08-mobile-home');
+// Dark mode + compat
+await page.setViewportSize({ width: 1280, height: 860 });
+await page.goto('http://127.0.0.1:7878/#/settings');
+await page.getByLabel('Theme').selectOption('dark');
+await page.goto('http://127.0.0.1:7878/#/compat');
+await page.getByText('This connection').waitFor();
+await page.waitForTimeout(500);
+await shot('09-compat-dark');
+await page.goto('http://127.0.0.1:7878/#/guided');
+await page.getByRole('button', { name: /Heated grips/ }).first().click();
+await page.getByRole('button', { name: 'Yes', exact: true }).click();
+await page.getByRole('button', { name: 'No', exact: true }).click();
+await page.getByLabel(/Your measurement/).fill('14.1');
+await page.getByRole('button', { name: 'Check' }).click();
+await page.waitForTimeout(300);
+await shot('10-guided');
+await page.getByLabel('Theme').selectOption?.('light').catch(() => {});
+console.log(JSON.stringify({ errors }, null, 1));
+await browser.close();

@@ -1,0 +1,20 @@
+name: Vehicle definition / knowledge contribution
+description: Propose a vehicle definition, fault code explanation or guided procedure.
+labels: [definitions]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What does it add? }
+    validations: { required: true }
+  - type: textarea
+    id: source
+    attributes: { label: "Source / provenance (standard, public manufacturer information, your own testing on your own vehicle)" }
+    validations: { required: true }
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Confirmations
+      options:
+        - label: It contains no copied service manual text, manufacturer database content or ECU dumps.
+          required: true
+        - label: "`opendiag validate-definition` passes (for definitions)."

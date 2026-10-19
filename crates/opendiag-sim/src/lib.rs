@@ -51,7 +51,11 @@ pub struct SimSettings {
 
 impl Default for SimSettings {
     fn default() -> Self {
-        Self { engine_running: true, faults: Faults::default(), latency_ms: 15 }
+        Self {
+            engine_running: true,
+            faults: Faults::default(),
+            latency_ms: 15,
+        }
     }
 }
 
@@ -105,7 +109,10 @@ pub struct SimAdapter {
 impl SimAdapter {
     pub fn new(profile: VehicleProfile, settings: SimSettings) -> (Self, SimControl) {
         let state = Arc::new(Mutex::new(State {
-            vehicle: Vehicle { profile, cleared: false },
+            vehicle: Vehicle {
+                profile,
+                cleared: false,
+            },
             settings,
             echo: true,
             linefeeds: true,
@@ -117,7 +124,14 @@ impl SimAdapter {
             disconnected: false,
             requests: 0,
         }));
-        (Self { state: state.clone(), out: VecDeque::new(), line: Vec::new() }, SimControl(state))
+        (
+            Self {
+                state: state.clone(),
+                out: VecDeque::new(),
+                line: Vec::new(),
+            },
+            SimControl(state),
+        )
     }
 
     fn handle_line(&mut self, cmd: &str) {
@@ -153,7 +167,9 @@ impl ByteLink for SimAdapter {
         for &b in data {
             match b {
                 b'\r' => {
-                    let cmd = String::from_utf8_lossy(&std::mem::take(&mut self.line)).trim().to_string();
+                    let cmd = String::from_utf8_lossy(&std::mem::take(&mut self.line))
+                        .trim()
+                        .to_string();
                     if cmd.is_empty() {
                         self.out.push_back(b'>');
                     } else {
@@ -184,7 +200,11 @@ impl ByteLink for SimAdapter {
 
     fn info(&self) -> LinkInfo {
         let st = self.state.lock().unwrap();
-        LinkInfo { kind: LinkKind::Simulated, name: format!("Simulator: {}", st.vehicle.profile.name), simulated: true }
+        LinkInfo {
+            kind: LinkKind::Simulated,
+            name: format!("Simulator: {}", st.vehicle.profile.name),
+            simulated: true,
+        }
     }
 }
 
@@ -209,9 +229,20 @@ impl State {
             return match at {
                 "Z" | "WS" | "D" => {
                     self.reset();
-                    Some(vec![String::new(), if clone { "ELM327 v1.5".into() } else { "ELM327 v1.4b".into() }])
+                    Some(vec![
+                        String::new(),
+                        if clone {
+                            "ELM327 v1.5".into()
+                        } else {
+                            "ELM327 v1.4b".into()
+                        },
+                    ])
                 }
-                "I" => Some(vec![if clone { "ELM327 v1.5".into() } else { "ELM327 v1.4b".into() }]),
+                "I" => Some(vec![if clone {
+                    "ELM327 v1.5".into()
+                } else {
+                    "ELM327 v1.4b".into()
+                }]),
                 "@1" if !clone => Some(vec!["OpenDiag simulator (SIMULATED)".into()]),
                 "E0" | "E1" => {
                     self.echo = at == "E1";
@@ -231,13 +262,23 @@ impl State {
                 }
                 "H0" if clone => self.ok(),
                 "RV" if !clone => {
-                    let v = signals::at(0.0, self.vehicle.profile.engine, self.settings.engine_running, self.settings.faults.low_voltage).voltage;
+                    let v = signals::at(
+                        0.0,
+                        self.vehicle.profile.engine,
+                        self.settings.engine_running,
+                        self.settings.faults.low_voltage,
+                    )
+                    .voltage;
                     Some(vec![format!("{v:.1}V")])
                 }
                 "DP" => Some(vec![self.vehicle.profile.protocol.label().to_string()]),
                 "DPN" => {
                     let n = self.vehicle.profile.protocol.elm_number();
-                    Some(vec![if self.protocol_choice.is_none() { format!("A{n}") } else { format!("{n}") }])
+                    Some(vec![if self.protocol_choice.is_none() {
+                        format!("A{n}")
+                    } else {
+                        format!("{n}")
+                    }])
                 }
                 "PC" => {
                     self.connected = false;
@@ -292,7 +333,10 @@ impl State {
         if !self.connected {
             if let Some(choice) = self.protocol_choice {
                 if choice != proto.elm_number() {
-                    return Some(vec![if ObdProtocol::from_elm_number(choice).map(|p| p.is_can()).unwrap_or(false) {
+                    return Some(vec![if ObdProtocol::from_elm_number(choice)
+                        .map(|p| p.is_can())
+                        .unwrap_or(false)
+                    {
                         "CAN ERROR".into()
                     } else {
                         "BUS INIT: ...ERROR".into()
@@ -313,7 +357,11 @@ impl State {
             return Some(vec!["NO DATA".into()]);
         }
         if f.bus_error {
-            prefix.push(if proto.is_can() { "CAN ERROR".into() } else { "BUS ERROR".into() });
+            prefix.push(if proto.is_can() {
+                "CAN ERROR".into()
+            } else {
+                "BUS ERROR".into()
+            });
             return Some(prefix);
         }
         let t = self.started.elapsed().as_secs_f64();
@@ -341,7 +389,12 @@ impl State {
     fn ecu_answer(&mut self, ecu: &SimEcu, req: &[u8], t: f64) -> Vec<Vec<u8>> {
         let is_can = self.vehicle.profile.protocol.is_can();
         let running = self.settings.engine_running;
-        let sig = signals::at(t, self.vehicle.profile.engine, running, self.settings.faults.low_voltage);
+        let sig = signals::at(
+            t,
+            self.vehicle.profile.engine,
+            running,
+            self.settings.faults.low_voltage,
+        );
         let sid = req[0];
         match sid {
             0x01 | 0x02 if req.len() >= 2 => {
@@ -350,10 +403,19 @@ impl State {
                 if freeze && (self.vehicle.cleared || ecu.freeze_dtc.is_none()) {
                     return vec![];
                 }
-                let resp_head: Vec<u8> = if freeze { vec![0x42, pid, 0x00] } else { vec![0x41, pid] };
-                let data: Option<Vec<u8>> = if pid % 0x20 == 0 {
+                let resp_head: Vec<u8> = if freeze {
+                    vec![0x42, pid, 0x00]
+                } else {
+                    vec![0x41, pid]
+                };
+                let data: Option<Vec<u8>> = if pid.is_multiple_of(0x20) {
                     let supported: Vec<u8> = if freeze {
-                        let mut v: Vec<u8> = ecu.pids.iter().copied().filter(|p| *p != 0x01 && *p != 0x1C).collect();
+                        let mut v: Vec<u8> = ecu
+                            .pids
+                            .iter()
+                            .copied()
+                            .filter(|p| *p != 0x01 && *p != 0x1C)
+                            .collect();
                         v.push(0x02);
                         v
                     } else {
@@ -369,15 +431,38 @@ impl State {
                     let bm = bitmap_for(pid, &s);
                     (bm != [0; 4] || pid == 0).then(|| bm.to_vec())
                 } else if freeze && pid == 0x02 {
-                    ecu.freeze_dtc.as_ref().and_then(|d| Dtc(d.clone()).to_bytes()).map(|b| b.to_vec())
+                    ecu.freeze_dtc
+                        .as_ref()
+                        .and_then(|d| Dtc(d.clone()).to_bytes())
+                        .map(|b| b.to_vec())
                 } else if !ecu.pids.contains(&pid) {
                     None
                 } else if pid == 0x01 {
                     let diesel = self.vehicle.profile.engine == profiles::Engine::Diesel;
-                    let stored = if self.vehicle.cleared { 0 } else { ecu.stored.len() as u8 };
-                    let incomplete = if self.vehicle.cleared { ecu.monitors_available } else { ecu.monitors_incomplete };
-                    let mil = stored > 0 && ecu.address == self.vehicle.profile.ecus[0].address && self.vehicle.profile.kind != profiles::VehicleKind::Motorcycle;
-                    Some(readiness::encode(mil, stored, diesel, ecu.monitors_available, incomplete, if self.vehicle.cleared { 0x01 } else { 0 }).to_vec())
+                    let stored = if self.vehicle.cleared {
+                        0
+                    } else {
+                        ecu.stored.len() as u8
+                    };
+                    let incomplete = if self.vehicle.cleared {
+                        ecu.monitors_available
+                    } else {
+                        ecu.monitors_incomplete
+                    };
+                    let mil = stored > 0
+                        && ecu.address == self.vehicle.profile.ecus[0].address
+                        && self.vehicle.profile.kind != profiles::VehicleKind::Motorcycle;
+                    Some(
+                        readiness::encode(
+                            mil,
+                            stored,
+                            diesel,
+                            ecu.monitors_available,
+                            incomplete,
+                            if self.vehicle.cleared { 0x01 } else { 0 },
+                        )
+                        .to_vec(),
+                    )
                 } else {
                     let s = if freeze {
                         // Frozen at the moment of the fault: warm engine at moderate load.
@@ -385,7 +470,12 @@ impl State {
                     } else {
                         sig
                     };
-                    signals::encode(pid, &s, self.vehicle.profile.year, self.vehicle.profile.engine)
+                    signals::encode(
+                        pid,
+                        &s,
+                        self.vehicle.profile.year,
+                        self.vehicle.profile.engine,
+                    )
                 };
                 match data {
                     Some(d) => {
@@ -440,17 +530,32 @@ impl State {
                         }
                         (0x00, Some(bitmap_for(0, &s).to_vec()))
                     }
-                    0x02 => (0x02, ecu.vin.as_ref().map(|v| if wrong { text("SMLTD0OIQ00000001") } else { text(v) })),
-                    0x04 => (0x04, ecu.calid.as_ref().map(|c| {
-                        let mut b = text(c);
-                        b.resize(16, 0);
-                        b
-                    })),
-                    0x0A => (0x0A, ecu.ecu_name.as_ref().map(|n| {
-                        let mut b = text(n);
-                        b.resize(20, 0);
-                        b
-                    })),
+                    0x02 => (
+                        0x02,
+                        ecu.vin.as_ref().map(|v| {
+                            if wrong {
+                                text("SMLTD0OIQ00000001")
+                            } else {
+                                text(v)
+                            }
+                        }),
+                    ),
+                    0x04 => (
+                        0x04,
+                        ecu.calid.as_ref().map(|c| {
+                            let mut b = text(c);
+                            b.resize(16, 0);
+                            b
+                        }),
+                    ),
+                    0x0A => (
+                        0x0A,
+                        ecu.ecu_name.as_ref().map(|n| {
+                            let mut b = text(n);
+                            b.resize(20, 0);
+                            b
+                        }),
+                    ),
                     _ => (0, None),
                 };
                 match body {
@@ -484,9 +589,15 @@ impl State {
     /// Turns one message into the text lines an ELM327 prints for it.
     fn format(&self, address: u32, msg: &[u8], proto: ObdProtocol) -> Vec<String> {
         let sep = if self.spaces { " " } else { "" };
-        let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02X}")).collect::<Vec<_>>().join(sep);
+        let hex = |b: &[u8]| {
+            b.iter()
+                .map(|x| format!("{x:02X}"))
+                .collect::<Vec<_>>()
+                .join(sep)
+        };
         if proto.is_can() {
-            let frames = opendiag_isotp::segment(msg, Some(0x00)).expect("short simulator messages");
+            let frames =
+                opendiag_isotp::segment(msg, Some(0x00)).expect("short simulator messages");
             let mut frames = frames;
             if self.settings.faults.truncated && frames.len() > 1 {
                 frames.pop();
@@ -494,7 +605,13 @@ impl State {
             let hdr = if proto.is_29bit() {
                 let a = 0x18DAF100 | (address & 0xFF);
                 if self.spaces {
-                    format!("{:02X} {:02X} {:02X} {:02X}", a >> 24, (a >> 16) & 0xFF, (a >> 8) & 0xFF, a & 0xFF)
+                    format!(
+                        "{:02X} {:02X} {:02X} {:02X}",
+                        a >> 24,
+                        (a >> 16) & 0xFF,
+                        (a >> 8) & 0xFF,
+                        a & 0xFF
+                    )
                 } else {
                     format!("{a:08X}")
                 }
@@ -502,7 +619,10 @@ impl State {
                 format!("{address:03X}")
             };
             if self.headers {
-                frames.iter().map(|f| format!("{hdr}{sep}{}", hex(f))).collect()
+                frames
+                    .iter()
+                    .map(|f| format!("{hdr}{sep}{}", hex(f)))
+                    .collect()
             } else if frames.len() == 1 {
                 vec![hex(msg)]
             } else {
@@ -533,7 +653,11 @@ impl State {
 }
 
 fn dtc_messages(resp_sid: u8, codes: &[String], is_can: bool) -> Vec<Vec<u8>> {
-    let bytes: Vec<u8> = codes.iter().filter_map(|c| Dtc(c.clone()).to_bytes()).flatten().collect();
+    let bytes: Vec<u8> = codes
+        .iter()
+        .filter_map(|c| Dtc(c.clone()).to_bytes())
+        .flatten()
+        .collect();
     if is_can {
         let mut m = vec![resp_sid, codes.len() as u8];
         m.extend(bytes);

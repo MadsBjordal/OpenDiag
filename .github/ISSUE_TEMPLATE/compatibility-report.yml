@@ -1,0 +1,39 @@
+name: Compatibility report
+description: Tell us how OpenDiag worked with your vehicle and adapter (works or fails, both help).
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: "Thank you! Please follow docs/hardware-testing.md. **Do not post your VIN.**"
+  - type: dropdown
+    id: os
+    attributes: { label: Operating system, options: [Windows 11, Windows 10, Android, Linux, macOS] }
+    validations: { required: true }
+  - type: input
+    id: osver
+    attributes: { label: OS version / phone model }
+  - type: input
+    id: app
+    attributes: { label: OpenDiag version (Settings → About) }
+    validations: { required: true }
+  - type: input
+    id: adapter
+    attributes: { label: Adapter (brand, model, identity shown by OpenDiag, firmware) }
+    validations: { required: true }
+  - type: dropdown
+    id: link
+    attributes: { label: Connection, options: [USB / USB-C, Bluetooth Classic, Bluetooth LE, Wi-Fi, Ethernet] }
+    validations: { required: true }
+  - type: input
+    id: vehicle
+    attributes: { label: "Vehicle: make, model, year, engine (and calibration IDs if shown)" }
+    validations: { required: true }
+  - type: textarea
+    id: results
+    attributes:
+      label: Results per test (1–9 from the protocol)
+      placeholder: "1 connect: pass\n4 scan: pass, P0420 matches other tool\n6 clear: blocked with engine running (expected), cleared with engine off"
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: "Evidence: adapter log excerpt (VIN hidden) and/or exported snapshot" }

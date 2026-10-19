@@ -1,0 +1,22 @@
+[package]
+name = "opendiag-api"
+description = "JSON command interface to the engine, shared by the desktop/Android app and the development bridge."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["serial"]
+serial = ["opendiag-engine/serial", "opendiag-transport/serial"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+base64 = "0.22"
+opendiag-core.workspace = true
+opendiag-engine = { workspace = true, default-features = false }
+opendiag-sim.workspace = true
+opendiag-store.workspace = true
+opendiag-knowledge.workspace = true
+opendiag-definitions.workspace = true
+opendiag-transport = { workspace = true, default-features = false }

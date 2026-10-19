@@ -146,7 +146,8 @@ fn level(n: u8) -> Option<RiskLevel> {
 
 /// Parses and validates a definition. Returns every problem found.
 pub fn parse(json: &str) -> Result<Definition, Vec<String>> {
-    let d: Definition = serde_json::from_str(json).map_err(|e| vec![format!("not a valid definition: {e}")])?;
+    let d: Definition =
+        serde_json::from_str(json).map_err(|e| vec![format!("not a valid definition: {e}")])?;
     validate(&d)?;
     Ok(d)
 }
@@ -156,7 +157,12 @@ pub fn validate(d: &Definition) -> Result<(), Vec<String>> {
     if d.schema_version != SCHEMA_VERSION {
         errs.push(format!("schema_version must be {SCHEMA_VERSION}"));
     }
-    if d.id.is_empty() || !d.id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+    if d.id.is_empty()
+        || !d
+            .id
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    {
         errs.push("id must be lower-case letters, digits and dashes".into());
     }
     let parts: Vec<_> = d.version.split('.').collect();
@@ -209,20 +215,33 @@ pub fn validate(d: &Definition) -> Result<(), Vec<String>> {
         }
         if declared >= RiskLevel::Personalization {
             if f.verification < Verification::MaintainerVerified {
-                errs.push(format!("{}: changing functions need maintainer or hardware-in-the-loop verification", f.id));
+                errs.push(format!(
+                    "{}: changing functions need maintainer or hardware-in-the-loop verification",
+                    f.id
+                ));
             }
             if f.evidence.is_empty() {
                 errs.push(format!("{}: changing functions need test evidence", f.id));
             }
             if f.rollback.as_deref().unwrap_or("").is_empty() {
-                errs.push(format!("{}: changing functions must describe how to restore the original value", f.id));
+                errs.push(format!(
+                    "{}: changing functions must describe how to restore the original value",
+                    f.id
+                ));
             }
-            if d.applies_to.ecus.iter().all(|e| e.sw_ids.is_empty() && e.hw_ids.is_empty()) {
+            if d.applies_to
+                .ecus
+                .iter()
+                .all(|e| e.sw_ids.is_empty() && e.hw_ids.is_empty())
+            {
                 errs.push(format!("{}: changing functions must name the exact ECU hardware/software they were tested on", f.id));
             }
         }
         if simulated && f.verification > Verification::SimulatorTested {
-            errs.push(format!("{}: a simulated definition cannot claim more than simulator testing", f.id));
+            errs.push(format!(
+                "{}: a simulated definition cannot claim more than simulator testing",
+                f.id
+            ));
         }
     }
     if errs.is_empty() {
@@ -296,24 +315,35 @@ pub fn matches(defs: &[Definition], v: &VehicleContext) -> Vec<Match> {
             .flat_map(|e| e.hw_ids.iter().chain(&e.sw_ids))
             .any(|id| v.ecu_ids.iter().any(|x| x.eq_ignore_ascii_case(id)));
         let (quality, note) = if ecu_hit {
-            (MatchQuality::EcuConfirmed, "An ECU identification matches this definition.".to_string())
+            (
+                MatchQuality::EcuConfirmed,
+                "An ECU identification matches this definition.".to_string(),
+            )
         } else {
             (
                 MatchQuality::VehicleOnly,
                 "Matches the vehicle details only. The VIN or model does not prove which ECU hardware/software is fitted.".to_string(),
             )
         };
-        out.push(Match { id: d.id.clone(), name: d.name.clone(), quality, note });
+        out.push(Match {
+            id: d.id.clone(),
+            name: d.name.clone(),
+            quality,
+            note,
+        });
     }
-    out.sort_by(|a, b| b.quality.cmp(&a.quality));
+    out.sort_by_key(|m| std::cmp::Reverse(m.quality));
     out
 }
 
 pub fn bundled() -> Vec<Definition> {
-    [include_str!("../../../definitions/vehicles/generic-obd2.json"), include_str!("../../../definitions/vehicles/sim-car.json")]
-        .iter()
-        .map(|j| parse(j).expect("bundled definition is valid"))
-        .collect()
+    [
+        include_str!("../../../definitions/vehicles/generic-obd2.json"),
+        include_str!("../../../definitions/vehicles/sim-car.json"),
+    ]
+    .iter()
+    .map(|j| parse(j).expect("bundled definition is valid"))
+    .collect()
 }
 
 #[cfg(test)]
@@ -321,7 +351,10 @@ mod tests {
     use super::*;
 
     fn base() -> serde_json::Value {
-        serde_json::from_str(include_str!("../../../definitions/vehicles/generic-obd2.json")).unwrap()
+        serde_json::from_str(include_str!(
+            "../../../definitions/vehicles/generic-obd2.json"
+        ))
+        .unwrap()
     }
 
     #[test]
@@ -345,7 +378,10 @@ mod tests {
         let mut v = base();
         v["functions"][0]["request"] = serde_json::json!("2EF19001");
         let e = parse(&v.to_string()).unwrap_err();
-        assert!(e.iter().any(|x| x.contains("higher than the declared")), "{e:?}");
+        assert!(
+            e.iter().any(|x| x.contains("higher than the declared")),
+            "{e:?}"
+        );
     }
 
     #[test]
@@ -362,12 +398,22 @@ mod tests {
     #[test]
     fn matching_is_honest_about_ecus() {
         let defs = bundled();
-        let real = VehicleContext { make: Some("Volkswagen".into()), year: Some(2015), kind: Some("car".into()), ..Default::default() };
+        let real = VehicleContext {
+            make: Some("Volkswagen".into()),
+            year: Some(2015),
+            kind: Some("car".into()),
+            ..Default::default()
+        };
         let m = matches(&defs, &real);
         assert_eq!(m.len(), 1);
         assert_eq!(m[0].id, "generic-obd2");
         assert_eq!(m[0].quality, MatchQuality::VehicleOnly);
-        let sim = VehicleContext { make: Some("Simulated".into()), ecu_ids: vec!["SIMCAL-CAR-0001".into()], simulated: true, ..Default::default() };
+        let sim = VehicleContext {
+            make: Some("Simulated".into()),
+            ecu_ids: vec!["SIMCAL-CAR-0001".into()],
+            simulated: true,
+            ..Default::default()
+        };
         let m = matches(&defs, &sim);
         assert_eq!(m[0].id, "sim-car");
         assert_eq!(m[0].quality, MatchQuality::EcuConfirmed);

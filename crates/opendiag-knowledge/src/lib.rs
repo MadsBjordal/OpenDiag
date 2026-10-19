@@ -91,7 +91,10 @@ impl DtcLibrary {
             }
         }
         let _ = f.version;
-        Ok(Self { source: f.source, by_code })
+        Ok(Self {
+            source: f.source,
+            by_code,
+        })
     }
 
     pub fn len(&self) -> usize {
@@ -115,7 +118,8 @@ impl DtcLibrary {
                 q.is_empty()
                     || e.code.to_ascii_lowercase().starts_with(&q)
                     || (!code_like
-                        && (e.title.to_ascii_lowercase().contains(&q) || e.plain.to_ascii_lowercase().contains(&q)))
+                        && (e.title.to_ascii_lowercase().contains(&q)
+                            || e.plain.to_ascii_lowercase().contains(&q)))
             })
             .map(|e| self.explain(&e.code))
             .collect();
@@ -196,7 +200,11 @@ mod tests {
         let lib = DtcLibrary::bundled();
         for e in lib.by_code.values() {
             for k in &e.related_measurements {
-                assert!(opendiag_obd::pid::def_by_key(k).is_some(), "{}: unknown measurement {k}", e.code);
+                assert!(
+                    opendiag_obd::pid::def_by_key(k).is_some(),
+                    "{}: unknown measurement {k}",
+                    e.code
+                );
             }
         }
     }

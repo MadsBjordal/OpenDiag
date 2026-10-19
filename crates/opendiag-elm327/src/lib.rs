@@ -25,7 +25,9 @@ pub enum ElmError {
     Timeout(String),
     #[error("no answer from the vehicle (NO DATA)")]
     NoData,
-    #[error("the adapter could not connect to the vehicle (UNABLE TO CONNECT). Is the ignition on?")]
+    #[error(
+        "the adapter could not connect to the vehicle (UNABLE TO CONNECT). Is the ignition on?"
+    )]
     UnableToConnect,
     #[error("vehicle bus error: {0}")]
     Bus(String),
@@ -77,10 +79,11 @@ impl Default for Timeouts {
 /// Documented adapter (not vehicle) commands this driver may send. Commands
 /// that store data in the adapter (`AT@3`, `ATPP…`) are deliberately absent.
 pub const ADAPTER_COMMANDS: &[&str] = &[
-    "ATZ", "ATWS", "ATD", "ATI", "AT@1", "ATE0", "ATE1", "ATL0", "ATL1", "ATS0", "ATS1", "ATH0", "ATH1", "ATDP",
-    "ATDPN", "ATRV", "ATAT0", "ATAT1", "ATAT2", "ATCAF0", "ATCAF1", "ATPC", "STI", "STDI", "ATSP0", "ATSP1", "ATSP2",
-    "ATSP3", "ATSP4", "ATSP5", "ATSP6", "ATSP7", "ATSP8", "ATSP9", "ATSPA1", "ATSPA2", "ATSPA3", "ATSPA4", "ATSPA5",
-    "ATSPA6", "ATSPA7", "ATSPA8", "ATSPA9",
+    "ATZ", "ATWS", "ATD", "ATI", "AT@1", "ATE0", "ATE1", "ATL0", "ATL1", "ATS0", "ATS1", "ATH0",
+    "ATH1", "ATDP", "ATDPN", "ATRV", "ATAT0", "ATAT1", "ATAT2", "ATCAF0", "ATCAF1", "ATPC", "STI",
+    "STDI", "ATSP0", "ATSP1", "ATSP2", "ATSP3", "ATSP4", "ATSP5", "ATSP6", "ATSP7", "ATSP8",
+    "ATSP9", "ATSPA1", "ATSPA2", "ATSPA3", "ATSPA4", "ATSPA5", "ATSPA6", "ATSPA7", "ATSPA8",
+    "ATSPA9",
 ];
 
 const LOG_LIMIT: usize = 4000;
@@ -130,7 +133,9 @@ impl Elm327 {
         let reset = self.adapter_raw("ATZ", self.timeouts.reset)?;
         let identity = reset
             .iter()
-            .find(|l| l.to_ascii_uppercase().contains("ELM") || l.contains("STN") || l.contains("OBD"))
+            .find(|l| {
+                l.to_ascii_uppercase().contains("ELM") || l.contains("STN") || l.contains("OBD")
+            })
             .cloned();
         let identity = match identity {
             Some(i) => i,
@@ -143,7 +148,11 @@ impl Elm327 {
             }
         };
         self.caps.identity = identity.trim().to_string();
-        self.caps.family = if simulated { AdapterFamily::Simulated } else { AdapterFamily::Elm327 };
+        self.caps.family = if simulated {
+            AdapterFamily::Simulated
+        } else {
+            AdapterFamily::Elm327
+        };
         if self.caps.identity.contains("v1.5") {
             self.caps.clone_suspected = true;
             self.caps.notes.push(
@@ -173,7 +182,10 @@ impl Elm327 {
             }
         }
         if let Ok(s) = self.adapter_raw("STI", self.timeouts.command) {
-            if let Some(s) = s.first().filter(|s| s.as_str() != "?" && s.starts_with("STN")) {
+            if let Some(s) = s
+                .first()
+                .filter(|s| s.as_str() != "?" && s.starts_with("STN"))
+            {
                 self.caps.stn_firmware = Some(s.clone());
                 if !simulated {
                     self.caps.family = AdapterFamily::Stn;
@@ -218,7 +230,10 @@ impl Elm327 {
     /// Connects to the vehicle: sets the protocol (`None` = automatic search),
     /// sends the read-only "supported PIDs" request 01 00 and asks which protocol was found.
     /// Returns the protocol and the 01 00 answers.
-    pub fn connect_vehicle(&mut self, protocol: Option<ObdProtocol>) -> Result<(ObdProtocol, Vec<EcuMessage>), ElmError> {
+    pub fn connect_vehicle(
+        &mut self,
+        protocol: Option<ObdProtocol>,
+    ) -> Result<(ObdProtocol, Vec<EcuMessage>), ElmError> {
         let sp = match protocol {
             None => "ATSP0".to_string(),
             Some(p) => format!("ATSP{}", p.elm_number()),
@@ -237,8 +252,14 @@ impl Elm327 {
 
     fn detect_protocol(&mut self) -> Result<ObdProtocol, ElmError> {
         let lines = self.adapter_raw("ATDPN", self.timeouts.command)?;
-        let l = lines.first().ok_or_else(|| ElmError::Garbled("empty ATDPN".into()))?;
-        let digit = l.trim_start_matches(['A', 'a']).chars().next().and_then(|c| c.to_digit(16));
+        let l = lines
+            .first()
+            .ok_or_else(|| ElmError::Garbled("empty ATDPN".into()))?;
+        let digit = l
+            .trim_start_matches(['A', 'a'])
+            .chars()
+            .next()
+            .and_then(|c| c.to_digit(16));
         digit
             .and_then(|d| ObdProtocol::from_elm_number(d as u8))
             .ok_or_else(|| ElmError::Garbled(format!("unknown protocol \"{l}\"")))
@@ -248,14 +269,20 @@ impl Elm327 {
     pub fn adapter_command(&mut self, cmd: &str) -> Result<Vec<String>, ElmError> {
         let cmd = cmd.trim().to_ascii_uppercase().replace(' ', "");
         if !ADAPTER_COMMANDS.contains(&cmd.as_str()) {
-            return Err(ElmError::Blocked(format!("\"{cmd}\" is not on the list of adapter commands OpenDiag sends.")));
+            return Err(ElmError::Blocked(format!(
+                "\"{cmd}\" is not on the list of adapter commands OpenDiag sends."
+            )));
         }
         self.adapter_raw(&cmd, self.timeouts.command)
     }
 
     /// Sends a diagnostic request to the vehicle and returns each ECU's answer.
     /// Requests that change the vehicle need an [`Authorization`] from the safety policy.
-    pub fn request(&mut self, payload: &[u8], auth: Option<&Authorization>) -> Result<Vec<EcuMessage>, ElmError> {
+    pub fn request(
+        &mut self,
+        payload: &[u8],
+        auth: Option<&Authorization>,
+    ) -> Result<Vec<EcuMessage>, ElmError> {
         opendiag_safety::may_send(payload, auth).map_err(ElmError::Blocked)?;
         if self.protocol.is_none() {
             return Err(ElmError::Garbled("not connected to the vehicle yet".into()));
@@ -280,7 +307,11 @@ impl Elm327 {
 
     // ── internals ───────────────────────────────────────────────────────────
 
-    fn messages_from(&mut self, lines: &[String], payload: &[u8]) -> Result<Vec<EcuMessage>, ElmError> {
+    fn messages_from(
+        &mut self,
+        lines: &[String],
+        payload: &[u8],
+    ) -> Result<Vec<EcuMessage>, ElmError> {
         if lines.iter().any(|l| l == "?") {
             return Err(ElmError::Unsupported(opendiag_core::hex(payload)));
         }
@@ -291,7 +322,10 @@ impl Elm327 {
             for line in parsed {
                 let r = by_ecu.entry(line.ecu.clone()).or_default();
                 match r.push(&line.data) {
-                    Ok(Some(msg)) => out.push(EcuMessage { ecu: line.ecu, data: msg }),
+                    Ok(Some(msg)) => out.push(EcuMessage {
+                        ecu: line.ecu,
+                        data: msg,
+                    }),
                     Ok(None) => {}
                     Err(e) => return Err(ElmError::Garbled(format!("{e} from {}", line.ecu))),
                 }
@@ -303,10 +337,20 @@ impl Elm327 {
                 self.caps.multi_frame = Tri::Yes;
             }
         } else {
-            out = parsed.into_iter().map(|l| EcuMessage { ecu: l.ecu, data: l.data }).collect();
+            out = parsed
+                .into_iter()
+                .map(|l| EcuMessage {
+                    ecu: l.ecu,
+                    data: l.data,
+                })
+                .collect();
         }
         // An ECU that is still working on the answer ("response pending") is not an answer.
-        out.retain(|m| !NegativeResponse::parse(&m.data).map(|n| n.is_pending()).unwrap_or(false));
+        out.retain(|m| {
+            !NegativeResponse::parse(&m.data)
+                .map(|n| n.is_pending())
+                .unwrap_or(false)
+        });
         if out.is_empty() {
             return Err(ElmError::NoData);
         }
@@ -314,7 +358,10 @@ impl Elm327 {
             self.note("[VIN answer hidden in the log]".into());
         } else {
             for m in &out {
-                self.log_entry(Direction::Rx, format!("{}: {}", m.ecu, opendiag_core::hex(&m.data)));
+                self.log_entry(
+                    Direction::Rx,
+                    format!("{}: {}", m.ecu, opendiag_core::hex(&m.data)),
+                );
             }
         }
         Ok(out)
@@ -343,13 +390,17 @@ impl Elm327 {
     fn exchange(&mut self, cmd: &str, timeout: Duration) -> Result<Vec<String>, ElmError> {
         self.log_entry(Direction::Tx, cmd.to_string());
         self.link.write_all(format!("{cmd}\r").as_bytes())?;
-        let raw = self.read_until_prompt(timeout)?.ok_or_else(|| ElmError::Timeout(cmd.into()))?;
+        let raw = self
+            .read_until_prompt(timeout)?
+            .ok_or_else(|| ElmError::Timeout(cmd.into()))?;
         let lines: Vec<String> = raw
             .split(['\r', '\n'])
             .map(|l| l.trim().to_string())
             .filter(|l| !l.is_empty())
             .filter(|l| l.replace(' ', "") != cmd.replace(' ', ""))
-            .filter(|l| !l.starts_with("SEARCHING") && !(l.starts_with("BUS INIT") && !l.contains("ERROR")))
+            .filter(|l| {
+                !l.starts_with("SEARCHING") && !(l.starts_with("BUS INIT") && !l.contains("ERROR"))
+            })
             .collect();
         check_errors(&lines)?;
         Ok(lines)
@@ -382,7 +433,11 @@ impl Elm327 {
         if self.log.len() >= LOG_LIMIT {
             self.log.drain(..LOG_LIMIT / 4);
         }
-        self.log.push(LogEntry { ms: self.started.elapsed().as_millis() as u64, dir, text });
+        self.log.push(LogEntry {
+            ms: self.started.elapsed().as_millis() as u64,
+            dir,
+            text,
+        });
     }
 }
 
@@ -404,7 +459,18 @@ fn check_errors(lines: &[String]) -> Result<(), ElmError> {
         if u.contains("UNABLE TO CONNECT") {
             return Err(ElmError::UnableToConnect);
         }
-        for bus in ["CAN ERROR", "BUS ERROR", "BUS BUSY", "FB ERROR", "DATA ERROR", "BUFFER FULL", "LV RESET", "ACT ALERT", "STOPPED", "RX ERROR"] {
+        for bus in [
+            "CAN ERROR",
+            "BUS ERROR",
+            "BUS BUSY",
+            "FB ERROR",
+            "DATA ERROR",
+            "BUFFER FULL",
+            "LV RESET",
+            "ACT ALERT",
+            "STOPPED",
+            "RX ERROR",
+        ] {
             if u.contains(bus) {
                 return Err(ElmError::Bus(bus.to_string()));
             }

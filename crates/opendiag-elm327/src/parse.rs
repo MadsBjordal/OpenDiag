@@ -16,7 +16,11 @@ fn bytes_of(hex: &str, line: &str) -> Result<Vec<u8>, ElmError> {
 }
 
 /// Parses answer lines (errors already checked) for the given protocol and header setting.
-pub fn parse_lines(lines: &[String], protocol: Option<ObdProtocol>, headers: bool) -> Result<Vec<ParsedLine>, ElmError> {
+pub fn parse_lines(
+    lines: &[String],
+    protocol: Option<ObdProtocol>,
+    headers: bool,
+) -> Result<Vec<ParsedLine>, ElmError> {
     let protocol = protocol.ok_or_else(|| ElmError::Garbled("protocol unknown".into()))?;
     if !headers {
         return parse_headerless(lines, protocol);
@@ -36,14 +40,20 @@ pub fn parse_lines(lines: &[String], protocol: Option<ObdProtocol>, headers: boo
             if !hdr.chars().all(|c| c.is_ascii_hexdigit()) {
                 return Err(ElmError::Garbled(format!("\"{line}\"")));
             }
-            out.push(ParsedLine { ecu: hdr.to_ascii_uppercase(), data: bytes_of(rest, line)? });
+            out.push(ParsedLine {
+                ecu: hdr.to_ascii_uppercase(),
+                data: bytes_of(rest, line)?,
+            });
         } else {
             // J1850 / ISO 9141 / KWP: 3 header bytes (priority/format, target, source), data, checksum.
             let b = bytes_of(&compact, line)?;
             if b.len() < 5 {
                 return Err(ElmError::Garbled(format!("\"{line}\"")));
             }
-            out.push(ParsedLine { ecu: format!("{:02X}", b[2]), data: b[3..b.len() - 1].to_vec() });
+            out.push(ParsedLine {
+                ecu: format!("{:02X}", b[2]),
+                data: b[3..b.len() - 1].to_vec(),
+            });
         }
     }
     Ok(out)
@@ -56,28 +66,40 @@ fn parse_headerless(lines: &[String], protocol: ObdProtocol) -> Result<Vec<Parse
     let mut multi: Option<(usize, Vec<u8>)> = None;
     for line in lines {
         let t = line.trim();
-        if protocol.is_can() && t.len() == 3 && t.chars().all(|c| c.is_ascii_hexdigit()) && !t.contains(' ') {
+        if protocol.is_can()
+            && t.len() == 3
+            && t.chars().all(|c| c.is_ascii_hexdigit())
+            && !t.contains(' ')
+        {
             let len = usize::from_str_radix(t, 16).unwrap_or(0);
             multi = Some((len, Vec::new()));
             continue;
         }
         if let Some((idx, rest)) = t.split_once(':') {
             if idx.trim().len() == 1 {
-                let (_, buf) = multi.as_mut().ok_or_else(|| ElmError::Garbled(format!("\"{line}\"")))?;
+                let (_, buf) = multi
+                    .as_mut()
+                    .ok_or_else(|| ElmError::Garbled(format!("\"{line}\"")))?;
                 let compact: String = rest.chars().filter(|c| !c.is_whitespace()).collect();
                 buf.extend(bytes_of(&compact, line)?);
                 continue;
             }
         }
         let compact: String = t.chars().filter(|c| !c.is_whitespace()).collect();
-        out.push(ParsedLine { ecu: "?".into(), data: bytes_of(&compact, line)? });
+        out.push(ParsedLine {
+            ecu: "?".into(),
+            data: bytes_of(&compact, line)?,
+        });
     }
     if let Some((len, mut buf)) = multi {
         if buf.len() < len {
             return Err(ElmError::Garbled("a multi-frame answer was cut off".into()));
         }
         buf.truncate(len);
-        out.push(ParsedLine { ecu: "?".into(), data: buf });
+        out.push(ParsedLine {
+            ecu: "?".into(),
+            data: buf,
+        });
     }
     Ok(out)
 }

@@ -6,3 +6,7 @@ dist/
 .env
 apps/desktop/src-tauri/gen/schemas/
 .DS_Store
+target-e2e/
+plugins/*/android/.tauri/
+plugins/*/android/build/
+opendiag-dev.db*

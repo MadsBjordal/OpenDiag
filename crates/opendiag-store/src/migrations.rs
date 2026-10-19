@@ -1,10 +1,9 @@
 use rusqlite::Connection;
 
 /// Ordered schema migrations. Never edit an applied one: add a new entry.
-const MIGRATIONS: &[(i64, &str)] = &[
-    (
-        1,
-        r#"
+const MIGRATIONS: &[(i64, &str)] = &[(
+    1,
+    r#"
 CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 CREATE TABLE vehicles (
@@ -100,17 +99,23 @@ CREATE TABLE compat_snapshots (
   records INTEGER NOT NULL
 );
 "#,
-    ),
-];
+)];
 
 pub fn run(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch("CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)")?;
-    let current: i64 = conn.query_row("SELECT COALESCE(MAX(version), 0) FROM schema_migrations", [], |r| r.get(0))?;
+    let current: i64 = conn.query_row(
+        "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+        [],
+        |r| r.get(0),
+    )?;
     for (version, sql) in MIGRATIONS {
         if *version > current {
             let tx = conn.unchecked_transaction()?;
             tx.execute_batch(sql)?;
-            tx.execute("INSERT INTO schema_migrations (version, applied_at) VALUES (?1, ?2)", rusqlite::params![version, crate::now()])?;
+            tx.execute(
+                "INSERT INTO schema_migrations (version, applied_at) VALUES (?1, ?2)",
+                rusqlite::params![version, crate::now()],
+            )?;
             tx.commit()?;
         }
     }

@@ -18,7 +18,12 @@ impl Scripted {
         let sent = Arc::new(Mutex::new(Vec::new()));
         (
             Self {
-                script: Arc::new(Mutex::new(script.iter().map(|(a, b)| (a.to_string(), b.to_string())).collect())),
+                script: Arc::new(Mutex::new(
+                    script
+                        .iter()
+                        .map(|(a, b)| (a.to_string(), b.to_string()))
+                        .collect(),
+                )),
                 sent: sent.clone(),
                 pending: Vec::new(),
                 line: Vec::new(),
@@ -65,7 +70,11 @@ impl ByteLink for Scripted {
         Ok(n)
     }
     fn info(&self) -> LinkInfo {
-        LinkInfo { kind: LinkKind::UsbSerial, name: "scripted".into(), simulated: false }
+        LinkInfo {
+            kind: LinkKind::UsbSerial,
+            name: "scripted".into(),
+            simulated: false,
+        }
     }
 }
 
@@ -137,14 +146,20 @@ fn flags_a_clone_without_headers() {
 #[test]
 fn rejects_a_device_that_is_not_an_elm() {
     let (link, _) = Scripted::new(&[("ATZ", "HELLO"), ("ATI", "HELLO")]);
-    assert!(matches!(Elm327::open_with(Box::new(link), fast()), Err(ElmError::NotElm(_))));
+    assert!(matches!(
+        Elm327::open_with(Box::new(link), fast()),
+        Err(ElmError::NotElm(_))
+    ));
 }
 
 #[test]
 fn connects_on_can_and_reads_two_ecus() {
     let (mut elm, _) = open(&[
         ("ATSP0", "OK"),
-        ("0100", "SEARCHING...\r7E8 06 41 00 BE 3F A8 13 00\r7E9 06 41 00 98 18 80 11 00"),
+        (
+            "0100",
+            "SEARCHING...\r7E8 06 41 00 BE 3F A8 13 00\r7E9 06 41 00 98 18 80 11 00",
+        ),
         ("ATDPN", "A6"),
         ("010C", "7E8 04 41 0C 1A F8 00 00 00"),
     ]);
@@ -164,7 +179,10 @@ fn reassembles_a_multi_frame_vin_without_spaces() {
         ("ATSP0", "OK"),
         ("0100", "7E8064100BE3FA81300"),
         ("ATDPN", "A6"),
-        ("0902", "7E810144902013147\r7E82131484D3832\r7E82236333341303034\r7E8233335320000"),
+        (
+            "0902",
+            "7E810144902013147\r7E82131484D3832\r7E82236333341303034\r7E8233335320000",
+        ),
     ]);
     elm.connect_vehicle(None).unwrap();
     let r = elm.request(&[0x09, 0x02], None).unwrap();
@@ -173,14 +191,20 @@ fn reassembles_a_multi_frame_vin_without_spaces() {
     assert_eq!(&r[0].data[3..], b"1G1HM82633A004352");
     assert_eq!(elm.capabilities().multi_frame, Tri::Yes);
     // The VIN is not written to the log.
-    assert!(elm.log().iter().any(|l| l.text.contains("VIN answer hidden")));
+    assert!(elm
+        .log()
+        .iter()
+        .any(|l| l.text.contains("VIN answer hidden")));
 }
 
 #[test]
 fn legacy_iso9141_headers_and_checksum() {
     let (mut elm, _) = open(&[
         ("ATSP0", "OK"),
-        ("0100", "SEARCHING...\rBUS INIT: ...OK\r48 6B 10 41 00 BE 1F B8 10 AA"),
+        (
+            "0100",
+            "SEARCHING...\rBUS INIT: ...OK\r48 6B 10 41 00 BE 1F B8 10 AA",
+        ),
         ("ATDPN", "A3"),
         ("03", "48 6B 10 43 01 33 00 00 00 00 D4"),
     ]);
@@ -194,11 +218,11 @@ fn legacy_iso9141_headers_and_checksum() {
 
 #[test]
 fn errors_are_reported() {
-    let (mut elm, _) = open(&[
-        ("ATSP0", "OK"),
-        ("0100", "SEARCHING...\rUNABLE TO CONNECT"),
-    ]);
-    assert_eq!(elm.connect_vehicle(None).unwrap_err(), ElmError::UnableToConnect);
+    let (mut elm, _) = open(&[("ATSP0", "OK"), ("0100", "SEARCHING...\rUNABLE TO CONNECT")]);
+    assert_eq!(
+        elm.connect_vehicle(None).unwrap_err(),
+        ElmError::UnableToConnect
+    );
 
     let (mut elm, _) = open(&[
         ("ATSP0", "OK"),
@@ -210,10 +234,22 @@ fn errors_are_reported() {
         ("010C", "<silence>"),
     ]);
     elm.connect_vehicle(None).unwrap();
-    assert_eq!(elm.request(&[0x01, 0x51], None).unwrap_err(), ElmError::NoData);
-    assert!(matches!(elm.request(&[0x01, 0x05], None).unwrap_err(), ElmError::Bus(_)));
-    assert!(matches!(elm.request(&[0x01, 0x04], None).unwrap_err(), ElmError::Garbled(_)));
-    assert!(matches!(elm.request(&[0x01, 0x0C], None).unwrap_err(), ElmError::Timeout(_)));
+    assert_eq!(
+        elm.request(&[0x01, 0x51], None).unwrap_err(),
+        ElmError::NoData
+    );
+    assert!(matches!(
+        elm.request(&[0x01, 0x05], None).unwrap_err(),
+        ElmError::Bus(_)
+    ));
+    assert!(matches!(
+        elm.request(&[0x01, 0x04], None).unwrap_err(),
+        ElmError::Garbled(_)
+    ));
+    assert!(matches!(
+        elm.request(&[0x01, 0x0C], None).unwrap_err(),
+        ElmError::Timeout(_)
+    ));
     assert_eq!(elm.consecutive_errors, 3);
 }
 
@@ -226,20 +262,44 @@ fn write_requests_need_authorization() {
     ]);
     elm.connect_vehicle(None).unwrap();
     let before = sent.lock().unwrap().len();
-    assert!(matches!(elm.request(&[0x04], None), Err(ElmError::Blocked(_))));
-    assert!(matches!(elm.request(&[0x2E, 0xF1, 0x90], None), Err(ElmError::Blocked(_))));
-    assert!(matches!(elm.request(&[0x27, 0x01], None), Err(ElmError::Blocked(_))));
-    assert_eq!(sent.lock().unwrap().len(), before, "nothing reached the adapter");
-    assert!(matches!(elm.adapter_command("AT@3 HELLO"), Err(ElmError::Blocked(_))));
-    assert!(matches!(elm.adapter_command("ATPP 0C SV 23"), Err(ElmError::Blocked(_))));
+    assert!(matches!(
+        elm.request(&[0x04], None),
+        Err(ElmError::Blocked(_))
+    ));
+    assert!(matches!(
+        elm.request(&[0x2E, 0xF1, 0x90], None),
+        Err(ElmError::Blocked(_))
+    ));
+    assert!(matches!(
+        elm.request(&[0x27, 0x01], None),
+        Err(ElmError::Blocked(_))
+    ));
+    assert_eq!(
+        sent.lock().unwrap().len(),
+        before,
+        "nothing reached the adapter"
+    );
+    assert!(matches!(
+        elm.adapter_command("AT@3 HELLO"),
+        Err(ElmError::Blocked(_))
+    ));
+    assert!(matches!(
+        elm.adapter_command("ATPP 0C SV 23"),
+        Err(ElmError::Blocked(_))
+    ));
 }
 
 #[test]
 fn headerless_multi_frame() {
-    let lines: Vec<String> = ["014", "0: 49 02 01 31 47 31", "1: 4A 43 35 34 34 34 52", "2: 37 32 35 32 33 36 37"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    let lines: Vec<String> = [
+        "014",
+        "0: 49 02 01 31 47 31",
+        "1: 4A 43 35 34 34 34 52",
+        "2: 37 32 35 32 33 36 37",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
     let p = parse_lines(&lines, Some(ObdProtocol::Can11_500), false).unwrap();
     assert_eq!(p.len(), 1);
     assert_eq!(p[0].data.len(), 20);
@@ -251,5 +311,8 @@ fn twenty_nine_bit_headers() {
     let lines = vec!["18 DA F1 10 06 41 00 BE 3F A8 13 00".to_string()];
     let p = parse_lines(&lines, Some(ObdProtocol::Can29_500), true).unwrap();
     assert_eq!(p[0].ecu, "18DAF110");
-    assert_eq!(p[0].data, vec![0x06, 0x41, 0x00, 0xBE, 0x3F, 0xA8, 0x13, 0x00]);
+    assert_eq!(
+        p[0].data,
+        vec![0x06, 0x41, 0x00, 0xBE, 0x3F, 0xA8, 0x13, 0x00]
+    );
 }

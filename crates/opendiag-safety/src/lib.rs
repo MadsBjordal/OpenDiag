@@ -34,7 +34,11 @@ pub struct Classification {
 }
 
 const fn c(level: RiskLevel, what: &'static str, raw_allowed: bool) -> Classification {
-    Classification { level, what, raw_allowed }
+    Classification {
+        level,
+        what,
+        raw_allowed,
+    }
 }
 
 /// Classifies a request by its service id (OBD-II modes 01–0A, UDS ISO 14229 services).
@@ -48,11 +52,19 @@ pub fn classify(payload: &[u8]) -> Classification {
         0x01 => c(ReadOnly, "OBD: current data", true),
         0x02 => c(ReadOnly, "OBD: freeze frame data", true),
         0x03 => c(ReadOnly, "OBD: stored trouble codes", true),
-        0x04 => c(Maintenance, "OBD: clear trouble codes and emissions data", false),
+        0x04 => c(
+            Maintenance,
+            "OBD: clear trouble codes and emissions data",
+            false,
+        ),
         0x05 => c(ReadOnly, "OBD: oxygen sensor test results", true),
         0x06 => c(ReadOnly, "OBD: on-board monitoring test results", true),
         0x07 => c(ReadOnly, "OBD: pending trouble codes", true),
-        0x08 => c(AdvancedService, "OBD: control of on-board system (actuation)", false),
+        0x08 => c(
+            AdvancedService,
+            "OBD: control of on-board system (actuation)",
+            false,
+        ),
         0x09 => c(ReadOnly, "OBD: vehicle information", true),
         0x0A => c(ReadOnly, "OBD: permanent trouble codes", true),
         0x10 => match payload.get(1).map(|b| b & 0x7F) {
@@ -71,7 +83,11 @@ pub fn classify(payload: &[u8]) -> Classification {
         0x28 => c(AdvancedService, "UDS: communication control", false),
         0x29 => c(HighRisk, "UDS: authentication", false),
         0x2A => c(ReadOnly, "UDS: read data periodically", false),
-        0x2C => c(Maintenance, "UDS: dynamically define data identifier", false),
+        0x2C => c(
+            Maintenance,
+            "UDS: dynamically define data identifier",
+            false,
+        ),
         0x2E => c(Personalization, "UDS: write data by identifier", false),
         0x2F => c(AdvancedService, "UDS: input/output control", false),
         0x31 => c(AdvancedService, "UDS: routine control", false),
@@ -112,7 +128,11 @@ pub fn may_send(payload: &[u8], auth: Option<&Authorization>) -> Result<(), Stri
         return Ok(());
     }
     match auth {
-        Some(a) if a.covers(payload) && a.level == class.level && class.level < RiskLevel::HighRisk => Ok(()),
+        Some(a)
+            if a.covers(payload) && a.level == class.level && class.level < RiskLevel::HighRisk =>
+        {
+            Ok(())
+        }
         _ => Err(format!(
             "Blocked by the safety policy: \"{}\" (level {}) needs an approved workflow.",
             class.what, class.level as u8
@@ -190,7 +210,9 @@ impl PolicyEngine {
             blockers.push("You have not confirmed the clear.".into());
         }
         if !ctx.link_healthy {
-            blockers.push("The connection to the adapter has had errors. Reconnect and try again.".into());
+            blockers.push(
+                "The connection to the adapter has had errors. Reconnect and try again.".into(),
+            );
         }
         match ctx.engine_rpm {
             Some(rpm) if rpm > 0.0 => blockers.push(
@@ -206,14 +228,21 @@ impl PolicyEngine {
             None => warnings.push("Battery voltage is unknown.".into()),
             _ => {}
         }
-        Decision { allowed: blockers.is_empty(), blockers, warnings }
+        Decision {
+            allowed: blockers.is_empty(),
+            blockers,
+            warnings,
+        }
     }
 
     /// Authorizes the OBD clear request (service 04) once [`Self::evaluate_clear`] allows it.
     pub fn authorize_clear(&self, ctx: &ClearContext) -> Result<Authorization, Decision> {
         let d = self.evaluate_clear(ctx);
         if d.allowed {
-            Ok(Authorization { payload: vec![0x04], level: RiskLevel::Maintenance })
+            Ok(Authorization {
+                payload: vec![0x04],
+                level: RiskLevel::Maintenance,
+            })
         } else {
             Err(d)
         }
@@ -229,7 +258,8 @@ impl PolicyEngine {
             );
         }
         if level <= RiskLevel::Maintenance {
-            blockers.push("Use the dedicated maintenance workflows for level 0–1 operations.".into());
+            blockers
+                .push("Use the dedicated maintenance workflows for level 0–1 operations.".into());
         }
         let checks: [(bool, &str); 7] = [
             (ctx.terms_accepted, "Accept the risk notice in Settings first."),
@@ -255,16 +285,27 @@ impl PolicyEngine {
             )),
             None => blockers.push("Battery voltage must be known before changing the configuration.".into()),
         }
-        Decision { allowed: blockers.is_empty(), blockers, warnings }
+        Decision {
+            allowed: blockers.is_empty(),
+            blockers,
+            warnings,
+        }
     }
 
     /// Authorizes one configuration request. Phase 1 ships no configuration
     /// operations, so in practice this only ever runs in tests.
-    pub fn authorize_config(&self, payload: &[u8], ctx: &ConfigContext) -> Result<Authorization, Decision> {
+    pub fn authorize_config(
+        &self,
+        payload: &[u8],
+        ctx: &ConfigContext,
+    ) -> Result<Authorization, Decision> {
         let class = classify(payload);
         let d = self.evaluate_config(class.level, ctx);
         if d.allowed {
-            Ok(Authorization { payload: payload.to_vec(), level: class.level })
+            Ok(Authorization {
+                payload: payload.to_vec(),
+                level: class.level,
+            })
         } else {
             Err(d)
         }
@@ -289,14 +330,33 @@ mod tests {
 
     #[test]
     fn read_only_passes_without_authorization() {
-        for p in [&[0x01, 0x0C][..], &[0x03], &[0x07], &[0x09, 0x02], &[0x0A], &[0x22, 0xF1, 0x90], &[0x19, 0x02, 0xFF]] {
+        for p in [
+            &[0x01, 0x0C][..],
+            &[0x03],
+            &[0x07],
+            &[0x09, 0x02],
+            &[0x0A],
+            &[0x22, 0xF1, 0x90],
+            &[0x19, 0x02, 0xFF],
+        ] {
             assert!(may_send(p, None).is_ok(), "{p:?}");
         }
     }
 
     #[test]
     fn writes_are_blocked_without_authorization() {
-        for p in [&[0x04][..], &[0x14, 0xFF, 0xFF, 0xFF], &[0x2E, 0x01, 0x00, 0x01], &[0x27, 0x01], &[0x31, 0x01], &[0x34], &[0x10, 0x02], &[0x08], &[0x99], &[]] {
+        for p in [
+            &[0x04][..],
+            &[0x14, 0xFF, 0xFF, 0xFF],
+            &[0x2E, 0x01, 0x00, 0x01],
+            &[0x27, 0x01],
+            &[0x31, 0x01],
+            &[0x34],
+            &[0x10, 0x02],
+            &[0x08],
+            &[0x99],
+            &[],
+        ] {
             assert!(may_send(p, None).is_err(), "{p:?}");
         }
     }
@@ -352,9 +412,15 @@ mod tests {
         assert!(may_send(&[0x2E, 0x01, 0x02, 0x01], Some(&a)).is_ok());
         assert!(may_send(&[0x2E, 0x01, 0x02, 0x00], Some(&a)).is_err());
         // …but not when the subsystem is off.
-        let off = ConfigContext { configuration_enabled: false, ..ctx.clone() };
+        let off = ConfigContext {
+            configuration_enabled: false,
+            ..ctx.clone()
+        };
         assert!(p.authorize_config(&[0x2E, 0x01, 0x02, 0x01], &off).is_err());
-        let low = ConfigContext { battery_voltage: Some(11.9), ..ctx };
+        let low = ConfigContext {
+            battery_voltage: Some(11.9),
+            ..ctx
+        };
         assert!(p.authorize_config(&[0x2E, 0x01, 0x02, 0x01], &low).is_err());
     }
 }

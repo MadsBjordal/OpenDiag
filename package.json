@@ -1,0 +1,18 @@
+{
+  "name": "opendiag",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev": "pnpm --filter @opendiag/ui dev",
+    "bridge": "cargo run -p opendiag-cli -- serve --db opendiag-dev.db",
+    "build:ui": "pnpm --filter @opendiag/ui build",
+    "test": "cargo test && pnpm --filter @opendiag/ui test",
+    "typecheck": "pnpm --filter @opendiag/ui typecheck",
+    "tauri": "pnpm --filter @opendiag/desktop tauri"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MadsBjordal/OpenDiag/definitions/schema/vehicle-definition.schema.json",
+  "title": "OpenDiag vehicle definition (schema version 1)",
+  "description": "Data-only description of a vehicle/ECU and the diagnostic functions it supports. The Rust validator (crates/opendiag-definitions) adds semantic checks: risk levels against the real request, verification and evidence for changing functions, simulated naming.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name", "version", "provenance", "applies_to", "requires", "functions", "contributors"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "name": { "type": "string", "minLength": 3 },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source", "license"],
+      "properties": {
+        "kind": { "enum": ["standard", "manufacturer_public", "community_research", "simulated"] },
+        "source": { "type": "string", "minLength": 10 },
+        "license": { "type": "string", "minLength": 1 },
+        "url": { "type": ["string", "null"] }
+      }
+    },
+    "applies_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vehicle", "ecus"],
+      "properties": {
+        "vehicle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["make", "models", "years", "kinds", "markets"],
+          "properties": {
+            "make": { "type": "string" },
+            "models": { "type": "array", "items": { "type": "string" } },
+            "years": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to"],
+              "properties": { "from": { "type": "integer" }, "to": { "type": ["integer", "null"] } }
+            },
+            "kinds": { "type": "array", "items": { "type": "string" } },
+            "markets": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "ecus": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "hw_ids", "sw_ids"],
+            "properties": {
+              "role": { "type": "string" },
+              "address": { "type": ["string", "null"] },
+              "hw_ids": { "type": "array", "items": { "type": "string" } },
+              "sw_ids": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter"],
+      "properties": {
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocols", "headers", "multi_frame"],
+          "properties": {
+            "protocols": { "type": "array", "items": { "enum": ["j1850_pwm", "j1850_vpw", "iso9141_2", "iso14230_slow", "iso14230_fast", "can11_500", "can29_500", "can11_250", "can29_250"] } },
+            "headers": { "type": "boolean" },
+            "multi_frame": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "functions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "risk_level", "request", "verification", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string" },
+          "risk_level": { "type": "integer", "minimum": 0, "maximum": 3 },
+          "request": { "type": "string", "pattern": "^([0-9A-Fa-f]{2})+$" },
+          "verification": { "enum": ["unverified", "simulator_tested", "community_tested", "standard_defined", "maintainer_verified", "hardware_in_the_loop_verified"] },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "rollback": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "contributors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "date"],
+        "properties": { "name": { "type": "string" }, "date": { "type": "string" } }
+      }
+    }
+  }
+}

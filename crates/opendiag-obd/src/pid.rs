@@ -67,42 +67,438 @@ macro_rules! pid {
 
 /// The numeric standard PIDs OpenDiag decodes. Others are shown as raw bytes.
 pub static PIDS: &[PidDef] = &[
-    pid!(0x04, "engine_load", "Calculated engine load", "%", 1, 0.0, 100.0, Engine, true, pct),
-    pid!(0x05, "coolant_temp", "Engine coolant temperature", "°C", 1, -40.0, 215.0, Engine, true, temp),
-    pid!(0x06, "stft_b1", "Short term fuel trim, bank 1", "%", 1, -100.0, 99.2, Fuel, true, trim),
-    pid!(0x07, "ltft_b1", "Long term fuel trim, bank 1", "%", 1, -100.0, 99.2, Fuel, true, trim),
-    pid!(0x08, "stft_b2", "Short term fuel trim, bank 2", "%", 1, -100.0, 99.2, Fuel, false, trim),
-    pid!(0x09, "ltft_b2", "Long term fuel trim, bank 2", "%", 1, -100.0, 99.2, Fuel, false, trim),
-    pid!(0x0A, "fuel_pressure", "Fuel pressure (gauge)", "kPa", 1, 0.0, 765.0, Fuel, false, |d| a(d) * 3.0),
-    pid!(0x0B, "map", "Intake manifold absolute pressure", "kPa", 1, 0.0, 255.0, Air, true, a),
-    pid!(0x0C, "rpm", "Engine speed", "rpm", 2, 0.0, 16383.75, Engine, true, |d| ab(d) / 4.0),
-    pid!(0x0D, "speed", "Vehicle speed", "km/h", 1, 0.0, 255.0, Vehicle, true, a),
-    pid!(0x0E, "timing_advance", "Timing advance (cyl. 1)", "°", 1, -64.0, 63.5, Engine, false, |d| a(d) / 2.0 - 64.0),
-    pid!(0x0F, "iat", "Intake air temperature", "°C", 1, -40.0, 215.0, Air, true, temp),
-    pid!(0x10, "maf", "Mass air flow rate", "g/s", 2, 0.0, 655.35, Air, true, |d| ab(d) / 100.0),
-    pid!(0x11, "throttle", "Throttle position", "%", 1, 0.0, 100.0, Engine, true, pct),
-    pid!(0x14, "o2_b1s1", "Oxygen sensor voltage, bank 1 sensor 1", "V", 2, 0.0, 1.275, Exhaust, true, o2_volts),
-    pid!(0x15, "o2_b1s2", "Oxygen sensor voltage, bank 1 sensor 2", "V", 2, 0.0, 1.275, Exhaust, false, o2_volts),
-    pid!(0x16, "o2_b1s3", "Oxygen sensor voltage, bank 1 sensor 3", "V", 2, 0.0, 1.275, Exhaust, false, o2_volts),
-    pid!(0x17, "o2_b1s4", "Oxygen sensor voltage, bank 1 sensor 4", "V", 2, 0.0, 1.275, Exhaust, false, o2_volts),
-    pid!(0x18, "o2_b2s1", "Oxygen sensor voltage, bank 2 sensor 1", "V", 2, 0.0, 1.275, Exhaust, false, o2_volts),
-    pid!(0x19, "o2_b2s2", "Oxygen sensor voltage, bank 2 sensor 2", "V", 2, 0.0, 1.275, Exhaust, false, o2_volts),
-    pid!(0x1F, "run_time", "Run time since engine start", "s", 2, 0.0, 65535.0, Engine, false, ab),
-    pid!(0x21, "distance_mil", "Distance travelled with MIL on", "km", 2, 0.0, 65535.0, Status, false, ab),
-    pid!(0x23, "fuel_rail_pressure", "Fuel rail pressure (diesel / direct injection)", "kPa", 2, 0.0, 655350.0, Fuel, false, |d| ab(d) * 10.0),
-    pid!(0x2F, "fuel_level", "Fuel tank level", "%", 1, 0.0, 100.0, Fuel, false, pct),
-    pid!(0x31, "distance_since_clear", "Distance since codes cleared", "km", 2, 0.0, 65535.0, Status, false, ab),
-    pid!(0x33, "baro", "Barometric pressure", "kPa", 1, 0.0, 255.0, Air, false, a),
-    pid!(0x42, "module_voltage", "Control module voltage", "V", 2, 0.0, 65.535, Electrical, true, |d| ab(d) / 1000.0),
-    pid!(0x43, "absolute_load", "Absolute load value", "%", 2, 0.0, 25700.0, Engine, false, |d| ab(d) * 100.0 / 255.0),
-    pid!(0x44, "lambda_commanded", "Commanded air-fuel equivalence ratio", "λ", 2, 0.0, 2.0, Fuel, false, |d| ab(d) * 2.0 / 65536.0),
-    pid!(0x45, "relative_throttle", "Relative throttle position", "%", 1, 0.0, 100.0, Engine, false, pct),
-    pid!(0x46, "ambient_temp", "Ambient air temperature", "°C", 1, -40.0, 215.0, Air, false, temp),
-    pid!(0x49, "pedal_d", "Accelerator pedal position D", "%", 1, 0.0, 100.0, Engine, false, pct),
-    pid!(0x4A, "pedal_e", "Accelerator pedal position E", "%", 1, 0.0, 100.0, Engine, false, pct),
-    pid!(0x4C, "throttle_commanded", "Commanded throttle actuator", "%", 1, 0.0, 100.0, Engine, false, pct),
-    pid!(0x5C, "oil_temp", "Engine oil temperature", "°C", 1, -40.0, 210.0, Engine, false, temp),
-    pid!(0x5E, "fuel_rate", "Engine fuel rate", "L/h", 2, 0.0, 3276.75, Fuel, false, |d| ab(d) / 20.0),
+    pid!(
+        0x04,
+        "engine_load",
+        "Calculated engine load",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        true,
+        pct
+    ),
+    pid!(
+        0x05,
+        "coolant_temp",
+        "Engine coolant temperature",
+        "°C",
+        1,
+        -40.0,
+        215.0,
+        Engine,
+        true,
+        temp
+    ),
+    pid!(
+        0x06,
+        "stft_b1",
+        "Short term fuel trim, bank 1",
+        "%",
+        1,
+        -100.0,
+        99.2,
+        Fuel,
+        true,
+        trim
+    ),
+    pid!(
+        0x07,
+        "ltft_b1",
+        "Long term fuel trim, bank 1",
+        "%",
+        1,
+        -100.0,
+        99.2,
+        Fuel,
+        true,
+        trim
+    ),
+    pid!(
+        0x08,
+        "stft_b2",
+        "Short term fuel trim, bank 2",
+        "%",
+        1,
+        -100.0,
+        99.2,
+        Fuel,
+        false,
+        trim
+    ),
+    pid!(
+        0x09,
+        "ltft_b2",
+        "Long term fuel trim, bank 2",
+        "%",
+        1,
+        -100.0,
+        99.2,
+        Fuel,
+        false,
+        trim
+    ),
+    pid!(
+        0x0A,
+        "fuel_pressure",
+        "Fuel pressure (gauge)",
+        "kPa",
+        1,
+        0.0,
+        765.0,
+        Fuel,
+        false,
+        |d| a(d) * 3.0
+    ),
+    pid!(
+        0x0B,
+        "map",
+        "Intake manifold absolute pressure",
+        "kPa",
+        1,
+        0.0,
+        255.0,
+        Air,
+        true,
+        a
+    ),
+    pid!(
+        0x0C,
+        "rpm",
+        "Engine speed",
+        "rpm",
+        2,
+        0.0,
+        16383.75,
+        Engine,
+        true,
+        |d| ab(d) / 4.0
+    ),
+    pid!(
+        0x0D,
+        "speed",
+        "Vehicle speed",
+        "km/h",
+        1,
+        0.0,
+        255.0,
+        Vehicle,
+        true,
+        a
+    ),
+    pid!(
+        0x0E,
+        "timing_advance",
+        "Timing advance (cyl. 1)",
+        "°",
+        1,
+        -64.0,
+        63.5,
+        Engine,
+        false,
+        |d| a(d) / 2.0 - 64.0
+    ),
+    pid!(
+        0x0F,
+        "iat",
+        "Intake air temperature",
+        "°C",
+        1,
+        -40.0,
+        215.0,
+        Air,
+        true,
+        temp
+    ),
+    pid!(
+        0x10,
+        "maf",
+        "Mass air flow rate",
+        "g/s",
+        2,
+        0.0,
+        655.35,
+        Air,
+        true,
+        |d| ab(d) / 100.0
+    ),
+    pid!(
+        0x11,
+        "throttle",
+        "Throttle position",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        true,
+        pct
+    ),
+    pid!(
+        0x14,
+        "o2_b1s1",
+        "Oxygen sensor voltage, bank 1 sensor 1",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        true,
+        o2_volts
+    ),
+    pid!(
+        0x15,
+        "o2_b1s2",
+        "Oxygen sensor voltage, bank 1 sensor 2",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        false,
+        o2_volts
+    ),
+    pid!(
+        0x16,
+        "o2_b1s3",
+        "Oxygen sensor voltage, bank 1 sensor 3",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        false,
+        o2_volts
+    ),
+    pid!(
+        0x17,
+        "o2_b1s4",
+        "Oxygen sensor voltage, bank 1 sensor 4",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        false,
+        o2_volts
+    ),
+    pid!(
+        0x18,
+        "o2_b2s1",
+        "Oxygen sensor voltage, bank 2 sensor 1",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        false,
+        o2_volts
+    ),
+    pid!(
+        0x19,
+        "o2_b2s2",
+        "Oxygen sensor voltage, bank 2 sensor 2",
+        "V",
+        2,
+        0.0,
+        1.275,
+        Exhaust,
+        false,
+        o2_volts
+    ),
+    pid!(
+        0x1F,
+        "run_time",
+        "Run time since engine start",
+        "s",
+        2,
+        0.0,
+        65535.0,
+        Engine,
+        false,
+        ab
+    ),
+    pid!(
+        0x21,
+        "distance_mil",
+        "Distance travelled with MIL on",
+        "km",
+        2,
+        0.0,
+        65535.0,
+        Status,
+        false,
+        ab
+    ),
+    pid!(
+        0x23,
+        "fuel_rail_pressure",
+        "Fuel rail pressure (diesel / direct injection)",
+        "kPa",
+        2,
+        0.0,
+        655350.0,
+        Fuel,
+        false,
+        |d| ab(d) * 10.0
+    ),
+    pid!(
+        0x2F,
+        "fuel_level",
+        "Fuel tank level",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Fuel,
+        false,
+        pct
+    ),
+    pid!(
+        0x31,
+        "distance_since_clear",
+        "Distance since codes cleared",
+        "km",
+        2,
+        0.0,
+        65535.0,
+        Status,
+        false,
+        ab
+    ),
+    pid!(
+        0x33,
+        "baro",
+        "Barometric pressure",
+        "kPa",
+        1,
+        0.0,
+        255.0,
+        Air,
+        false,
+        a
+    ),
+    pid!(
+        0x42,
+        "module_voltage",
+        "Control module voltage",
+        "V",
+        2,
+        0.0,
+        65.535,
+        Electrical,
+        true,
+        |d| ab(d) / 1000.0
+    ),
+    pid!(
+        0x43,
+        "absolute_load",
+        "Absolute load value",
+        "%",
+        2,
+        0.0,
+        25700.0,
+        Engine,
+        false,
+        |d| ab(d) * 100.0 / 255.0
+    ),
+    pid!(
+        0x44,
+        "lambda_commanded",
+        "Commanded air-fuel equivalence ratio",
+        "λ",
+        2,
+        0.0,
+        2.0,
+        Fuel,
+        false,
+        |d| ab(d) * 2.0 / 65536.0
+    ),
+    pid!(
+        0x45,
+        "relative_throttle",
+        "Relative throttle position",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        false,
+        pct
+    ),
+    pid!(
+        0x46,
+        "ambient_temp",
+        "Ambient air temperature",
+        "°C",
+        1,
+        -40.0,
+        215.0,
+        Air,
+        false,
+        temp
+    ),
+    pid!(
+        0x49,
+        "pedal_d",
+        "Accelerator pedal position D",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        false,
+        pct
+    ),
+    pid!(
+        0x4A,
+        "pedal_e",
+        "Accelerator pedal position E",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        false,
+        pct
+    ),
+    pid!(
+        0x4C,
+        "throttle_commanded",
+        "Commanded throttle actuator",
+        "%",
+        1,
+        0.0,
+        100.0,
+        Engine,
+        false,
+        pct
+    ),
+    pid!(
+        0x5C,
+        "oil_temp",
+        "Engine oil temperature",
+        "°C",
+        1,
+        -40.0,
+        210.0,
+        Engine,
+        false,
+        temp
+    ),
+    pid!(
+        0x5E,
+        "fuel_rate",
+        "Engine fuel rate",
+        "L/h",
+        2,
+        0.0,
+        3276.75,
+        Fuel,
+        false,
+        |d| ab(d) / 20.0
+    ),
 ];
 
 pub fn def(pid: u8) -> Option<&'static PidDef> {
@@ -117,7 +513,11 @@ impl PidDef {
     /// Decodes the data bytes after `41 <pid>`. `None` if too short.
     pub fn decode(&self, data: &[u8]) -> Option<f64> {
         // Oxygen sensor PIDs carry 2 bytes, but only byte A is needed for the voltage.
-        let needed = if (0x14..=0x1B).contains(&self.pid) { 1 } else { self.bytes };
+        let needed = if (0x14..=0x1B).contains(&self.pid) {
+            1
+        } else {
+            self.bytes
+        };
         if data.len() < needed {
             return None;
         }
@@ -261,10 +661,16 @@ mod tests {
         let s = supported_from_bitmap(0x00, &[0xBE, 0x3F, 0xA8, 0x13]);
         assert_eq!(
             s,
-            vec![0x01, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x13, 0x15, 0x1C, 0x1F, 0x20]
+            vec![
+                0x01, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x13,
+                0x15, 0x1C, 0x1F, 0x20
+            ]
         );
         assert_eq!(bitmap_for(0x00, &s), [0xBE, 0x3F, 0xA8, 0x13]);
-        assert_eq!(supported_from_bitmap(0x20, &[0x80, 0, 0, 0x01]), vec![0x21, 0x40]);
+        assert_eq!(
+            supported_from_bitmap(0x20, &[0x80, 0, 0, 0x01]),
+            vec![0x21, 0x40]
+        );
     }
 
     #[test]

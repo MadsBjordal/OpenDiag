@@ -29,7 +29,10 @@ impl Dtc {
         };
         let d1 = (s[1] as char).to_digit(4)? as u8;
         let rest = u16::from_str_radix(std::str::from_utf8(&s[2..]).ok()?, 16).ok()?;
-        Some([(sys << 6) | (d1 << 4) | ((rest >> 8) as u8 & 0x0F), (rest & 0xFF) as u8])
+        Some([
+            (sys << 6) | (d1 << 4) | ((rest >> 8) as u8 & 0x0F),
+            (rest & 0xFF) as u8,
+        ])
     }
 
     pub fn system(&self) -> &'static str {

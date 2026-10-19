@@ -219,13 +219,20 @@ pub fn validate(p: &Procedure) -> Result<(), Vec<String>> {
             match &s.measurement {
                 None => errs.push(format!("{}: measurement missing", s.id)),
                 Some(m) => {
-                    let has = m.spec.is_some() as u8 + m.relative_to.is_some() as u8 + m.user_spec as u8;
+                    let has =
+                        m.spec.is_some() as u8 + m.relative_to.is_some() as u8 + m.user_spec as u8;
                     if has != 1 {
-                        errs.push(format!("{}: exactly one of spec / relative_to / user_spec", s.id));
+                        errs.push(format!(
+                            "{}: exactly one of spec / relative_to / user_spec",
+                            s.id
+                        ));
                     }
                     if let Some(r) = &m.relative_to {
                         if ids.get(r.as_str()).map(|x| x.kind) != Some(StepKind::Measurement) {
-                            errs.push(format!("{}: relative_to {r} is not a measurement step", s.id));
+                            errs.push(format!(
+                                "{}: relative_to {r} is not a measurement step",
+                                s.id
+                            ));
                         }
                     }
                     if m.spec.is_none() && m.source.as_deref().unwrap_or("").is_empty() {
@@ -239,7 +246,13 @@ pub fn validate(p: &Procedure) -> Result<(), Vec<String>> {
                 }
             }
         }
-        if s.kind == StepKind::Outcome && !s.outcome.as_ref().map(|o| p.outcomes.contains_key(o)).unwrap_or(false) {
+        if s.kind == StepKind::Outcome
+            && !s
+                .outcome
+                .as_ref()
+                .map(|o| p.outcomes.contains_key(o))
+                .unwrap_or(false)
+        {
             errs.push(format!("{}: outcome missing", s.id));
         }
         if s.kind != StepKind::Outcome && s.text.is_none() {
@@ -256,7 +269,13 @@ pub fn validate(p: &Procedure) -> Result<(), Vec<String>> {
 /// Replays the answers and returns where the user is now.
 pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
     let steps: HashMap<&str, &Step> = p.steps.iter().map(|s| (s.id.as_str(), s)).collect();
-    let mut state = GuidedState { procedure_id: p.id.clone(), current: None, history: Vec::new(), outcome: None, error: None };
+    let mut state = GuidedState {
+        procedure_id: p.id.clone(),
+        current: None,
+        history: Vec::new(),
+        outcome: None,
+        error: None,
+    };
     let mut values: HashMap<String, f64> = HashMap::new();
     let mut cur = steps.get(p.start.as_str()).copied();
     let mut answers = answers.iter();
@@ -264,7 +283,11 @@ pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
     for _ in 0..200 {
         let Some(step) = cur else { break };
         if step.kind == StepKind::Outcome {
-            state.outcome = step.outcome.as_ref().and_then(|o| p.outcomes.get(o)).cloned();
+            state.outcome = step
+                .outcome
+                .as_ref()
+                .and_then(|o| p.outcomes.get(o))
+                .cloned();
             return state;
         }
         let Some(a) = answers.next() else {
@@ -272,7 +295,10 @@ pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
             return state;
         };
         if a.step != step.id {
-            state.error = Some(format!("Expected an answer for \"{}\", got \"{}\".", step.id, a.step));
+            state.error = Some(format!(
+                "Expected an answer for \"{}\", got \"{}\".",
+                step.id, a.step
+            ));
             state.current = Some(step.clone());
             return state;
         }
@@ -323,7 +349,9 @@ pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
                             source: m.source.clone().unwrap_or_else(|| "Entered by you".into()),
                         },
                         _ => {
-                            state.error = Some("Enter the minimum and maximum from your service manual.".into());
+                            state.error = Some(
+                                "Enter the minimum and maximum from your service manual.".into(),
+                            );
                             state.current = Some(step.clone());
                             return state;
                         }
@@ -338,13 +366,33 @@ pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
                 };
                 let qualifier = match range.kind {
                     SpecKind::Documented => "your documented specification",
-                    SpecKind::GeneralGuidance => "the general guidance range (not a manufacturer value)",
+                    SpecKind::GeneralGuidance => {
+                        "the general guidance range (not a manufacturer value)"
+                    }
                     SpecKind::Derived => "the range worked out from your earlier measurement",
                 };
                 let explanation = match cmp {
-                    Comparison::InRange => format!("{v} {} is within {qualifier} ({}–{} {}).", m.unit, fmt(range.min), fmt(range.max), m.unit),
-                    Comparison::Below => format!("{v} {} is below {qualifier} ({}–{} {}).", m.unit, fmt(range.min), fmt(range.max), m.unit),
-                    Comparison::Above => format!("{v} {} is above {qualifier} ({}–{} {}).", m.unit, fmt(range.min), fmt(range.max), m.unit),
+                    Comparison::InRange => format!(
+                        "{v} {} is within {qualifier} ({}–{} {}).",
+                        m.unit,
+                        fmt(range.min),
+                        fmt(range.max),
+                        m.unit
+                    ),
+                    Comparison::Below => format!(
+                        "{v} {} is below {qualifier} ({}–{} {}).",
+                        m.unit,
+                        fmt(range.min),
+                        fmt(range.max),
+                        m.unit
+                    ),
+                    Comparison::Above => format!(
+                        "{v} {} is above {qualifier} ({}–{} {}).",
+                        m.unit,
+                        fmt(range.min),
+                        fmt(range.max),
+                        m.unit
+                    ),
                 };
                 values.insert(step.id.clone(), v);
                 state.history.push(Evaluated {
@@ -367,14 +415,27 @@ pub fn evaluate(p: &Procedure, answers: &[Answer]) -> GuidedState {
             }
             StepKind::Outcome => unreachable!(),
         };
-        cur = step.next.get(&key).and_then(|n| steps.get(n.as_str()).copied());
+        cur = step
+            .next
+            .get(&key)
+            .and_then(|n| steps.get(n.as_str()).copied());
     }
     state.error = Some("The procedure did not finish (loop or missing step).".into());
     state
 }
 
 fn ev(step: &Step, text: String, choice: Option<String>) -> Evaluated {
-    Evaluated { step: step.id.clone(), text, choice, measured: None, value_source: None, unit: None, spec: None, comparison: None, explanation: None }
+    Evaluated {
+        step: step.id.clone(),
+        text,
+        choice,
+        measured: None,
+        value_source: None,
+        unit: None,
+        spec: None,
+        comparison: None,
+        explanation: None,
+    }
 }
 
 fn fmt(v: f64) -> String {
@@ -390,7 +451,14 @@ mod tests {
     use super::*;
 
     fn a(step: &str, choice: Option<&str>, value: Option<f64>) -> Answer {
-        Answer { step: step.into(), choice: choice.map(Into::into), value, value_source: None, spec_min: None, spec_max: None }
+        Answer {
+            step: step.into(),
+            choice: choice.map(Into::into),
+            value,
+            value_source: None,
+            spec_min: None,
+            spec_max: None,
+        }
     }
 
     #[test]
@@ -401,7 +469,10 @@ mod tests {
 
     #[test]
     fn heated_grip_open_element() {
-        let p = bundled().into_iter().find(|p| p.id == "heated-grips-not-working").unwrap();
+        let p = bundled()
+            .into_iter()
+            .find(|p| p.id == "heated-grips-not-working")
+            .unwrap();
         let s = evaluate(&p, &[]);
         assert_eq!(s.current.unwrap().id, "confirm");
         let mut answers = vec![
@@ -427,12 +498,18 @@ mod tests {
         let o = s.outcome.unwrap();
         assert_eq!(o.kind, OutcomeKind::Finding);
         assert!(o.text.contains("broken"));
-        assert_eq!(s.history.last().unwrap().spec.as_ref().unwrap().kind, SpecKind::Documented);
+        assert_eq!(
+            s.history.last().unwrap().spec.as_ref().unwrap().kind,
+            SpecKind::Documented
+        );
     }
 
     #[test]
     fn low_supply_is_a_hypothesis() {
-        let p = bundled().into_iter().find(|p| p.id == "heated-grips-not-working").unwrap();
+        let p = bundled()
+            .into_iter()
+            .find(|p| p.id == "heated-grips-not-working")
+            .unwrap();
         let s = evaluate(
             &p,
             &[
@@ -444,12 +521,19 @@ mod tests {
             ],
         );
         assert_eq!(s.outcome.unwrap().kind, OutcomeKind::Hypothesis);
-        assert!(s.history[2].explanation.as_ref().unwrap().contains("general guidance"));
+        assert!(s.history[2]
+            .explanation
+            .as_ref()
+            .unwrap()
+            .contains("general guidance"));
     }
 
     #[test]
     fn wrong_answers_are_reported() {
-        let p = bundled().into_iter().find(|p| p.id == "battery-and-charging").unwrap();
+        let p = bundled()
+            .into_iter()
+            .find(|p| p.id == "battery-and-charging")
+            .unwrap();
         let s = evaluate(&p, &[a("running", None, Some(1.0))]);
         assert!(s.error.is_some());
         let s = evaluate(&p, &[a("rest", None, None)]);

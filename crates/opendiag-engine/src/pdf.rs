@@ -64,7 +64,8 @@ pub fn render(lines: &[(bool, String)]) -> Vec<u8> {
     let mut pages: Vec<Vec<u8>> = Vec::new();
     let mut content = Vec::new();
     let mut y = H - MARGIN;
-    let flush = |content: &mut Vec<u8>, pages: &mut Vec<Vec<u8>>| pages.push(std::mem::take(content));
+    let flush =
+        |content: &mut Vec<u8>, pages: &mut Vec<Vec<u8>>| pages.push(std::mem::take(content));
     for (bold, text) in lines {
         for l in wrap(text) {
             if y < MARGIN {
@@ -72,7 +73,8 @@ pub fn render(lines: &[(bool, String)]) -> Vec<u8> {
                 y = H - MARGIN;
             }
             let font = if *bold { "F2" } else { "F1" };
-            content.extend_from_slice(format!("BT /{font} {SIZE} Tf {MARGIN} {y:.1} Td (").as_bytes());
+            content
+                .extend_from_slice(format!("BT /{font} {SIZE} Tf {MARGIN} {y:.1} Td (").as_bytes());
             content.extend(escape(&win_ansi(&l)));
             content.extend_from_slice(b") Tj ET\n");
             y -= LEAD;
@@ -84,10 +86,20 @@ pub fn render(lines: &[(bool, String)]) -> Vec<u8> {
     let mut objs: Vec<Vec<u8>> = Vec::new();
     let page_ids: Vec<usize> = (0..pages.len()).map(|i| 5 + i * 2).collect();
     objs.push(b"<< /Type /Catalog /Pages 2 0 R >>".to_vec());
-    let kids: String = page_ids.iter().map(|id| format!("{id} 0 R")).collect::<Vec<_>>().join(" ");
+    let kids: String = page_ids
+        .iter()
+        .map(|id| format!("{id} 0 R"))
+        .collect::<Vec<_>>()
+        .join(" ");
     objs.push(format!("<< /Type /Pages /Kids [{kids}] /Count {} >>", pages.len()).into_bytes());
-    objs.push(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>".to_vec());
-    objs.push(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>".to_vec());
+    objs.push(
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>"
+            .to_vec(),
+    );
+    objs.push(
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>"
+            .to_vec(),
+    );
     for (i, c) in pages.iter().enumerate() {
         let content_id = page_ids[i] + 1;
         objs.push(
@@ -112,7 +124,13 @@ pub fn render(lines: &[(bool, String)]) -> Vec<u8> {
     for off in offsets {
         out.extend_from_slice(format!("{off:010} 00000 n \n").as_bytes());
     }
-    out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
+    out.extend_from_slice(
+        format!(
+            "trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n",
+            objs.len() + 1
+        )
+        .as_bytes(),
+    );
     out
 }
 
@@ -121,7 +139,14 @@ mod tests {
     use super::*;
     #[test]
     fn makes_a_multi_page_pdf() {
-        let lines: Vec<(bool, String)> = (0..120).map(|i| (i % 10 == 0, format!("Line {i} (with brackets) and 90 °C – λ"))).collect();
+        let lines: Vec<(bool, String)> = (0..120)
+            .map(|i| {
+                (
+                    i % 10 == 0,
+                    format!("Line {i} (with brackets) and 90 °C – λ"),
+                )
+            })
+            .collect();
         let pdf = render(&lines);
         assert!(pdf.starts_with(b"%PDF-1.4"));
         assert!(pdf.ends_with(b"%%EOF\n"));
@@ -131,7 +156,13 @@ mod tests {
         assert!(text.contains("lambda"));
         // startxref points at the xref table (byte offsets, so search the bytes).
         let tail = &pdf[pdf.windows(10).rposition(|w| w == b"startxref\n").unwrap() + 10..];
-        let start: usize = std::str::from_utf8(tail).unwrap().lines().next().unwrap().parse().unwrap();
+        let start: usize = std::str::from_utf8(tail)
+            .unwrap()
+            .lines()
+            .next()
+            .unwrap()
+            .parse()
+            .unwrap();
         assert!(pdf[start..].starts_with(b"xref"));
     }
 

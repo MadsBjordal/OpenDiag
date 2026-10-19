@@ -1,0 +1,2 @@
+-keep class org.opendiag.transport.** { *; }
+-keep class com.hoho.android.usbserial.** { *; }

@@ -68,7 +68,7 @@ const CONSEQUENCES: [&str; 6] = [
     "Readiness monitors will reset to \"not complete\". The vehicle may fail an emissions inspection until it has been driven enough for them to complete again.",
     "Fuel trim and other learned values may be reset on some vehicles, so the engine can run a little differently for a while.",
     "Permanent codes are not erased by a scan tool; they clear themselves after the vehicle's own test passes.",
-    "The request goes to every emissions-related module that answers (listed below), not only the one you are looking at.",
+    "The request goes to every emissions-related module that answers (listed above), not only the one you are looking at.",
 ];
 
 impl Engine {
@@ -87,10 +87,17 @@ impl Engine {
         let readiness = read_readiness(c, &mut errs);
         let frames = read_freeze_frames(c, &mut errs);
         let rpm = read_pid(c, 0x0C).ok().map(|m| m.value);
-        let voltage = c.elm.read_voltage().or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
+        let voltage = c
+            .elm
+            .read_voltage()
+            .or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
         let healthy = c.elm.consecutive_errors == 0;
         let session = c.session_id;
-        let affected: Vec<(String, String)> = dtcs.answered.iter().map(|e| (e.clone(), ecu_label(e))).collect();
+        let affected: Vec<(String, String)> = dtcs
+            .answered
+            .iter()
+            .map(|e| (e.clone(), ecu_label(e)))
+            .collect();
         let lib = &self.library;
         let to_finding = |(code, kind, ecu): &(String, DtcKind, String)| DtcFinding {
             code: code.clone(),
@@ -99,8 +106,18 @@ impl Engine {
             kind: *kind,
             explanation: lib.explain(code),
         };
-        let codes: Vec<DtcFinding> = dtcs.findings.iter().filter(|f| f.1 != DtcKind::Permanent).map(to_finding).collect();
-        let permanent: Vec<DtcFinding> = dtcs.findings.iter().filter(|f| f.1 == DtcKind::Permanent).map(to_finding).collect();
+        let codes: Vec<DtcFinding> = dtcs
+            .findings
+            .iter()
+            .filter(|f| f.1 != DtcKind::Permanent)
+            .map(to_finding)
+            .collect();
+        let permanent: Vec<DtcFinding> = dtcs
+            .findings
+            .iter()
+            .filter(|f| f.1 == DtcKind::Permanent)
+            .map(to_finding)
+            .collect();
         let snapshot = serde_json::json!({
             "codes": codes, "permanent": permanent, "freeze_frames": frames, "readiness": readiness,
             "engine_rpm": rpm, "voltage": voltage, "simulated": simulated,
@@ -116,7 +133,12 @@ impl Engine {
             link_healthy: healthy,
         });
         let id = uuid::Uuid::new_v4().to_string();
-        self.clear_plan = Some(PendingPlan { id: id.clone(), created: Instant::now(), snapshot_id, session_id: session });
+        self.clear_plan = Some(PendingPlan {
+            id: id.clone(),
+            created: Instant::now(),
+            snapshot_id,
+            session_id: session,
+        });
         Ok(ClearPlan {
             id,
             simulated,
@@ -137,18 +159,25 @@ impl Engine {
             Some(p) if p.id == plan_id => p,
             other => {
                 self.clear_plan = other;
-                return Err(EngineError::Invalid("This clear plan is not current. Read the codes again.".into()));
+                return Err(EngineError::Invalid(
+                    "This clear plan is not current. Read the codes again.".into(),
+                ));
             }
         };
         let terms = self.terms_accepted();
         let snapshot_saved = self.store.clear_snapshot(plan.snapshot_id)?.is_some();
         let c = crate::vehicle_of(&mut self.conn)?;
         if c.session_id != plan.session_id {
-            return Err(EngineError::Invalid("The connection changed since the plan was made. Read the codes again.".into()));
+            return Err(EngineError::Invalid(
+                "The connection changed since the plan was made. Read the codes again.".into(),
+            ));
         }
         // Conditions are read again now: the engine may have been started since.
         let rpm = read_pid(c, 0x0C).ok().map(|m| m.value);
-        let voltage = c.elm.read_voltage().or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
+        let voltage = c
+            .elm
+            .read_voltage()
+            .or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
         let ctx = ClearContext {
             terms_accepted: terms,
             snapshot_saved,
@@ -162,8 +191,18 @@ impl Engine {
             Ok(a) => a,
             Err(decision) => {
                 let session = c.session_id;
-                self.store.log_operation(session, "clear_blocked", &serde_json::json!({ "blockers": decision.blockers }))?;
-                return Ok(ClearResult { performed: false, decision, modules: vec![], remaining: vec![], summary: "Nothing was sent to the vehicle.".into() });
+                self.store.log_operation(
+                    session,
+                    "clear_blocked",
+                    &serde_json::json!({ "blockers": decision.blockers }),
+                )?;
+                return Ok(ClearResult {
+                    performed: false,
+                    decision,
+                    modules: vec![],
+                    remaining: vec![],
+                    summary: "Nothing was sent to the vehicle.".into(),
+                });
             }
         };
         let decision = self.policy.evaluate_clear(&ctx);
@@ -176,14 +215,30 @@ impl Engine {
                     let (accepted, message) = if m.data.first() == Some(&0x44) {
                         (true, "Codes cleared.".to_string())
                     } else if let Some(n) = NegativeResponse::parse(&m.data) {
-                        (false, format!("Refused: {} (code {:#04X}).", n.meaning(), n.code))
+                        (
+                            false,
+                            format!("Refused: {} (code {:#04X}).", n.meaning(), n.code),
+                        )
                     } else {
-                        (false, format!("Unexpected answer {}.", opendiag_core::hex(&m.data)))
+                        (
+                            false,
+                            format!("Unexpected answer {}.", opendiag_core::hex(&m.data)),
+                        )
                     };
-                    modules.push(EcuClearResult { ecu: m.ecu.clone(), label: ecu_label(&m.ecu), accepted, message });
+                    modules.push(EcuClearResult {
+                        ecu: m.ecu.clone(),
+                        label: ecu_label(&m.ecu),
+                        accepted,
+                        message,
+                    });
                 }
             }
-            Err(e) => modules.push(EcuClearResult { ecu: "-".into(), label: "All modules".into(), accepted: false, message: format!("No confirmation: {e}") }),
+            Err(e) => modules.push(EcuClearResult {
+                ecu: "-".into(),
+                label: "All modules".into(),
+                accepted: false,
+                message: format!("No confirmation: {e}"),
+            }),
         }
         // Read back what is there now.
         let after = read_all_dtcs(c);
@@ -191,10 +246,19 @@ impl Engine {
         let remaining: Vec<DtcFinding> = after
             .findings
             .iter()
-            .map(|(code, kind, ecu)| DtcFinding { code: code.clone(), ecu: ecu.clone(), ecu_label: ecu_label(ecu), kind: *kind, explanation: lib.explain(code) })
+            .map(|(code, kind, ecu)| DtcFinding {
+                code: code.clone(),
+                ecu: ecu.clone(),
+                ecu_label: ecu_label(ecu),
+                kind: *kind,
+                explanation: lib.explain(code),
+            })
             .collect();
         let accepted = modules.iter().filter(|m| m.accepted).count();
-        let left_stored = remaining.iter().filter(|r| r.kind != DtcKind::Permanent).count();
+        let left_stored = remaining
+            .iter()
+            .filter(|r| r.kind != DtcKind::Permanent)
+            .count();
         let summary = if accepted == 0 {
             "No module confirmed the clear.".to_string()
         } else if left_stored == 0 {
@@ -208,7 +272,21 @@ impl Engine {
             "clear_dtcs",
             &serde_json::json!({ "summary": summary, "modules": modules, "remaining": remaining.len(), "snapshot_id": plan.snapshot_id }),
         )?;
-        self.record_result("clear_emission_dtcs", if accepted > 0 { TestResult::Works } else { TestResult::Fails }, &summary);
-        Ok(ClearResult { performed: true, decision, modules, remaining, summary })
+        self.record_result(
+            "clear_emission_dtcs",
+            if accepted > 0 {
+                TestResult::Works
+            } else {
+                TestResult::Fails
+            },
+            &summary,
+        );
+        Ok(ClearResult {
+            performed: true,
+            decision,
+            modules,
+            remaining,
+            summary,
+        })
     }
 }

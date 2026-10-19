@@ -30,7 +30,7 @@ pub fn hex(bytes: &[u8]) -> String {
 /// Parses hex text (spaces optional) into bytes. Returns `None` on any non-hex input.
 pub fn parse_hex(text: &str) -> Option<Vec<u8>> {
     let clean: String = text.chars().filter(|c| !c.is_whitespace()).collect();
-    if clean.is_empty() || clean.len() % 2 != 0 {
+    if clean.is_empty() || !clean.len().is_multiple_of(2) {
         return None;
     }
     (0..clean.len())

@@ -10,7 +10,10 @@ pub struct NegativeResponse {
 impl NegativeResponse {
     pub fn parse(data: &[u8]) -> Option<Self> {
         if data.len() >= 3 && data[0] == 0x7F {
-            Some(Self { service: data[1], code: data[2] })
+            Some(Self {
+                service: data[1],
+                code: data[2],
+            })
         } else {
             None
         }
