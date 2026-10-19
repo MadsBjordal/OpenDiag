@@ -19,4 +19,5 @@ opendiag-sim.workspace = true
 opendiag-store.workspace = true
 opendiag-knowledge.workspace = true
 opendiag-definitions.workspace = true
+opendiag-kline.workspace = true
 opendiag-transport = { workspace = true, default-features = false }

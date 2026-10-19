@@ -9,52 +9,14 @@ mod parse;
 
 pub use parse::{parse_lines, ParsedLine};
 
-use opendiag_core::{AdapterCapabilities, AdapterFamily, ByteLink, LinkError, ObdProtocol, Tri};
+use opendiag_core::{AdapterCapabilities, AdapterFamily, ByteLink, ObdProtocol, Tri};
 use opendiag_isotp::Reassembler;
 use opendiag_obd::{response::NegativeResponse, EcuMessage};
 use opendiag_safety::Authorization;
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, Serialize, Deserialize)]
-pub enum ElmError {
-    #[error("{0}")]
-    Link(#[from] LinkError),
-    #[error("the adapter did not answer \"{0}\" in time")]
-    Timeout(String),
-    #[error("no answer from the vehicle (NO DATA)")]
-    NoData,
-    #[error(
-        "the adapter could not connect to the vehicle (UNABLE TO CONNECT). Is the ignition on?"
-    )]
-    UnableToConnect,
-    #[error("vehicle bus error: {0}")]
-    Bus(String),
-    #[error("the adapter does not support \"{0}\"")]
-    Unsupported(String),
-    #[error("{0}")]
-    Blocked(String),
-    #[error("the answer could not be understood: {0}")]
-    Garbled(String),
-    #[error("this does not look like an ELM327-compatible adapter (it answered \"{0}\")")]
-    NotElm(String),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Direction {
-    Tx,
-    Rx,
-    Note,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LogEntry {
-    pub ms: u64,
-    pub dir: Direction,
-    pub text: String,
-}
+pub use opendiag_driver::{Direction, Driver, DriverError as ElmError, LogEntry};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Timeouts {
@@ -483,6 +445,49 @@ fn check_errors(lines: &[String]) -> Result<(), ElmError> {
         }
     }
     Ok(())
+}
+
+impl Driver for Elm327 {
+    fn capabilities(&self) -> &AdapterCapabilities {
+        Elm327::capabilities(self)
+    }
+    fn protocol(&self) -> Option<ObdProtocol> {
+        Elm327::protocol(self)
+    }
+    fn is_can(&self) -> bool {
+        Elm327::is_can(self)
+    }
+    fn link_info(&self) -> opendiag_core::LinkInfo {
+        Elm327::link_info(self)
+    }
+    fn read_voltage(&mut self) -> Option<f64> {
+        Elm327::read_voltage(self)
+    }
+    fn connect_vehicle(
+        &mut self,
+        protocol: Option<ObdProtocol>,
+    ) -> Result<(ObdProtocol, Vec<EcuMessage>), ElmError> {
+        Elm327::connect_vehicle(self, protocol)
+    }
+    fn request(
+        &mut self,
+        payload: &[u8],
+        auth: Option<&Authorization>,
+    ) -> Result<Vec<EcuMessage>, ElmError> {
+        Elm327::request(self, payload, auth)
+    }
+    fn log(&self) -> &[LogEntry] {
+        Elm327::log(self)
+    }
+    fn consecutive_errors(&self) -> u32 {
+        self.consecutive_errors
+    }
+    fn set_redact_vin(&mut self, on: bool) {
+        self.redact_vin = on;
+    }
+    fn close(&mut self) {
+        Elm327::close(self)
+    }
 }
 
 #[cfg(test)]

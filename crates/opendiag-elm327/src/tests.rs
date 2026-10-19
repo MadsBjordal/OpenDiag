@@ -1,7 +1,7 @@
 //! Driver tests against a scripted adapter (answers as documented in the ELM327 data sheet).
 
 use super::*;
-use opendiag_core::{LinkInfo, LinkKind};
+use opendiag_core::{LinkError, LinkInfo, LinkKind};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 

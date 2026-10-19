@@ -5,7 +5,9 @@ members = [
   "crates/opendiag-isotp",
   "crates/opendiag-obd",
   "crates/opendiag-safety",
+  "crates/opendiag-driver",
   "crates/opendiag-elm327",
+  "crates/opendiag-kline",
   "crates/opendiag-sim",
   "crates/opendiag-transport",
   "crates/opendiag-knowledge",
@@ -23,7 +25,9 @@ default-members = [
   "crates/opendiag-isotp",
   "crates/opendiag-obd",
   "crates/opendiag-safety",
+  "crates/opendiag-driver",
   "crates/opendiag-elm327",
+  "crates/opendiag-kline",
   "crates/opendiag-sim",
   "crates/opendiag-transport",
   "crates/opendiag-knowledge",
@@ -55,6 +59,8 @@ opendiag-isotp = { path = "crates/opendiag-isotp" }
 opendiag-obd = { path = "crates/opendiag-obd" }
 opendiag-safety = { path = "crates/opendiag-safety" }
 opendiag-elm327 = { path = "crates/opendiag-elm327" }
+opendiag-driver = { path = "crates/opendiag-driver" }
+opendiag-kline = { path = "crates/opendiag-kline" }
 opendiag-transport = { path = "crates/opendiag-transport", default-features = false }
 opendiag-sim = { path = "crates/opendiag-sim" }
 opendiag-knowledge = { path = "crates/opendiag-knowledge" }

@@ -10,7 +10,7 @@ pub mod protocol;
 pub mod status;
 
 pub use capability::{AdapterCapabilities, AdapterFamily, Tri};
-pub use link::{ByteLink, LinkError, LinkInfo, LinkKind};
+pub use link::{ByteLink, KLinePort, LinkError, LinkInfo, LinkKind};
 pub use protocol::ObdProtocol;
 pub use status::SupportStatus;
 

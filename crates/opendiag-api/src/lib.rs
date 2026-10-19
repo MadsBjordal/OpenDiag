@@ -6,7 +6,7 @@
 //! both call [`Api::call`], so the UI runs the same code path everywhere.
 
 use base64::Engine as _;
-use opendiag_core::{ByteLink, LinkError, LinkKind};
+use opendiag_core::{ByteLink, KLinePort, LinkError, LinkKind};
 use opendiag_engine::{Engine, EngineError, ScanProgress};
 use opendiag_knowledge::guided::Answer;
 use opendiag_sim::{SimAdapter, SimSettings};
@@ -22,6 +22,10 @@ pub trait LinkFactory: Send + Sync {
     fn devices(&self) -> Vec<DeviceCandidate>;
     /// `None` when the address is not one of this factory's.
     fn open(&self, address: &str) -> Option<Result<Box<dyn ByteLink>, LinkError>>;
+    /// A K-line cable at this address, when the platform has one (`None` = not mine).
+    fn open_kline(&self, _address: &str) -> Option<Result<Box<dyn KLinePort>, LinkError>> {
+        None
+    }
 }
 
 pub struct NoExtraLinks;
@@ -34,10 +38,18 @@ impl LinkFactory for NoExtraLinks {
     }
 }
 
+/// A K-line port, its simulator control (if simulated) and the requested wake-up.
+type OpenedKLine = (
+    Box<dyn KLinePort>,
+    Option<opendiag_sim::SimControl>,
+    opendiag_kline::InitMode,
+);
+
 pub struct Api {
     engine: Mutex<Engine>,
     links: Box<dyn LinkFactory>,
     progress: Mutex<Option<ScanProgress>>,
+    honda: Mutex<Option<opendiag_kline::honda::HondaKLine>>,
 }
 
 #[derive(Deserialize)]
@@ -159,6 +171,18 @@ enum Cmd {
         settings: SimSettings,
     },
     SimProfiles,
+    /// Experimental read-only Honda motorcycle K-line mode (expert mode only).
+    HondaConnect {
+        address: String,
+    },
+    HondaWake {
+        variant: opendiag_kline::honda::Wake,
+    },
+    HondaReadTable {
+        table: u8,
+    },
+    HondaLog,
+    HondaDisconnect,
 }
 
 /// One row of a blink-code table the user copied from their own service manual.
@@ -202,7 +226,65 @@ impl Api {
             engine: Mutex::new(engine),
             links,
             progress: Mutex::new(None),
+            honda: Mutex::new(None),
         }
+    }
+
+    /// Opens a K-line cable. Addresses: `kline:<serial port or android-usb:…>[#auto|fast|5baud]`
+    /// and `kline-sim:<profile>:<iso9141|kwp5baud|kwpfast|honda>[#…]` (simulator).
+    fn open_kline(&self, address: &str) -> Result<OpenedKLine, EngineError> {
+        let bad = |e: LinkError| EngineError::Invalid(e.to_string());
+        let (addr, init) = match address.split_once('#') {
+            Some((a, i)) => (
+                a,
+                opendiag_kline::InitMode::parse(i)
+                    .ok_or_else(|| EngineError::Invalid(format!("Unknown K-line init \"{i}\".")))?,
+            ),
+            None => (address, opendiag_kline::InitMode::Auto),
+        };
+        if let Some(rest) = addr.strip_prefix("kline-sim:") {
+            use opendiag_sim::kline::{SimKLineMode, SimKLinePort};
+            let (profile, mode) = rest.split_once(':').unwrap_or((rest, "iso9141"));
+            let profile = opendiag_sim::profiles::by_id(profile)
+                .ok_or_else(|| EngineError::Invalid(format!("No simulator profile {profile}.")))?;
+            let mode = match mode {
+                "iso9141" => SimKLineMode::Iso9141,
+                "kwp5baud" => SimKLineMode::Kwp5Baud,
+                "kwpfast" => SimKLineMode::KwpFast,
+                "honda" => SimKLineMode::Honda,
+                m => {
+                    return Err(EngineError::Invalid(format!(
+                        "Unknown simulated K-line mode {m}."
+                    )))
+                }
+            };
+            let (port, ctl) = SimKLinePort::new(profile, SimSettings::default(), mode);
+            return Ok((Box::new(port), Some(ctl), init));
+        }
+        let inner = addr
+            .strip_prefix("kline:")
+            .ok_or_else(|| EngineError::Invalid(format!("Not a K-line address: {address}")))?;
+        if let Some(r) = self.links.open_kline(inner) {
+            return r.map(|p| (p, None, init)).map_err(bad);
+        }
+        #[cfg(feature = "serial")]
+        {
+            let port = opendiag_transport::serial::SerialKLine::open(inner).map_err(bad)?;
+            return Ok((Box::new(port), None, init));
+        }
+        #[allow(unreachable_code)]
+        Err(EngineError::Invalid(
+            "K-line cables are not available on this platform.".into(),
+        ))
+    }
+
+    fn require_expert(&self) -> Result<(), EngineError> {
+        if self.engine().setting_or("mode", "beginner") != "expert" {
+            return Err(EngineError::Blocked(
+                "Turn on expert mode in Settings to use the experimental Honda mode.".into(),
+            ));
+        }
+        Ok(())
     }
 
     /// Runs one command. `emit` receives events (e.g. "scan_progress") while it runs.
@@ -275,6 +357,46 @@ impl Api {
         )))
     }
 
+    /// Records the Honda wake-up result in the compatibility database (this OS, this cable).
+    fn record_honda(&self, awake: bool, simulated: bool, notes: &str) {
+        use opendiag_store::compat::{CompatRecord, TestResult, Verification};
+        let e = self.engine();
+        let rec = CompatRecord {
+            uuid: String::new(),
+            make: if simulated {
+                "Simulated".into()
+            } else {
+                "Honda".into()
+            },
+            model: String::new(),
+            year: None,
+            ecu_hw: String::new(),
+            ecu_sw: String::new(),
+            adapter: "Raw K-line cable".into(),
+            adapter_firmware: String::new(),
+            os: e.platform().into(),
+            protocol: "honda_kline".into(),
+            function: "honda_kline_wake".into(),
+            result: if awake {
+                TestResult::Works
+            } else {
+                TestResult::Fails
+            },
+            verification: if simulated {
+                Verification::Simulated
+            } else {
+                Verification::UnverifiedLocal
+            },
+            app_version: opendiag_core::APP_VERSION.into(),
+            evidence: vec![notes.into()],
+            notes: String::new(),
+            source: "local".into(),
+            version: 0,
+            updated_at: String::new(),
+        };
+        let _ = e.store().record_compat(&rec, "recorded by the app");
+    }
+
     fn run(&self, cmd: Cmd, emit: &dyn Fn(&str, Value)) -> Result<Value, EngineError> {
         let to =
             |v: Result<Value, serde_json::Error>| v.map_err(|e| EngineError::Store(e.to_string()));
@@ -294,6 +416,13 @@ impl Api {
                 let mut d = self.links.devices();
                 d.extend(opendiag_engine::devices());
                 to(serde_json::to_value(d))?
+            }
+            Cmd::Connect { address } if address.starts_with("kline") => {
+                let (port, sim, init) = self.open_kline(&address)?;
+                let drv = opendiag_kline::KLineObd::open(port, init)?;
+                to(serde_json::to_value(
+                    self.engine().connect_driver(Box::new(drv), sim)?,
+                ))?
             }
             Cmd::Connect { address } => {
                 let (link, sim) = self.open_link(&address)?;
@@ -471,6 +600,50 @@ impl Api {
                 }
             },
             Cmd::SimProfiles => to(serde_json::to_value(opendiag_sim::profiles::all()))?,
+            Cmd::HondaConnect { address } => {
+                self.require_expert()?;
+                let (port, _, _) = self.open_kline(&address)?;
+                let h = opendiag_kline::honda::HondaKLine::open(port)?;
+                let info = h.info();
+                *self.honda.lock().unwrap_or_else(|p| p.into_inner()) = Some(h);
+                to(serde_json::to_value(info))?
+            }
+            Cmd::HondaWake { variant } => {
+                self.require_expert()?;
+                let mut g = self.honda.lock().unwrap_or_else(|p| p.into_inner());
+                let h = g.as_mut().ok_or(EngineError::NotConnected)?;
+                let r = h.wake(variant)?;
+                let simulated = h.info().simulated;
+                drop(g);
+                self.record_honda(
+                    r.awake,
+                    simulated,
+                    &format!("wake {variant:?}: {}", r.init_reply),
+                );
+                to(serde_json::to_value(r))?
+            }
+            Cmd::HondaReadTable { table } => {
+                self.require_expert()?;
+                let mut g = self.honda.lock().unwrap_or_else(|p| p.into_inner());
+                let h = g.as_mut().ok_or(EngineError::NotConnected)?;
+                let data = h.read_table(table)?;
+                json!({ "table": table, "hex": opendiag_core::hex(&data), "bytes": data, "simulated": h.info().simulated })
+            }
+            Cmd::HondaLog => match self
+                .honda
+                .lock()
+                .unwrap_or_else(|p| p.into_inner())
+                .as_ref()
+            {
+                Some(h) => to(serde_json::to_value(h.log()))?,
+                None => Value::Array(vec![]),
+            },
+            Cmd::HondaDisconnect => {
+                if let Some(mut h) = self.honda.lock().unwrap_or_else(|p| p.into_inner()).take() {
+                    h.close();
+                }
+                Value::Null
+            }
         })
     }
 }
@@ -547,6 +720,53 @@ mod tests {
                 >= 3
         );
         ok(&a, json!({"cmd":"disconnect"}));
+    }
+
+    #[test]
+    fn k_line_and_honda_through_json() {
+        let a = api();
+        let s = ok(
+            &a,
+            json!({"cmd":"connect","address":"kline-sim:sim-legacy:kwpfast#fast"}),
+        );
+        assert_eq!(s["vehicle_connected"], true);
+        assert_eq!(s["protocol"], "iso14230_fast");
+        assert_eq!(ok(&a, json!({"cmd":"scan"}))["dtcs"][0]["code"], "P0420");
+        ok(&a, json!({"cmd":"disconnect"}));
+        // Honda mode is expert-only.
+        let r = a.call(
+            json!({"cmd":"honda_connect","address":"kline-sim:sim-motorcycle:honda"}),
+            &|_, _| {},
+        );
+        assert_eq!(r["kind"], "blocked");
+        ok(
+            &a,
+            json!({"cmd":"set_setting","key":"mode","value":"expert"}),
+        );
+        ok(
+            &a,
+            json!({"cmd":"honda_connect","address":"kline-sim:sim-motorcycle:honda"}),
+        );
+        assert_eq!(
+            ok(&a, json!({"cmd":"honda_wake","variant":"ping72"}))["awake"],
+            true
+        );
+        let t = ok(&a, json!({"cmd":"honda_read_table","table":17}));
+        assert_eq!(t["bytes"].as_array().unwrap().len(), 16);
+        assert!(ok(&a, json!({"cmd":"honda_log"})).as_array().unwrap().len() > 3);
+        ok(&a, json!({"cmd":"honda_disconnect"}));
+        let recs = ok(
+            &a,
+            json!({"cmd":"compat_query","filter":{"function":"honda_kline_wake"}}),
+        );
+        assert_eq!(recs[0]["verification"], "simulated");
+        assert_eq!(
+            a.call(
+                json!({"cmd":"connect","address":"kline-sim:sim-legacy:nope"}),
+                &|_, _| {}
+            )["kind"],
+            "invalid"
+        );
     }
 
     #[test]

@@ -60,7 +60,7 @@
     }
    ],
    "elm327": "yes",
-   "adapter": "Any ELM327-compatible OBD-II adapter (USB, Bluetooth or Wi-Fi).",
+   "adapter": "Any ELM327-compatible OBD-II adapter (USB, Bluetooth or Wi-Fi). K-line vehicles also work with a raw K-line cable (KKL / FTDI).",
    "support": "implemented_not_hardware_verified",
    "support_note": "Generic OBD-II scan, live data and clearing are implemented and simulator-tested, not yet verified on real vehicles.",
    "how_to_read": [],
@@ -189,7 +189,8 @@
     }
    ],
    "notes": [
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -630,7 +631,8 @@
     }
    ],
    "notes": [
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -663,7 +665,8 @@
     }
    ],
    "notes": [
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -774,7 +777,8 @@
     }
    ],
    "notes": [
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -887,9 +891,9 @@
     }
    ],
    "elm327": "no",
-   "adapter": "For data: a raw K-line interface (e.g. FTDI USB serial with a K-line transceiver) and a 4-pin cable. For blink codes: Honda's SCS service connector 070PZ-ZY30100 or equivalent jumper.",
-   "support": "planned",
-   "support_note": "Blink codes: OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. The Honda K-line data protocol is planned; sources disagree on its wake-up message, so it needs testing on a real bike first.",
+   "adapter": "For data: a raw K-line cable (FTDI-type USB serial with a K-line transceiver) wired to the 4-pin DLC. For blink codes: Honda's SCS service connector 070PZ-ZY30100 or equivalent jumper.",
+   "support": "partially_implemented",
+   "support_note": "Blink codes: OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. Experimental read-only K-line mode (expert mode, raw K-line cable): wake-up and raw table reads, not yet tested on a real bike; sources disagree on the wake-up message. Reading fault codes over the K-line is not implemented.",
    "how_to_read": [
     "Ignition off. Remove the dummy plug from the red DLC.",
     "Connect the SCS service connector (Honda 070PZ-ZY30100) to the DLC. The terminals to short differ per model: check the manual.",
@@ -1033,7 +1037,8 @@
     }
    ],
    "notes": [
-    "AiM gives the K-line as the yellow/blue wire on the R3. Baud rate not found."
+    "AiM gives the K-line as the yellow/blue wire on the R3. Baud rate not found.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -1156,7 +1161,8 @@
     }
    ],
    "notes": [
-    "AiM shows power, K-line and ground on this connector but without pin numbers."
+    "AiM shows power, K-line and ground on this connector but without pin numbers.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -1202,7 +1208,8 @@
    ],
    "notes": [
     "Sources disagree on whether the 4-pin or the 6-pin carries the K-line.",
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {
@@ -1393,7 +1400,9 @@
      "note": "AiM wiring"
     }
    ],
-   "notes": []
+   "notes": [
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
+   ]
   },
   {
    "id": "triumph-16pin-can",
@@ -1549,7 +1558,8 @@
     }
    ],
    "notes": [
-    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model.",
+    "OpenDiag's raw K-line driver speaks generic OBD-II (ISO 9141-2 / ISO 14230-4) only so far; this manufacturer protocol is not implemented."
    ]
   },
   {

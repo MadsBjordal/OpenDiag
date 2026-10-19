@@ -6,17 +6,24 @@ import { useApp } from '../state';
 import { protocolName } from '../units';
 import type { Device, Summary } from '../types';
 
-type Kind = 'usb' | 'bluetooth' | 'wifi' | 'sim';
+type Kind = 'usb' | 'bluetooth' | 'wifi' | 'kline' | 'sim';
 
 const KINDS: { kind: Kind; icon: string; title: string; text: string }[] = [
   { kind: 'usb', icon: '🔌', title: 'USB or USB-C cable', text: 'Adapter plugged into this device' },
   { kind: 'bluetooth', icon: '📶', title: 'Bluetooth', text: 'Wireless adapter, paired first' },
   { kind: 'wifi', icon: '🛜', title: 'Wi-Fi or Ethernet', text: 'Adapter with its own network' },
+  { kind: 'kline', icon: '〰', title: 'K-line cable (KKL / FTDI)', text: 'Wired cable for older cars and motorcycles' },
   { kind: 'sim', icon: '🧪', title: 'Simulator', text: 'Try OpenDiag without a vehicle' },
 ];
 
+const isKlineSim = (d: Device) => d.address.startsWith('kline-sim:');
+
 const matches = (d: Device, k: Kind) =>
-  k === 'sim' ? d.simulated : k === 'wifi' ? d.kind === 'wifi' || d.kind === 'ethernet' : k === 'bluetooth' ? d.kind === 'bluetooth_classic' || d.kind === 'bluetooth_le' : d.kind === 'usb_serial' || d.kind === 'android_usb';
+  k === 'kline'
+    ? (isKlineSim(d) && !d.address.endsWith(':honda')) || d.kind === 'usb_serial' || d.kind === 'android_usb'
+    : k === 'sim'
+      ? d.simulated && !isKlineSim(d)
+      : k === 'wifi' ? d.kind === 'wifi' || d.kind === 'ethernet' : k === 'bluetooth' ? d.kind === 'bluetooth_classic' || d.kind === 'bluetooth_le' : d.kind === 'usb_serial' || d.kind === 'android_usb';
 
 function Help({ kind, platform }: { kind: Kind; platform: string }) {
   const android = platform === 'android';
@@ -32,6 +39,13 @@ function Help({ kind, platform }: { kind: Kind; platform: string }) {
       ? ['Pair the adapter in Android\'s Bluetooth settings first (PIN is often 1234 or 0000).', 'Allow the "Nearby devices" permission when asked.', 'Bluetooth Low Energy adapters are not supported yet.']
       : ['Pair the adapter in Windows Bluetooth settings first. Windows then creates an outgoing COM port for it: choose that port below.', 'Bluetooth Low Energy adapters are not supported yet.'],
     wifi: ['Connect this device to the adapter\'s Wi-Fi network first (mobile data may need to be off).', 'Many adapters use 192.168.0.10, port 35000. Check your adapter\'s manual.'],
+    kline: [
+      'A K-line cable is a plain USB cable with an FTDI-type chip, often sold as "KKL" or "VAG-COM 409.1". OpenDiag drives the K-line itself, so a normal ELM327 adapter is not used here.',
+      'It reaches generic OBD-II on K-line vehicles (ISO 9141-2 and KWP2000), typically cars from about 2000 to 2008 and some motorcycles with a suitable adapter cable.',
+      android ? 'On Android plug it in with a USB-C OTG cable; Bluetooth cannot drive a K-line.' : 'On Windows, set the FTDI latency timer to 1 ms (Device Manager → Ports → the cable → Port Settings → Advanced) for reliable timing.',
+      'Ignition on, engine off or idling. The slow (5-baud) wake-up takes about 3 seconds.',
+      'Not tested on real vehicles yet: please report what happens.',
+    ],
     sim: ['Simulated vehicles are always labelled SIMULATED. Use the simulator controls to switch the engine off or create faults.'],
   };
   return (
@@ -48,6 +62,9 @@ export default function Connect() {
   const [kind, setKind] = useState<Kind | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [address, setAddress] = useState('192.168.0.10:35000');
+  const [init, setInit] = useState<'auto' | 'fast' | '5baud'>('auto');
+  const klineAddress = (d: Device) =>
+    isKlineSim(d) ? `${d.address}#${init}` : `kline:${d.address.replace(/^serial:/, '')}#${init}`;
   const list = useAction(async () => setDevices(await call<Device[]>('devices')));
   const connect = useAction(async (addr: string) => {
     const s = await call<Summary>('connect', { address: addr });
@@ -182,6 +199,16 @@ export default function Connect() {
           <Help kind={kind} platform={platform} />
           {!inApp() && kind !== 'sim' && <p className="muted small">{t('Running in a browser: devices are those the development bridge can see on this computer.')}</p>}
           <ErrorBox error={list.error} />
+          {kind === 'kline' && (
+            <label className="field" style={{ maxWidth: 360, marginTop: 8 }}>
+              {t('Wake-up')}
+              <select value={init} onChange={(e) => setInit(e.target.value as typeof init)}>
+                <option value="auto">{t('Automatic (fast init, then 5-baud)')}</option>
+                <option value="fast">{t('Fast init (ISO 14230-4 KWP2000)')}</option>
+                <option value="5baud">{t('5-baud (ISO 9141-2 or KWP2000)')}</option>
+              </select>
+            </label>
+          )}
           {kind === 'wifi' ? (
             <div className="row" style={{ marginTop: 10 }}>
               <label className="field" style={{ flex: 1, minWidth: 220 }}>
@@ -202,7 +229,7 @@ export default function Connect() {
                     <b>{d.name}</b> {d.simulated && <span className="chip sim">{t('SIMULATED')}</span>}
                     <div className="muted small">{d.detail}</div>
                   </div>
-                  <button className="btn primary" disabled={connect.busy} onClick={() => connect.run(d.address)}>
+                  <button className="btn primary" disabled={connect.busy} onClick={() => connect.run(kind === 'kline' ? klineAddress(d) : d.address)}>
                     {connect.busy ? <Spinner /> : null} {t('Connect')}
                   </button>
                 </div>

@@ -20,6 +20,8 @@ pub enum AdapterFamily {
     /// ScanTool STN chip (OBDLink family): ELM327 compatible plus ST commands.
     Stn,
     Simulated,
+    /// A raw K-line cable ("KKL", FTDI-type): OpenDiag drives the protocol itself.
+    RawKLine,
     Unknown,
 }
 

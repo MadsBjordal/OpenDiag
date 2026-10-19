@@ -419,3 +419,38 @@ fn devices_list_includes_simulators() {
     assert!(d.iter().filter(|x| x.simulated).count() >= 3);
     assert!(d.iter().any(|x| x.address.starts_with("tcp:")));
 }
+
+#[test]
+fn scan_and_clear_over_a_raw_k_line() {
+    use opendiag_sim::kline::{SimKLineMode, SimKLinePort};
+    let mut e = Engine::new(Store::open_in_memory().unwrap(), "linux");
+    let (port, ctl) = SimKLinePort::new(
+        profiles::legacy_car(),
+        SimSettings {
+            latency_ms: 0,
+            ..Default::default()
+        },
+        SimKLineMode::KwpFast,
+    );
+    let drv =
+        opendiag_kline::KLineObd::open(Box::new(port), opendiag_kline::InitMode::FastInit).unwrap();
+    let s = e.connect_driver(Box::new(drv), Some(ctl.clone())).unwrap();
+    assert!(s.vehicle_connected, "{:?}", s.vehicle_error);
+    assert_eq!(s.protocol, Some(ObdProtocol::Iso14230Fast));
+    assert_eq!(s.adapter.family, opendiag_core::AdapterFamily::Simulated);
+    let r = e.scan(&mut no_progress()).unwrap();
+    assert!(r.dtcs.iter().any(|d| d.code == "P0420"));
+    assert_eq!(r.vehicle.vin.as_ref().unwrap().vin, "SMLTDK91410000044");
+    let live = e.live_read(&["rpm".to_string()]).unwrap();
+    assert!(live[0].value.unwrap() > 500.0);
+    e.accept_terms(true).unwrap();
+    ctl.set(SimSettings {
+        engine_running: false,
+        latency_ms: 0,
+        ..Default::default()
+    });
+    let plan = e.prepare_clear().unwrap();
+    let res = e.execute_clear(&plan.id, true).unwrap();
+    assert!(res.performed, "{:?}", res.decision);
+    assert!(res.remaining.is_empty());
+}

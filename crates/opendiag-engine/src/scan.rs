@@ -59,7 +59,7 @@ pub(crate) struct DtcRead {
 
 /// Reads stored, pending and permanent codes from every ECU.
 pub(crate) fn read_all_dtcs(c: &mut Conn) -> DtcRead {
-    let is_can = c.elm.is_can();
+    let is_can = c.drv.is_can();
     let mut out = DtcRead {
         findings: Vec::new(),
         answered: Vec::new(),
@@ -201,7 +201,7 @@ pub(crate) fn read_freeze_frames(c: &mut Conn, errors: &mut Vec<String>) -> Vec<
 }
 
 fn read_identity(c: &mut Conn, errors: &mut Vec<String>) -> VehicleIdentity {
-    let is_can = c.elm.is_can();
+    let is_can = c.drv.is_can();
     let mut ident = VehicleIdentity {
         vin: None,
         calibration_ids: Vec::new(),
@@ -303,7 +303,7 @@ impl Engine {
         let platform = self.platform.clone();
         let c = crate::vehicle_of(&mut self.conn)?;
         let simulated = c.simulated();
-        let mut warnings: Vec<String> = c.elm.capabilities().notes.clone();
+        let mut warnings: Vec<String> = c.drv.capabilities().notes.clone();
         let mut errors: Vec<String> = Vec::new();
         step(2);
         if let Err(e) = c.req(&[0x01, 0x00]) {
@@ -340,8 +340,8 @@ impl Engine {
                 Err(e) => errors.push(format!("{}: {e}", def.name)),
             }
         }
-        if c.elm.capabilities().voltage_reading == opendiag_core::Tri::Yes {
-            if let Some(v) = c.elm.read_voltage() {
+        if c.drv.capabilities().voltage_reading == opendiag_core::Tri::Yes {
+            if let Some(v) = c.drv.read_voltage() {
                 measurements.push(Measurement {
                     key: "adapter_voltage".into(),
                     name: "Battery voltage at the diagnostic socket".into(),
@@ -361,7 +361,7 @@ impl Engine {
                 warnings.push(format!("Battery voltage is low ({v:.1} V). Low voltage can cause false fault codes and unreliable communication."));
             }
         }
-        if c.elm.capabilities().headers == opendiag_core::Tri::No {
+        if c.drv.capabilities().headers == opendiag_core::Tri::No {
             warnings.push("This adapter cannot show which module answered: results from several modules may be merged.".into());
         }
         if !dtcs.permanent_supported {
@@ -469,9 +469,9 @@ impl Engine {
             app_version: opendiag_core::APP_VERSION.into(),
             platform,
             simulated,
-            link: c.elm.link_info(),
-            adapter: c.elm.capabilities().clone(),
-            protocol: c.elm.protocol(),
+            link: c.drv.link_info(),
+            adapter: c.drv.capabilities().clone(),
+            protocol: c.drv.protocol(),
             vehicle: identity,
             modules,
             dtcs: findings,

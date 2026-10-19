@@ -49,12 +49,28 @@ class IdArgs {
     var id: Long = 0
 }
 
+@InvokeArg
+class BreakArgs {
+    var id: Long = 0
+    var low: Boolean = false
+}
+
+@InvokeArg
+class BaudArgs {
+    var id: Long = 0
+    var baud: Int = 10400
+}
+
 /** One open adapter connection: USB serial or Bluetooth RFCOMM. */
 private interface Conn {
     val name: String
     fun write(bytes: ByteArray)
     fun read(max: Int, timeoutMs: Long): ByteArray
     fun close()
+    /** K-line control; only USB serial cables support it. */
+    fun setBreak(low: Boolean): Unit = throw IOException("This connection cannot control a K-line.")
+    fun setBaud(baud: Int): Unit = throw IOException("This connection cannot change speed.")
+    fun clearInput() {}
 }
 
 private class UsbConn(private val port: UsbSerialPort, override val name: String) : Conn {
@@ -66,6 +82,13 @@ private class UsbConn(private val port: UsbSerialPort, override val name: String
     }
     override fun close() {
         try { port.close() } catch (_: IOException) {}
+    }
+    override fun setBreak(low: Boolean) = port.setBreak(low)
+    override fun setBaud(baud: Int) = port.setParameters(baud, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+    override fun clearInput() {
+        try { port.purgeHwBuffers(false, true) } catch (_: Exception) {}
+        val buf = ByteArray(256)
+        while (port.read(buf, 1) > 0) { /* drain */ }
     }
 }
 
@@ -226,6 +249,66 @@ class TransportPlugin(private val activity: Activity) : Plugin(activity) {
         }
         port.close()
         throw IOException("No ELM327-compatible answer from the USB adapter at any common speed.")
+    }
+
+    /** Opens a USB serial K-line cable at 10400 baud without probing for an ELM327. */
+    @Command
+    fun openKline(invoke: Invoke) {
+        val args = invoke.parseArgs(OpenArgs::class.java)
+        background(invoke) {
+            if (!args.address.startsWith("android-usb:")) throw IOException("K-line needs a USB cable; Bluetooth adapters cannot drive a K-line.")
+            val conn = openUsbRaw(args.address.removePrefix("android-usb:"), 10400)
+            val id = nextId.getAndIncrement()
+            conns[id] = conn
+            val ret = JSObject()
+            ret.put("id", id)
+            ret.put("name", conn.name)
+            ret
+        }
+    }
+
+    private fun openUsbRaw(deviceName: String, baud: Int): Conn {
+        val manager = usbManager()
+        val driver = UsbSerialProber.getDefaultProber().findAllDrivers(manager).firstOrNull { it.device.deviceName == deviceName }
+            ?: throw IOException("The USB cable is no longer connected.")
+        if (!manager.hasPermission(driver.device)) {
+            val intent = Intent(USB_PERMISSION).setPackage(activity.packageName)
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+            manager.requestPermission(driver.device, PendingIntent.getBroadcast(activity, 0, intent, flags))
+            throw SecurityException("USB permission requested. Allow it, then press Connect again.")
+        }
+        val connection = manager.openDevice(driver.device) ?: throw IOException("Android could not open the USB device.")
+        val port = driver.ports[0]
+        port.open(connection)
+        port.setParameters(baud, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+        return UsbConn(port, "${driver.device.productName ?: "USB K-line cable"} (K-line)")
+    }
+
+    @Command
+    fun setBreak(invoke: Invoke) {
+        val args = invoke.parseArgs(BreakArgs::class.java)
+        background(invoke) {
+            (conns[args.id] ?: throw IOException("closed")).setBreak(args.low)
+            JSObject()
+        }
+    }
+
+    @Command
+    fun setBaud(invoke: Invoke) {
+        val args = invoke.parseArgs(BaudArgs::class.java)
+        background(invoke) {
+            (conns[args.id] ?: throw IOException("closed")).setBaud(args.baud)
+            JSObject()
+        }
+    }
+
+    @Command
+    fun clearInput(invoke: Invoke) {
+        val args = invoke.parseArgs(IdArgs::class.java)
+        background(invoke) {
+            (conns[args.id] ?: throw IOException("closed")).clearInput()
+            JSObject()
+        }
     }
 
     @Command

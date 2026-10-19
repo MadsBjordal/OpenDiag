@@ -18,6 +18,8 @@ pub enum LinkKind {
     Ethernet,
     /// USB device opened through Android's USB Host API.
     AndroidUsb,
+    /// A raw K-line cable (KKL / FTDI-type) on a serial port.
+    KLineCable,
     /// OpenDiag's built-in simulator. Never a real vehicle.
     Simulated,
 }
@@ -50,6 +52,22 @@ pub trait ByteLink: Send {
     /// Reads whatever is available, waiting at most `timeout`.
     /// Returns `Ok(0)` when nothing arrived in time.
     fn read(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize, LinkError>;
+    fn info(&self) -> LinkInfo;
+    fn close(&mut self) {}
+}
+
+/// A serial line wired to a vehicle's K-line through a transceiver ("KKL"
+/// cable, FTDI USB-serial + L9637-type chip). Unlike [`ByteLink`] it gives
+/// control over the line itself, which K-line wake-ups need.
+pub trait KLinePort: Send {
+    fn write(&mut self, data: &[u8]) -> Result<(), LinkError>;
+    /// Reads whatever is available, waiting at most `timeout`; `Ok(0)` on timeout.
+    fn read(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize, LinkError>;
+    /// `true` pulls the K-line low (serial break), `false` releases it.
+    fn set_break(&mut self, low: bool) -> Result<(), LinkError>;
+    fn set_baud(&mut self, baud: u32) -> Result<(), LinkError>;
+    /// Drops bytes received so far.
+    fn clear_input(&mut self) -> Result<(), LinkError>;
     fn info(&self) -> LinkInfo;
     fn close(&mut self) {}
 }

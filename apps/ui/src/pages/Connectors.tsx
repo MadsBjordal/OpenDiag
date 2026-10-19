@@ -3,7 +3,7 @@ import { call } from '../api';
 import { ErrorBox, StatusChip, useAction } from '../components';
 import { t } from '../i18n';
 import { useApp } from '../state';
-import type { Connector, ConnectorCategory } from '../types';
+import type { Connector, ConnectorCategory, Device } from '../types';
 
 const CATEGORIES: [ConnectorCategory, string, string][] = [
   ['car', '🚗', 'Car or van'],
@@ -143,6 +143,91 @@ function BlinkReader({ c }: { c: Connector }) {
   );
 }
 
+interface WakeResult {
+  awake: boolean;
+  wake_reply: string;
+  init_reply: string;
+}
+
+/** Experimental, read-only Honda motorcycle K-line mode (expert mode only). */
+function HondaPanel() {
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [address, setAddress] = useState('');
+  const [variant, setVariant] = useState<'ff_ff' | 'ping72'>('ff_ff');
+  const [table, setTable] = useState('17');
+  const [connected, setConnected] = useState(false);
+  const [lines, setLines] = useState<string[]>([]);
+  const add = (l: string) => setLines((x) => [...x, l]);
+  const load = useAction(async () => {
+    const d = (await call<Device[]>('devices')).filter((x) => x.address.endsWith(':honda') || x.kind === 'usb_serial' || x.kind === 'android_usb');
+    setDevices(d);
+    if (!address && d[0]) setAddress(d[0].address);
+  });
+  const open = useAction(async () => {
+    const a = address.startsWith('kline-sim:') ? address : `kline:${address.replace(/^serial:/, '')}`;
+    await call('honda_connect', { address: a });
+    setConnected(true);
+    add(`${t('Opened')} ${a}`);
+  });
+  const wake = useAction(async () => {
+    const r = await call<WakeResult>('honda_wake', { variant });
+    add(`${t('Wake-up')} (${variant}): ${r.awake ? t('ECU answered') : t('no valid answer')} · ${t('reply')} "${r.wake_reply}" / "${r.init_reply}"`);
+  });
+  const read = useAction(async () => {
+    const n = table.trim().toLowerCase().startsWith('0x') ? parseInt(table, 16) : parseInt(table, 10);
+    const r = await call<{ hex: string; simulated: boolean }>('honda_read_table', { table: n });
+    add(`${t('Table')} ${n} (0x${n.toString(16).toUpperCase()}): ${r.hex}${r.simulated ? ' [SIMULATED]' : ''}`);
+  });
+  const close = useAction(async () => {
+    await call('honda_disconnect');
+    setConnected(false);
+  });
+  useEffect(() => {
+    void load.run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const err = open.error ?? wake.error ?? read.error ?? close.error ?? load.error;
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <h3 style={{ marginTop: 0 }}>{t('Experimental: Honda K-line (read only)')}</h3>
+      <p className="small">
+        {t('Needs a raw K-line cable (FTDI-type) wired to the red DLC. Based on open-source projects, not Honda documentation, and not yet tested on a real bike by OpenDiag. Only the wake-up and table reads can be sent; table bytes are shown raw because their meaning differs per model.')}
+      </p>
+      <div className="row">
+        <select value={address} onChange={(e) => setAddress(e.target.value)} style={{ flex: 1, minWidth: 220 }} aria-label={t('Cable')}>
+          {devices.map((d) => (
+            <option key={d.address} value={d.address}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+        <button className="btn small" disabled={!address || connected} onClick={() => open.run()}>
+          {t('Open cable')}
+        </button>
+      </div>
+      <div className="row" style={{ marginTop: 8 }}>
+        <select value={variant} onChange={(e) => setVariant(e.target.value as typeof variant)} style={{ maxWidth: 260 }} aria-label={t('Wake-up message')}>
+          <option value="ff_ff">{t('Wake-up FE 04 FF FF')}</option>
+          <option value="ping72">{t('Wake-up FE 04 72 8C')}</option>
+        </select>
+        <button className="btn small primary" disabled={!connected} onClick={() => wake.run()}>
+          {t('Wake up')}
+        </button>
+        <input type="text" value={table} onChange={(e) => setTable(e.target.value)} style={{ width: 90 }} aria-label={t('Table number')} />
+        <button className="btn small" disabled={!connected} onClick={() => read.run()}>
+          {t('Read table')}
+        </button>
+        <button className="btn small ghost" disabled={!connected} onClick={() => close.run()}>
+          {t('Close')}
+        </button>
+      </div>
+      <p className="muted small">{t('Sources disagree on the wake-up message: if one gets no answer, try the other. The ECU goes back to sleep after a few seconds: wake it again before reading.')}</p>
+      <ErrorBox error={err} />
+      {lines.length > 0 && <div className="console" style={{ marginTop: 8 }}>{lines.join('\n')}</div>}
+    </div>
+  );
+}
+
 function ConnectorCard({ c, open, onOpen }: { c: Connector; open: boolean; onOpen: () => void }) {
   const { go, settings } = useApp();
   const [cls, label] = ELM[c.elm327];
@@ -243,6 +328,12 @@ function ConnectorCard({ c, open, onOpen }: { c: Connector; open: boolean; onOpe
           </ul>
           {settings?.mode === 'expert' && <p className="mono small muted">id: {c.id}</p>}
           {blink && c.how_to_read.length > 0 && <BlinkReader c={c} />}
+          {c.id === 'honda-moto-4pin-dlc' &&
+            (settings?.mode === 'expert' ? (
+              <HondaPanel />
+            ) : (
+              <p className="banner info small">{t('Turn on expert mode in Settings to try the experimental Honda K-line data mode.')}</p>
+            ))}
         </div>
       )}
     </div>

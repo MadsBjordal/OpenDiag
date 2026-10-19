@@ -88,10 +88,10 @@ impl Engine {
         let frames = read_freeze_frames(c, &mut errs);
         let rpm = read_pid(c, 0x0C).ok().map(|m| m.value);
         let voltage = c
-            .elm
+            .drv
             .read_voltage()
             .or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
-        let healthy = c.elm.consecutive_errors == 0;
+        let healthy = c.drv.consecutive_errors() == 0;
         let session = c.session_id;
         let affected: Vec<(String, String)> = dtcs
             .answered
@@ -175,7 +175,7 @@ impl Engine {
         // Conditions are read again now: the engine may have been started since.
         let rpm = read_pid(c, 0x0C).ok().map(|m| m.value);
         let voltage = c
-            .elm
+            .drv
             .read_voltage()
             .or_else(|| read_pid(c, 0x42).ok().map(|m| m.value));
         let ctx = ClearContext {
@@ -185,7 +185,7 @@ impl Engine {
             plan_expired: plan.created.elapsed() > PLAN_LIFETIME,
             battery_voltage: voltage,
             engine_rpm: rpm,
-            link_healthy: c.elm.consecutive_errors == 0,
+            link_healthy: c.drv.consecutive_errors() == 0,
         };
         let auth = match self.policy.authorize_clear(&ctx) {
             Ok(a) => a,
@@ -207,7 +207,7 @@ impl Engine {
         };
         let decision = self.policy.evaluate_clear(&ctx);
         let c = crate::vehicle_of(&mut self.conn)?;
-        let answers = c.elm.request(auth.payload(), Some(&auth));
+        let answers = c.drv.request(auth.payload(), Some(&auth));
         let mut modules = Vec::new();
         match &answers {
             Ok(msgs) => {

@@ -8,6 +8,7 @@
 //! [`SimControl`] changes the vehicle while connected: engine on/off and faults
 //! (timeouts, disconnects, malformed and cut-off answers, low voltage, wrong VIN…).
 
+pub mod kline;
 pub mod profiles;
 pub mod signals;
 
@@ -108,22 +109,7 @@ pub struct SimAdapter {
 
 impl SimAdapter {
     pub fn new(profile: VehicleProfile, settings: SimSettings) -> (Self, SimControl) {
-        let state = Arc::new(Mutex::new(State {
-            vehicle: Vehicle {
-                profile,
-                cleared: false,
-            },
-            settings,
-            echo: true,
-            linefeeds: true,
-            spaces: true,
-            headers: false,
-            protocol_choice: None,
-            connected: false,
-            started: Instant::now(),
-            disconnected: false,
-            requests: 0,
-        }));
+        let state = Arc::new(Mutex::new(State::new(profile, settings)));
         (
             Self {
                 state: state.clone(),
@@ -209,6 +195,39 @@ impl ByteLink for SimAdapter {
 }
 
 impl State {
+    fn new(profile: VehicleProfile, settings: SimSettings) -> Self {
+        State {
+            vehicle: Vehicle {
+                profile,
+                cleared: false,
+            },
+            settings,
+            echo: true,
+            linefeeds: true,
+            spaces: true,
+            headers: false,
+            protocol_choice: None,
+            connected: false,
+            started: Instant::now(),
+            disconnected: false,
+            requests: 0,
+        }
+    }
+
+    /// Every ECU's answer messages to one request, for the K-line simulator.
+    pub(crate) fn answers(&mut self, req: &[u8]) -> Vec<(u32, Vec<u8>)> {
+        let t = self.started.elapsed().as_secs_f64();
+        self.requests += 1;
+        let ecus = self.vehicle.profile.ecus.clone();
+        let mut out = Vec::new();
+        for ecu in &ecus {
+            for m in self.ecu_answer(ecu, req, t) {
+                out.push((ecu.address, m));
+            }
+        }
+        out
+    }
+
     fn reset(&mut self) {
         self.echo = true;
         self.linefeeds = true;

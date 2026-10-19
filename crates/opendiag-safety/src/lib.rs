@@ -140,6 +140,25 @@ pub fn may_send(payload: &[u8], auth: Option<&Authorization>) -> Result<(), Stri
     }
 }
 
+/// Honda motorcycle K-line frames (experimental mode). Only the wake-up,
+/// the initialise message and table reads (`72 05 71 <table> <cs>`) are
+/// allowed; every other frame is refused, whatever it might do.
+pub fn may_send_honda(frame: &[u8]) -> Result<(), String> {
+    const ALLOWED: [&[u8]; 3] = [
+        &[0xFE, 0x04, 0xFF, 0xFF],
+        &[0xFE, 0x04, 0x72, 0x8C],
+        &[0x72, 0x05, 0x00, 0xF0, 0x99],
+    ];
+    if ALLOWED.contains(&frame) {
+        return Ok(());
+    }
+    let sum = frame.iter().fold(0u8, |a, b| a.wrapping_add(*b));
+    if frame.len() == 5 && frame[0] == 0x72 && frame[1] == 0x05 && frame[2] == 0x71 && sum == 0 {
+        return Ok(());
+    }
+    Err("Blocked by the safety policy: only the Honda wake-up and table reads are allowed in the experimental Honda mode.".into())
+}
+
 /// What a clear-codes workflow knows when the user presses Confirm.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ClearContext {
@@ -359,6 +378,18 @@ mod tests {
         ] {
             assert!(may_send(p, None).is_err(), "{p:?}");
         }
+    }
+
+    #[test]
+    fn honda_frames_are_read_only() {
+        assert!(may_send_honda(&[0x72, 0x05, 0x00, 0xF0, 0x99]).is_ok());
+        assert!(may_send_honda(&[0xFE, 0x04, 0xFF, 0xFF]).is_ok());
+        assert!(may_send_honda(&[0x72, 0x05, 0x71, 0x11, 0x07]).is_ok());
+        // Wrong checksum, other message types, longer frames: refused.
+        assert!(may_send_honda(&[0x72, 0x05, 0x71, 0x11, 0x08]).is_err());
+        assert!(may_send_honda(&[0x72, 0x05, 0x60, 0x03, 0x26]).is_err());
+        assert!(may_send_honda(&[0x72, 0x06, 0x71, 0x11, 0x00, 0x06]).is_err());
+        assert!(may_send_honda(&[]).is_err());
     }
 
     #[test]

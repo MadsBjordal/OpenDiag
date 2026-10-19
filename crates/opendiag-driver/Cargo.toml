@@ -1,0 +1,13 @@
+[package]
+name = "opendiag-driver"
+description = "The interface every OpenDiag vehicle driver implements (ELM327, raw K-line, …)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+opendiag-core.workspace = true
+opendiag-obd.workspace = true
+opendiag-safety.workspace = true

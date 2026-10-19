@@ -2213,6 +2213,7 @@ dependencies = [
  "opendiag-core",
  "opendiag-definitions",
  "opendiag-engine",
+ "opendiag-kline",
  "opendiag-knowledge",
  "opendiag-sim",
  "opendiag-store",
@@ -2267,10 +2268,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "opendiag-driver"
+version = "0.1.0"
+dependencies = [
+ "opendiag-core",
+ "opendiag-obd",
+ "opendiag-safety",
+ "serde",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "opendiag-elm327"
 version = "0.1.0"
 dependencies = [
  "opendiag-core",
+ "opendiag-driver",
  "opendiag-isotp",
  "opendiag-obd",
  "opendiag-safety",
@@ -2285,7 +2298,9 @@ dependencies = [
  "chrono",
  "opendiag-core",
  "opendiag-definitions",
+ "opendiag-driver",
  "opendiag-elm327",
+ "opendiag-kline",
  "opendiag-knowledge",
  "opendiag-obd",
  "opendiag-safety",
@@ -2303,6 +2318,18 @@ name = "opendiag-isotp"
 version = "0.1.0"
 dependencies = [
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opendiag-kline"
+version = "0.1.0"
+dependencies = [
+ "opendiag-core",
+ "opendiag-driver",
+ "opendiag-obd",
+ "opendiag-safety",
+ "opendiag-sim",
+ "serde",
 ]
 
 [[package]]

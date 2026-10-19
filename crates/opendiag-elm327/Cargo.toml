@@ -12,3 +12,4 @@ opendiag-core.workspace = true
 opendiag-isotp.workspace = true
 opendiag-obd.workspace = true
 opendiag-safety.workspace = true
+opendiag-driver.workspace = true

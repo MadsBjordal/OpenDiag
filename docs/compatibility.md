@@ -15,6 +15,8 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | USB / USB-C serial adapter (ELM327-compatible) | Not hardware-verified | Not hardware-verified (USB host bridge) | Not hardware-verified |
 | Bluetooth Classic adapter | Not hardware-verified (paired COM port) | Not hardware-verified (RFCOMM bridge) | Partially (bind with `rfcomm` first) |
 | Bluetooth Low Energy adapter | Planned | Planned | Planned |
+| Raw K-line cable (KKL / FTDI), generic OBD-II, fast and 5-baud init | Not hardware-verified | Not hardware-verified (USB OTG) | Not hardware-verified |
+| Honda motorcycle K-line, experimental (wake-up, raw table reads) | Partially implemented | Partially implemented | Partially implemented |
 | Wi-Fi / Ethernet (TCP) adapter | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | SAE J2534 PassThru | Planned | Unsupported | Unsupported |
 | Adapter identification and capability probe | Not hardware-verified | Not hardware-verified | Not hardware-verified |
@@ -30,9 +32,9 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | ECU programming, security access, immobiliser (level 4) | Unsupported | Unsupported | Unsupported |
 
 All of the "not hardware-verified" functions pass their automated tests against
-the simulator on every supported vehicle protocol (CAN 11/29-bit, ISO 9141-2
-K-line framing; J1850/KWP framing is parsed by the same code but has no
-simulator profile yet).
+the simulator: CAN 11/29-bit and K-line framing through the ELM327 driver, and
+ISO 9141-2 (5-baud), ISO 14230-4 (fast and 5-baud) and the Honda wake-up through
+the raw K-line driver. J1850 framing is parsed but has no simulator profile yet.
 
 ## Verified hardware results
 

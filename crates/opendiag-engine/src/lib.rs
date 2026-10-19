@@ -19,6 +19,7 @@ pub use scan::ScanProgress;
 
 use opendiag_core::{AdapterCapabilities, ByteLink, LinkInfo, ObdProtocol, SupportStatus};
 use opendiag_definitions::Definition;
+use opendiag_driver::Driver;
 use opendiag_elm327::{Elm327, ElmError, LogEntry};
 use opendiag_knowledge::{guided, DtcLibrary};
 use opendiag_obd::{pid, EcuMessage};
@@ -64,7 +65,7 @@ impl From<opendiag_store::StoreError> for EngineError {
 pub type Result<T> = std::result::Result<T, EngineError>;
 
 pub(crate) struct Conn {
-    pub elm: Elm327,
+    pub drv: Box<dyn Driver>,
     pub sim: Option<SimControl>,
     pub session_id: i64,
     pub vehicle_error: Option<String>,
@@ -79,7 +80,7 @@ pub(crate) struct Conn {
 
 impl Conn {
     pub fn simulated(&self) -> bool {
-        self.elm.link_info().simulated
+        self.drv.link_info().simulated
     }
 
     /// Sends a read-only request, keeping a minimum gap between requests.
@@ -88,7 +89,7 @@ impl Conn {
         if since < MIN_REQUEST_GAP {
             std::thread::sleep(MIN_REQUEST_GAP - since);
         }
-        let r = self.elm.request(payload, None);
+        let r = self.drv.request(payload, None);
         self.last_request = Instant::now();
         r
     }
@@ -223,6 +224,17 @@ impl Engine {
     ) -> Result<ConnectionSummary> {
         self.disconnect();
         let elm = Elm327::open(link)?;
+        self.connect_driver(Box::new(elm), sim)
+    }
+
+    /// Like [`Self::connect`], for any driver (e.g. a raw K-line cable).
+    pub fn connect_driver(
+        &mut self,
+        drv: Box<dyn Driver>,
+        sim: Option<SimControl>,
+    ) -> Result<ConnectionSummary> {
+        self.disconnect();
+        let elm = drv;
         let simulated = elm.link_info().simulated;
         let caps = serde_json::to_value(elm.capabilities()).unwrap_or_default();
         let session_id = self.store.create_session(None, &caps, simulated)?;
@@ -232,7 +244,7 @@ impl Engine {
             &serde_json::json!({ "adapter": elm.capabilities().identity, "link": elm.link_info() }),
         )?;
         self.conn = Some(Conn {
-            elm,
+            drv: elm,
             sim,
             session_id,
             vehicle_error: None,
@@ -250,7 +262,7 @@ impl Engine {
     /// (Re)tries the vehicle on an open adapter, e.g. after switching the ignition on.
     pub fn connect_vehicle(&mut self) -> Result<ConnectionSummary> {
         let c = self.conn.as_mut().ok_or(EngineError::NotConnected)?;
-        match c.elm.connect_vehicle(None) {
+        match c.drv.connect_vehicle(None) {
             Ok((_proto, msgs)) => {
                 c.vehicle_error = None;
                 c.ecus.clear();
@@ -299,7 +311,7 @@ impl Engine {
 
     pub fn disconnect(&mut self) {
         if let Some(mut c) = self.conn.take() {
-            c.elm.close();
+            c.drv.close();
             let _ = self
                 .store
                 .log_operation(c.session_id, "disconnect", &serde_json::json!({}));
@@ -314,16 +326,16 @@ impl Engine {
     pub fn summary(&mut self) -> Result<ConnectionSummary> {
         let compat = self.compat_status()?;
         let c = self.conn.as_mut().ok_or(EngineError::NotConnected)?;
-        let voltage = if c.elm.capabilities().voltage_reading == opendiag_core::Tri::Yes {
-            c.elm.read_voltage()
+        let voltage = if c.drv.capabilities().voltage_reading == opendiag_core::Tri::Yes {
+            c.drv.read_voltage()
         } else {
             None
         };
         Ok(ConnectionSummary {
             simulated: c.simulated(),
-            link: c.elm.link_info(),
-            adapter: c.elm.capabilities().clone(),
-            protocol: c.elm.protocol(),
+            link: c.drv.link_info(),
+            adapter: c.drv.capabilities().clone(),
+            protocol: c.drv.protocol(),
             vehicle_connected: c.vehicle_error.is_none() && !c.ecus.is_empty(),
             vehicle_error: c.vehicle_error.clone(),
             ecus: c
@@ -353,7 +365,7 @@ impl Engine {
     pub fn session_log(&self) -> Vec<LogEntry> {
         self.conn
             .as_ref()
-            .map(|c| c.elm.log().to_vec())
+            .map(|c| c.drv.log().to_vec())
             .unwrap_or_default()
     }
 
@@ -388,7 +400,7 @@ impl Engine {
                 source: "derived".into(),
             });
         }
-        if c.elm.capabilities().voltage_reading == opendiag_core::Tri::Yes {
+        if c.drv.capabilities().voltage_reading == opendiag_core::Tri::Yes {
             out.push(LiveParam {
                 key: "adapter_voltage".into(),
                 name: "Battery voltage at the diagnostic socket (measured by the adapter)".into(),
@@ -412,7 +424,7 @@ impl Engine {
             )));
         }
         let c = self.vehicle()?;
-        if c.elm.consecutive_errors >= 3 {
+        if c.drv.consecutive_errors() >= 3 {
             return Err(EngineError::Adapter(ElmError::Bus(
                 "several requests in a row failed; check the connection and reconnect".into(),
             )));
@@ -421,7 +433,7 @@ impl Engine {
         for key in keys {
             let now = chrono::Utc::now().timestamp_millis();
             if key == "adapter_voltage" {
-                let v = c.elm.read_voltage();
+                let v = c.drv.read_voltage();
                 out.push(LiveSample {
                     key: key.clone(),
                     name: "Battery voltage (adapter)".into(),
@@ -570,7 +582,7 @@ impl Engine {
         self.store.set_setting(key, value)?;
         if key == "show_vin_in_log" {
             if let Some(c) = self.conn.as_mut() {
-                c.elm.redact_vin = value != "true";
+                c.drv.set_redact_vin(value != "true");
             }
         }
         Ok(())
@@ -670,8 +682,8 @@ impl Engine {
         let (simulated, adapter, firmware, vin_make) = match &self.conn {
             Some(c) => (
                 c.simulated(),
-                c.elm.capabilities().identity.clone(),
-                c.elm
+                c.drv.capabilities().identity.clone(),
+                c.drv
                     .capabilities()
                     .stn_firmware
                     .clone()
@@ -776,7 +788,7 @@ impl Engine {
                     .unwrap_or_else(|| "Unknown".into())
             },
             model: if simulated {
-                c.elm
+                c.drv
                     .link_info()
                     .name
                     .trim_start_matches("Simulator: ")
@@ -787,16 +799,16 @@ impl Engine {
             year: None,
             ecu_hw: String::new(),
             ecu_sw: c.calids.first().cloned().unwrap_or_default(),
-            adapter: c.elm.capabilities().identity.clone(),
+            adapter: c.drv.capabilities().identity.clone(),
             adapter_firmware: c
-                .elm
+                .drv
                 .capabilities()
                 .stn_firmware
                 .clone()
                 .unwrap_or_default(),
             os: self.platform.clone(),
             protocol: c
-                .elm
+                .drv
                 .protocol()
                 .map(|p| format!("{p:?}").to_lowercase())
                 .unwrap_or_default(),
@@ -874,6 +886,32 @@ pub fn devices() -> Vec<opendiag_transport::DeviceCandidate> {
         address: format!("tcp:{}", opendiag_transport::tcp::DEFAULT_WIFI_ADDRESS),
         simulated: false,
     });
+    for (addr, name, detail) in [
+        (
+            "kline-sim:sim-legacy:iso9141",
+            "SIMULATED older car on a K-line cable (ISO 9141-2)",
+            "Raw K-line, 5-baud wake-up (takes about 2 s).",
+        ),
+        (
+            "kline-sim:sim-legacy:kwpfast",
+            "SIMULATED car on a K-line cable (KWP2000 fast init)",
+            "Raw K-line, ISO 14230-4 fast init.",
+        ),
+        (
+            "kline-sim:sim-motorcycle:honda",
+            "SIMULATED Honda-style K-line motorcycle",
+            "Experimental Honda mode only (expert mode).",
+        ),
+    ] {
+        out.push(DeviceCandidate {
+            id: addr.into(),
+            kind: opendiag_core::LinkKind::Simulated,
+            name: name.into(),
+            detail: detail.into(),
+            address: addr.into(),
+            simulated: true,
+        });
+    }
     for p in opendiag_sim::profiles::all() {
         out.push(DeviceCandidate {
             id: format!("sim:{}", p.id),

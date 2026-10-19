@@ -158,3 +158,66 @@ pub fn discover() -> Vec<DeviceCandidate> {
         })
         .collect()
 }
+
+/// A K-line cable ("KKL", FTDI-type) on a serial port, driven at the line level.
+pub struct SerialKLine {
+    port: Box<dyn SerialPort>,
+    name: String,
+}
+
+impl SerialKLine {
+    pub fn open(path: &str) -> Result<Self, LinkError> {
+        let link = SerialLink::open(path, 10400, LinkKind::KLineCable)?;
+        Ok(Self {
+            port: link.port,
+            name: format!("{path} (K-line)"),
+        })
+    }
+}
+
+impl opendiag_core::KLinePort for SerialKLine {
+    fn write(&mut self, data: &[u8]) -> Result<(), LinkError> {
+        self.port.write_all(data).map_err(io_err)?;
+        self.port.flush().map_err(io_err)
+    }
+
+    fn read(&mut self, buf: &mut [u8], timeout: Duration) -> Result<usize, LinkError> {
+        self.port
+            .set_timeout(timeout.max(Duration::from_millis(1)))
+            .map_err(|e| LinkError::Io(e.to_string()))?;
+        match self.port.read(buf) {
+            Ok(n) => Ok(n),
+            Err(e) if e.kind() == ErrorKind::TimedOut || e.kind() == ErrorKind::WouldBlock => Ok(0),
+            Err(e) => Err(io_err(e)),
+        }
+    }
+
+    fn set_break(&mut self, low: bool) -> Result<(), LinkError> {
+        let r = if low {
+            self.port.set_break()
+        } else {
+            self.port.clear_break()
+        };
+        r.map_err(|e| LinkError::Io(format!("this cable cannot control the K-line ({e})")))
+    }
+
+    fn set_baud(&mut self, baud: u32) -> Result<(), LinkError> {
+        self.port
+            .set_baud_rate(baud)
+            .map_err(|e| LinkError::Io(e.to_string()))
+    }
+
+    fn clear_input(&mut self) -> Result<(), LinkError> {
+        self.port
+            .clear(serialport::ClearBuffer::Input)
+            .map_err(|e| LinkError::Io(e.to_string()))
+    }
+
+    fn info(&self) -> LinkInfo {
+        LinkInfo {
+            kind: LinkKind::KLineCable,
+            name: self.name.clone(),
+            simulated: false,
+        }
+    }
+}

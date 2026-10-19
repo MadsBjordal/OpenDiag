@@ -49,8 +49,9 @@ Most of the unsupported entries need one of three things besides an ELM327:
 
 1. **A raw K-line interface** (an FTDI USB-serial chip with a K-line
    transceiver, often sold as a "KKL" cable). It is needed for Honda, Suzuki,
-   Kawasaki, Yamaha, VAG KW1281, Fiat/Piaggio and Triumph K-line. This is the
-   most valuable next step (see backlog).
+   Kawasaki, Yamaha, VAG KW1281, Fiat/Piaggio and Triumph K-line. OpenDiag now
+   drives such cables (generic OBD-II, plus an experimental Honda mode; see
+   [kline.md](kline.md)); the manufacturer protocols still need adding one by one.
 2. **A raw CAN interface** (SocketCAN, J2534, or an STN/ELM in monitor mode) for
    J1939, ISOBUS, NMEA 2000 and proprietary CAN.
 3. **Manufacturer-specific hardware** for Nissan Consult, GM ALDL, J1708 and
