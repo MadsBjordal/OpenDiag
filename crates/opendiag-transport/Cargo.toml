@@ -1,0 +1,16 @@
+[package]
+name = "opendiag-transport"
+description = "Byte links to diagnostic adapters: USB/Bluetooth serial ports and Wi-Fi/Ethernet TCP."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["serial"]
+# Serial ports (USB adapters, Bluetooth Classic COM ports). Off on Android, which uses its own USB/Bluetooth bridge.
+serial = ["dep:serialport"]
+
+[dependencies]
+serde.workspace = true
+opendiag-core.workspace = true
+serialport = { version = "4.5", optional = true }

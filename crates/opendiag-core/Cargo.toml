@@ -1,0 +1,10 @@
+[package]
+name = "opendiag-core"
+description = "Shared types for OpenDiag: byte links, adapter capabilities, support status."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true

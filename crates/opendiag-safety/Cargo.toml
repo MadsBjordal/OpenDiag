@@ -1,0 +1,9 @@
+[package]
+name = "opendiag-safety"
+description = "Safety policy: classifies diagnostic requests by risk and issues the only authorizations drivers accept."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true

@@ -1,0 +1,1888 @@
+{
+ "format": "opendiag-dtc-library",
+ "version": 1,
+ "source": "Code titles follow the generic SAE J2012 / ISO 15031-6 definitions (paraphrased). Explanations, possible causes and tests are general guidance written for OpenDiag, not manufacturer data; always check the vehicle's own documentation.",
+ "codes": [
+  {
+   "code": "P0010",
+   "title": "\"A\" Camshaft position actuator circuit (bank 1)",
+   "plain": "The engine computer sees an electrical problem in the circuit that controls the intake camshaft timing.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft timing solenoid/actuator",
+    "Damaged wiring or a loose/corroded connector",
+    "Engine control module fault (uncommon)"
+   ],
+   "suggested_tests": [
+    "Inspect the actuator connector and wiring",
+    "Measure the solenoid resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0011",
+   "title": "\"A\" Camshaft position: timing over-advanced or system performance (bank 1)",
+   "plain": "The intake camshaft timing is not where the engine computer expects it.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Low or dirty engine oil",
+    "Sticking camshaft timing solenoid",
+    "Stretched timing chain or worn tensioner",
+    "Faulty camshaft phaser"
+   ],
+   "suggested_tests": [
+    "Check oil level and condition",
+    "Check service history for the oil change interval",
+    "Inspect the timing solenoid and its oil screen"
+   ],
+   "related_measurements": [
+    "rpm",
+    "oil_temp"
+   ],
+   "driving_advice": "Check the oil level before driving further."
+  },
+  {
+   "code": "P0016",
+   "title": "Crankshaft / camshaft position correlation (bank 1 sensor A)",
+   "plain": "The crankshaft and camshaft signals are out of step with each other.",
+   "severity": "high",
+   "possible_causes": [
+    "Stretched timing chain/belt or jumped tooth",
+    "Faulty crankshaft or camshaft sensor",
+    "Damaged reluctor ring",
+    "Camshaft phaser stuck"
+   ],
+   "suggested_tests": [
+    "Check for related camshaft codes",
+    "Verify mechanical timing marks (consult documentation)",
+    "Check sensor signals with an oscilloscope"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "Timing problems can cause serious engine damage. Avoid driving until checked."
+  },
+  {
+   "code": "P0068",
+   "title": "MAP / MAF to throttle position correlation",
+   "plain": "The air flow readings do not match what the throttle position suggests.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Air leak after the throttle",
+    "Dirty throttle body",
+    "Faulty air flow or manifold pressure sensor"
+   ],
+   "suggested_tests": [
+    "Inspect for intake leaks",
+    "Compare MAP, MAF and throttle readings at idle"
+   ],
+   "related_measurements": [
+    "map",
+    "maf",
+    "throttle"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0087",
+   "title": "Fuel rail / system pressure too low",
+   "plain": "The fuel pressure in the rail is below what the engine computer commanded.",
+   "severity": "high",
+   "possible_causes": [
+    "Clogged fuel filter",
+    "Weak fuel pump or high-pressure pump",
+    "Faulty pressure regulator",
+    "Fuel leak",
+    "Faulty fuel rail pressure sensor"
+   ],
+   "suggested_tests": [
+    "Read fuel rail pressure in live data",
+    "Check the fuel filter service history",
+    "Inspect for leaks"
+   ],
+   "related_measurements": [
+    "fuel_rail_pressure",
+    "fuel_pressure"
+   ],
+   "driving_advice": "Low fuel pressure can cause power loss or stalling."
+  },
+  {
+   "code": "P0088",
+   "title": "Fuel rail / system pressure too high",
+   "plain": "The fuel pressure in the rail is above the commanded value.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty pressure regulator or control valve",
+    "Faulty fuel rail pressure sensor",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Read fuel rail pressure in live data",
+    "Inspect the regulator wiring"
+   ],
+   "related_measurements": [
+    "fuel_rail_pressure"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0100",
+   "title": "Mass or volume air flow sensor circuit",
+   "plain": "The engine computer sees a problem in the air flow sensor circuit.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty mass air flow sensor",
+    "Air leak between the sensor and the engine"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor connector",
+    "Check the air flow reading at idle"
+   ],
+   "related_measurements": [
+    "maf"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0101",
+   "title": "Mass or volume air flow sensor range/performance",
+   "plain": "The air flow sensor reading is not plausible for the engine's operating conditions.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Dirty or contaminated air flow sensor",
+    "Air leak after the sensor",
+    "Restricted air filter"
+   ],
+   "suggested_tests": [
+    "Inspect the air filter and intake ducting",
+    "Compare the air flow reading with load and engine speed"
+   ],
+   "related_measurements": [
+    "maf",
+    "engine_load",
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0102",
+   "title": "Mass or volume air flow sensor circuit low",
+   "plain": "The air flow sensor signal is lower than possible.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector (open or short to ground)",
+    "Faulty air flow sensor",
+    "Large air leak after the sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor's supply and signal wiring"
+   ],
+   "related_measurements": [
+    "maf"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0103",
+   "title": "Mass or volume air flow sensor circuit high",
+   "plain": "The air flow sensor signal is higher than possible.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector (short to voltage)",
+    "Faulty air flow sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor's signal wiring"
+   ],
+   "related_measurements": [
+    "maf"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0106",
+   "title": "Manifold absolute pressure / barometric pressure range/performance",
+   "plain": "The manifold pressure reading is not plausible.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Vacuum leak or blocked sensor hose",
+    "Faulty MAP sensor"
+   ],
+   "suggested_tests": [
+    "Compare MAP with barometric pressure with the engine off (they should be similar)"
+   ],
+   "related_measurements": [
+    "map",
+    "baro"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0107",
+   "title": "Manifold absolute pressure circuit low",
+   "plain": "The manifold pressure sensor signal is too low.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty MAP sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor's 5 V reference and signal"
+   ],
+   "related_measurements": [
+    "map"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0108",
+   "title": "Manifold absolute pressure circuit high",
+   "plain": "The manifold pressure sensor signal is too high.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty MAP sensor",
+    "Blocked sensor port"
+   ],
+   "suggested_tests": [
+    "Check the sensor's signal wiring"
+   ],
+   "related_measurements": [
+    "map"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0110",
+   "title": "Intake air temperature sensor circuit",
+   "plain": "There is an electrical problem in the intake air temperature sensor circuit.",
+   "severity": "low",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty intake air temperature sensor"
+   ],
+   "suggested_tests": [
+    "Compare the reading with ambient temperature on a cold engine"
+   ],
+   "related_measurements": [
+    "iat"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0112",
+   "title": "Intake air temperature sensor circuit low",
+   "plain": "The intake air temperature signal is too low (reads very hot).",
+   "severity": "low",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector (short to ground)",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the reading on a cold engine"
+   ],
+   "related_measurements": [
+    "iat"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0113",
+   "title": "Intake air temperature sensor circuit high",
+   "plain": "The intake air temperature signal is too high (reads very cold, often -40 °C).",
+   "severity": "low",
+   "possible_causes": [
+    "Unplugged sensor or open circuit",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor connector",
+    "Check the reading on a cold engine"
+   ],
+   "related_measurements": [
+    "iat"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0115",
+   "title": "Engine coolant temperature sensor circuit",
+   "plain": "There is an electrical problem in the coolant temperature sensor circuit.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty coolant temperature sensor"
+   ],
+   "suggested_tests": [
+    "Compare the reading with actual engine temperature"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0116",
+   "title": "Engine coolant temperature sensor range/performance",
+   "plain": "The coolant temperature reading is not plausible.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty sensor",
+    "Thermostat stuck open",
+    "Low coolant"
+   ],
+   "suggested_tests": [
+    "Watch coolant temperature in live data while the engine warms up"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0117",
+   "title": "Engine coolant temperature sensor circuit low",
+   "plain": "The coolant temperature signal is too low (reads very hot).",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector (short to ground)",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the reading on a cold engine"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0118",
+   "title": "Engine coolant temperature sensor circuit high",
+   "plain": "The coolant temperature signal is too high (reads very cold).",
+   "severity": "moderate",
+   "possible_causes": [
+    "Unplugged sensor or open circuit",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor connector"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0120",
+   "title": "Throttle/pedal position sensor A circuit",
+   "plain": "There is an electrical problem in the throttle or pedal position sensor A circuit.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty throttle position sensor",
+    "Throttle body fault"
+   ],
+   "suggested_tests": [
+    "Watch throttle position while slowly pressing the pedal (engine off, ignition on): it should change smoothly"
+   ],
+   "related_measurements": [
+    "throttle",
+    "pedal_d"
+   ],
+   "driving_advice": "The engine may go into a reduced-power mode."
+  },
+  {
+   "code": "P0121",
+   "title": "Throttle/pedal position sensor A range/performance",
+   "plain": "The throttle position reading is not plausible.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn throttle position sensor",
+    "Dirty or sticking throttle body"
+   ],
+   "suggested_tests": [
+    "Watch throttle position for jumps while slowly moving the pedal"
+   ],
+   "related_measurements": [
+    "throttle"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0122",
+   "title": "Throttle/pedal position sensor A circuit low",
+   "plain": "The throttle position signal is too low.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor's reference voltage and signal"
+   ],
+   "related_measurements": [
+    "throttle"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0123",
+   "title": "Throttle/pedal position sensor A circuit high",
+   "plain": "The throttle position signal is too high.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty sensor"
+   ],
+   "suggested_tests": [
+    "Check the sensor's signal wiring"
+   ],
+   "related_measurements": [
+    "throttle"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0125",
+   "title": "Insufficient coolant temperature for closed loop fuel control",
+   "plain": "The engine takes too long to warm up enough for normal fuel control.",
+   "severity": "low",
+   "possible_causes": [
+    "Thermostat stuck open",
+    "Faulty coolant temperature sensor",
+    "Low coolant"
+   ],
+   "suggested_tests": [
+    "Watch coolant temperature: a healthy engine usually reaches operating temperature within 10–20 minutes of driving"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0128",
+   "title": "Coolant thermostat (coolant temperature below thermostat regulating temperature)",
+   "plain": "The engine does not reach its normal temperature in the expected time.",
+   "severity": "low",
+   "possible_causes": [
+    "Thermostat stuck open",
+    "Faulty coolant temperature sensor",
+    "Cooling fan running all the time"
+   ],
+   "suggested_tests": [
+    "Watch coolant temperature while driving",
+    "Check whether the cooling fan runs on a cold engine"
+   ],
+   "related_measurements": [
+    "coolant_temp",
+    "ambient_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0130",
+   "title": "O2 sensor circuit (bank 1 sensor 1)",
+   "plain": "There is a problem in the circuit of the front oxygen sensor on bank 1.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty oxygen sensor",
+    "Exhaust leak near the sensor"
+   ],
+   "suggested_tests": [
+    "Watch the sensor voltage: a narrow-band sensor normally switches between about 0.1 V and 0.9 V when warm"
+   ],
+   "related_measurements": [
+    "o2_b1s1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0131",
+   "title": "O2 sensor circuit low voltage (bank 1 sensor 1)",
+   "plain": "The front oxygen sensor voltage stays too low.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Exhaust leak before the sensor",
+    "Faulty sensor",
+    "Damaged wiring or a loose/corroded connector",
+    "Lean mixture"
+   ],
+   "suggested_tests": [
+    "Check fuel trims and the sensor voltage"
+   ],
+   "related_measurements": [
+    "o2_b1s1",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0132",
+   "title": "O2 sensor circuit high voltage (bank 1 sensor 1)",
+   "plain": "The front oxygen sensor voltage stays too high.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty sensor",
+    "Wiring shorted to voltage",
+    "Rich mixture"
+   ],
+   "suggested_tests": [
+    "Check fuel trims and the sensor voltage"
+   ],
+   "related_measurements": [
+    "o2_b1s1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0133",
+   "title": "O2 sensor circuit slow response (bank 1 sensor 1)",
+   "plain": "The front oxygen sensor reacts too slowly.",
+   "severity": "low",
+   "possible_causes": [
+    "Ageing or contaminated sensor",
+    "Exhaust leak",
+    "Engine running rich or lean"
+   ],
+   "suggested_tests": [
+    "Watch how quickly the sensor voltage switches"
+   ],
+   "related_measurements": [
+    "o2_b1s1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0134",
+   "title": "O2 sensor circuit no activity detected (bank 1 sensor 1)",
+   "plain": "The front oxygen sensor signal does not change.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty sensor",
+    "Sensor heater fault",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Check the sensor voltage with a warm engine"
+   ],
+   "related_measurements": [
+    "o2_b1s1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0135",
+   "title": "O2 sensor heater circuit (bank 1 sensor 1)",
+   "plain": "The heater inside the front oxygen sensor has an electrical fault.",
+   "severity": "low",
+   "possible_causes": [
+    "Faulty sensor heater",
+    "Blown fuse for the heater circuit",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Check the heater fuse",
+    "Measure heater resistance against specification"
+   ],
+   "related_measurements": [
+    "o2_b1s1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0136",
+   "title": "O2 sensor circuit (bank 1 sensor 2)",
+   "plain": "There is a problem in the circuit of the rear oxygen sensor on bank 1.",
+   "severity": "low",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty oxygen sensor"
+   ],
+   "suggested_tests": [
+    "Watch the rear sensor voltage: after a working catalyst it is usually fairly steady"
+   ],
+   "related_measurements": [
+    "o2_b1s2"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0141",
+   "title": "O2 sensor heater circuit (bank 1 sensor 2)",
+   "plain": "The heater inside the rear oxygen sensor has an electrical fault.",
+   "severity": "low",
+   "possible_causes": [
+    "Faulty sensor heater",
+    "Blown fuse",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Check the heater fuse",
+    "Measure heater resistance against specification"
+   ],
+   "related_measurements": [
+    "o2_b1s2"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0171",
+   "title": "System too lean (bank 1)",
+   "plain": "The engine computer is adding a lot of extra fuel on bank 1 to keep the mixture right, which means too much air or too little fuel is getting in.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Air leak after the air flow sensor (vacuum hose, intake gasket, crankcase breather)",
+    "Dirty or faulty mass air flow sensor",
+    "Low fuel pressure (weak pump, clogged filter, faulty regulator)",
+    "Clogged or leaking injectors",
+    "Exhaust leak before the front oxygen sensor"
+   ],
+   "suggested_tests": [
+    "Compare short and long term fuel trims at idle and at 2500 rpm: trims that improve with engine speed point to a vacuum leak, trims that worsen point to fuel delivery",
+    "Listen and check for vacuum leaks",
+    "Check the air flow reading against the engine size and speed (consult documentation)",
+    "Measure fuel pressure against the vehicle's specification"
+   ],
+   "related_measurements": [
+    "stft_b1",
+    "ltft_b1",
+    "maf",
+    "o2_b1s1"
+   ],
+   "driving_advice": "Usually safe to drive short distances, but long-term lean running can damage the engine or catalyst."
+  },
+  {
+   "code": "P0172",
+   "title": "System too rich (bank 1)",
+   "plain": "The engine computer is taking away a lot of fuel on bank 1, which means too much fuel or too little air is getting in.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Leaking injector",
+    "Fuel pressure too high",
+    "Faulty coolant temperature sensor reading too cold",
+    "Faulty or contaminated air flow sensor",
+    "Restricted air filter or intake"
+   ],
+   "suggested_tests": [
+    "Check fuel trims and oxygen sensor readings",
+    "Compare coolant temperature reading with actual engine temperature",
+    "Inspect air filter",
+    "Measure fuel pressure against specification"
+   ],
+   "related_measurements": [
+    "stft_b1",
+    "ltft_b1",
+    "maf",
+    "coolant_temp"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0174",
+   "title": "System too lean (bank 2)",
+   "plain": "Like P0171, but on bank 2 (the side of a V engine without cylinder 1).",
+   "severity": "moderate",
+   "possible_causes": [
+    "Air leak after the air flow sensor (vacuum hose, intake gasket, crankcase breather)",
+    "Dirty or faulty mass air flow sensor",
+    "Low fuel pressure (weak pump, clogged filter, faulty regulator)",
+    "Clogged or leaking injectors",
+    "Exhaust leak before the front oxygen sensor"
+   ],
+   "suggested_tests": [
+    "Compare short and long term fuel trims at idle and at 2500 rpm: trims that improve with engine speed point to a vacuum leak, trims that worsen point to fuel delivery",
+    "Listen and check for vacuum leaks",
+    "Check the air flow reading against the engine size and speed (consult documentation)",
+    "Measure fuel pressure against the vehicle's specification"
+   ],
+   "related_measurements": [
+    "stft_b2",
+    "ltft_b2",
+    "maf"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0175",
+   "title": "System too rich (bank 2)",
+   "plain": "Like P0172, but on bank 2.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Leaking injector",
+    "Fuel pressure too high",
+    "Faulty coolant temperature sensor reading too cold",
+    "Faulty or contaminated air flow sensor",
+    "Restricted air filter or intake"
+   ],
+   "suggested_tests": [
+    "Check fuel trims and oxygen sensor readings",
+    "Compare coolant temperature reading with actual engine temperature",
+    "Inspect air filter",
+    "Measure fuel pressure against specification"
+   ],
+   "related_measurements": [
+    "stft_b2",
+    "ltft_b2"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0200",
+   "title": "Injector circuit",
+   "plain": "There is an electrical problem in an injector circuit.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector",
+    "Injector driver fault in the engine control module"
+   ],
+   "suggested_tests": [
+    "Check for cylinder-specific injector or misfire codes"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0201",
+   "title": "Injector circuit, cylinder 1",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 1.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0202",
+   "title": "Injector circuit, cylinder 2",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 2.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0203",
+   "title": "Injector circuit, cylinder 3",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 3.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0204",
+   "title": "Injector circuit, cylinder 4",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 4.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0205",
+   "title": "Injector circuit, cylinder 5",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 5.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0206",
+   "title": "Injector circuit, cylinder 6",
+   "plain": "There is an electrical problem in the injector circuit of cylinder 6.",
+   "severity": "high",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty injector"
+   ],
+   "suggested_tests": [
+    "Check the injector connector",
+    "Measure injector resistance against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0217",
+   "title": "Engine coolant over temperature condition",
+   "plain": "The engine has been too hot.",
+   "severity": "critical",
+   "possible_causes": [
+    "Low coolant or leak",
+    "Cooling fan not working",
+    "Thermostat stuck closed",
+    "Water pump failure",
+    "Blocked radiator"
+   ],
+   "suggested_tests": [
+    "Check coolant level only when the engine is cold",
+    "Watch coolant temperature and fan operation"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": "Stop the engine as soon as it is safe. Overheating can destroy an engine."
+  },
+  {
+   "code": "P0230",
+   "title": "Fuel pump primary circuit",
+   "plain": "There is an electrical problem in the fuel pump control circuit.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty fuel pump relay",
+    "Blown fuse",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Check the fuel pump fuse and relay"
+   ],
+   "related_measurements": [],
+   "driving_advice": "The engine may not start or may stall."
+  },
+  {
+   "code": "P0234",
+   "title": "Turbocharger/supercharger \"A\" overboost condition",
+   "plain": "Boost pressure has gone above the allowed limit.",
+   "severity": "high",
+   "possible_causes": [
+    "Sticking wastegate or variable vane mechanism",
+    "Faulty boost control valve",
+    "Faulty boost pressure sensor",
+    "Leaking or blocked control hose"
+   ],
+   "suggested_tests": [
+    "Watch manifold pressure under load",
+    "Inspect the boost control hoses"
+   ],
+   "related_measurements": [
+    "map",
+    "baro"
+   ],
+   "driving_advice": "Avoid hard acceleration until checked."
+  },
+  {
+   "code": "P0299",
+   "title": "Turbocharger/supercharger \"A\" underboost condition",
+   "plain": "The turbocharger is not producing the boost the engine computer asked for.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Boost leak (split hose, loose clamp, intercooler leak)",
+    "Sticking wastegate or variable vanes",
+    "Faulty boost control valve",
+    "Worn turbocharger"
+   ],
+   "suggested_tests": [
+    "Listen for hissing under load",
+    "Inspect intercooler hoses and clamps",
+    "Watch manifold pressure under load"
+   ],
+   "related_measurements": [
+    "map",
+    "baro"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0300",
+   "title": "Random/multiple cylinder misfire detected",
+   "plain": "The engine computer detects misfires that are not limited to one cylinder.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn spark plugs or coils",
+    "Vacuum leak",
+    "Low fuel pressure",
+    "Contaminated fuel",
+    "Low compression"
+   ],
+   "suggested_tests": [
+    "Read cylinder-specific misfire codes",
+    "Check fuel trims",
+    "Inspect spark plugs"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0301",
+   "title": "Cylinder 1 misfire detected",
+   "plain": "Cylinder 1 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0302",
+   "title": "Cylinder 2 misfire detected",
+   "plain": "Cylinder 2 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0303",
+   "title": "Cylinder 3 misfire detected",
+   "plain": "Cylinder 3 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0304",
+   "title": "Cylinder 4 misfire detected",
+   "plain": "Cylinder 4 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0305",
+   "title": "Cylinder 5 misfire detected",
+   "plain": "Cylinder 5 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0306",
+   "title": "Cylinder 6 misfire detected",
+   "plain": "Cylinder 6 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0307",
+   "title": "Cylinder 7 misfire detected",
+   "plain": "Cylinder 7 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0308",
+   "title": "Cylinder 8 misfire detected",
+   "plain": "Cylinder 8 is not burning its fuel properly.",
+   "severity": "high",
+   "possible_causes": [
+    "Worn or fouled spark plug",
+    "Faulty ignition coil or plug lead",
+    "Injector problem on that cylinder",
+    "Low compression (valves, rings, head gasket)",
+    "Vacuum leak near that cylinder"
+   ],
+   "suggested_tests": [
+    "Inspect the spark plug for that cylinder",
+    "Swap the ignition coil with another cylinder and see if the misfire moves",
+    "Check injector wiring and resistance against specification",
+    "Perform a compression test"
+   ],
+   "related_measurements": [
+    "rpm",
+    "stft_b1",
+    "ltft_b1"
+   ],
+   "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
+  },
+  {
+   "code": "P0325",
+   "title": "Knock sensor 1 circuit (bank 1 or single sensor)",
+   "plain": "There is an electrical problem in the knock sensor circuit.",
+   "severity": "low",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty knock sensor",
+    "Incorrect sensor mounting torque"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor connector and wiring"
+   ],
+   "related_measurements": [
+    "timing_advance"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0335",
+   "title": "Crankshaft position sensor \"A\" circuit",
+   "plain": "The engine computer has a problem with the crankshaft position signal.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft sensor",
+    "Damaged wiring or a loose/corroded connector",
+    "Damaged reluctor ring"
+   ],
+   "suggested_tests": [
+    "Check whether engine speed shows while cranking"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may stall or not start."
+  },
+  {
+   "code": "P0340",
+   "title": "Camshaft position sensor \"A\" circuit (bank 1 or single sensor)",
+   "plain": "The engine computer has a problem with the camshaft position signal.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft sensor",
+    "Damaged wiring or a loose/corroded connector",
+    "Timing problem"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor connector",
+    "Check for crank/cam correlation codes"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0380",
+   "title": "Glow plug/heater circuit \"A\"",
+   "plain": "There is a problem in the glow plug circuit (diesel).",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty glow plug",
+    "Faulty glow plug control module",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Measure each glow plug's resistance against specification"
+   ],
+   "related_measurements": [
+    "coolant_temp"
+   ],
+   "driving_advice": "Starting may be hard in cold weather."
+  },
+  {
+   "code": "P0400",
+   "title": "Exhaust gas recirculation flow",
+   "plain": "The exhaust gas recirculation (EGR) flow is not as expected.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Clogged EGR valve or passages",
+    "Faulty EGR valve",
+    "Vacuum supply problem"
+   ],
+   "suggested_tests": [
+    "Inspect the EGR valve for carbon build-up"
+   ],
+   "related_measurements": [
+    "map"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0401",
+   "title": "Exhaust gas recirculation flow insufficient detected",
+   "plain": "Less exhaust gas is being recirculated than expected.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Carbon-clogged EGR valve or passages",
+    "Faulty EGR valve or position sensor",
+    "Leaking vacuum supply"
+   ],
+   "suggested_tests": [
+    "Inspect the EGR valve and passages",
+    "Check the EGR valve operates when commanded (consult documentation)"
+   ],
+   "related_measurements": [
+    "map",
+    "maf"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0402",
+   "title": "Exhaust gas recirculation flow excessive detected",
+   "plain": "More exhaust gas is being recirculated than expected.",
+   "severity": "moderate",
+   "possible_causes": [
+    "EGR valve stuck open",
+    "Faulty EGR control"
+   ],
+   "suggested_tests": [
+    "Check for rough idle",
+    "Inspect the EGR valve"
+   ],
+   "related_measurements": [
+    "map",
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0403",
+   "title": "Exhaust gas recirculation control circuit",
+   "plain": "There is an electrical problem in the EGR control circuit.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged wiring or a loose/corroded connector",
+    "Faulty EGR valve or solenoid"
+   ],
+   "suggested_tests": [
+    "Inspect the EGR connector",
+    "Measure the solenoid resistance against specification"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0420",
+   "title": "Catalyst system efficiency below threshold (bank 1)",
+   "plain": "The catalytic converter on bank 1 is not cleaning the exhaust as well as it should.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Ageing or damaged catalytic converter",
+    "Faulty rear oxygen sensor",
+    "Exhaust leak",
+    "Engine misfire or rich running that damaged the catalyst"
+   ],
+   "suggested_tests": [
+    "Fix any misfire or fuel trim codes first",
+    "Compare front and rear oxygen sensor signals: the rear should be much steadier",
+    "Check for exhaust leaks"
+   ],
+   "related_measurements": [
+    "o2_b1s1",
+    "o2_b1s2"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0430",
+   "title": "Catalyst system efficiency below threshold (bank 2)",
+   "plain": "Like P0420, but on bank 2.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Ageing or damaged catalytic converter",
+    "Faulty rear oxygen sensor",
+    "Exhaust leak"
+   ],
+   "suggested_tests": [
+    "Compare front and rear oxygen sensor signals on bank 2"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0440",
+   "title": "Evaporative emission system",
+   "plain": "There is a problem in the system that captures fuel vapour from the tank.",
+   "severity": "low",
+   "possible_causes": [
+    "Loose or faulty fuel filler cap",
+    "Leaking hose",
+    "Faulty purge or vent valve"
+   ],
+   "suggested_tests": [
+    "Check the fuel cap seal",
+    "Inspect evaporative hoses"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0441",
+   "title": "Evaporative emission system incorrect purge flow",
+   "plain": "The purge flow of the fuel vapour system is not as expected.",
+   "severity": "low",
+   "possible_causes": [
+    "Faulty purge valve",
+    "Blocked or leaking purge hose"
+   ],
+   "suggested_tests": [
+    "Inspect the purge valve and hoses"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0442",
+   "title": "Evaporative emission system leak detected (small leak)",
+   "plain": "A small leak was found in the fuel vapour system.",
+   "severity": "low",
+   "possible_causes": [
+    "Fuel cap not sealing",
+    "Small cracked hose",
+    "Leaking charcoal canister or valve"
+   ],
+   "suggested_tests": [
+    "Check the fuel cap seal",
+    "A smoke test finds small leaks"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0446",
+   "title": "Evaporative emission system vent control circuit",
+   "plain": "There is a problem in the vent valve circuit of the fuel vapour system.",
+   "severity": "low",
+   "possible_causes": [
+    "Faulty vent valve",
+    "Blocked vent filter",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Inspect the vent valve and its filter"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0455",
+   "title": "Evaporative emission system leak detected (large leak)",
+   "plain": "A large leak was found in the fuel vapour system.",
+   "severity": "low",
+   "possible_causes": [
+    "Fuel cap missing or loose",
+    "Disconnected or split hose",
+    "Faulty purge or vent valve"
+   ],
+   "suggested_tests": [
+    "Check the fuel cap first",
+    "Inspect evaporative hoses"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0456",
+   "title": "Evaporative emission system leak detected (very small leak)",
+   "plain": "A very small leak was found in the fuel vapour system.",
+   "severity": "low",
+   "possible_causes": [
+    "Fuel cap seal",
+    "Tiny crack in a hose or seal"
+   ],
+   "suggested_tests": [
+    "A smoke test finds very small leaks"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0500",
+   "title": "Vehicle speed sensor \"A\"",
+   "plain": "The engine computer does not get a valid vehicle speed signal.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty speed sensor",
+    "Damaged wiring or a loose/corroded connector",
+    "Missing signal from the ABS module (on many vehicles)"
+   ],
+   "suggested_tests": [
+    "Check whether vehicle speed shows in live data while driving",
+    "Check the ABS module for codes"
+   ],
+   "related_measurements": [
+    "speed"
+   ],
+   "driving_advice": "Speedometer, cruise control and gear shifting may be affected."
+  },
+  {
+   "code": "P0505",
+   "title": "Idle air control system",
+   "plain": "The engine cannot control the idle speed properly.",
+   "severity": "low",
+   "possible_causes": [
+    "Dirty throttle body or idle valve",
+    "Vacuum leak",
+    "Faulty idle control valve"
+   ],
+   "suggested_tests": [
+    "Watch idle speed in live data",
+    "Inspect for vacuum leaks"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0506",
+   "title": "Idle air control system RPM lower than expected",
+   "plain": "The idle speed is lower than the target.",
+   "severity": "low",
+   "possible_causes": [
+    "Dirty throttle body",
+    "Restricted intake"
+   ],
+   "suggested_tests": [
+    "Inspect and clean the throttle body following the manufacturer's procedure"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0507",
+   "title": "Idle air control system RPM higher than expected",
+   "plain": "The idle speed is higher than the target.",
+   "severity": "low",
+   "possible_causes": [
+    "Vacuum leak",
+    "Sticking throttle"
+   ],
+   "suggested_tests": [
+    "Inspect for vacuum leaks"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0560",
+   "title": "System voltage",
+   "plain": "The supply voltage seen by the engine computer is not plausible.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Weak battery",
+    "Charging system fault",
+    "Poor battery or ground connection"
+   ],
+   "suggested_tests": [
+    "Measure battery voltage with the engine off and running"
+   ],
+   "related_measurements": [
+    "module_voltage"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0562",
+   "title": "System voltage low",
+   "plain": "The supply voltage seen by the control module is too low.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Weak or discharged battery",
+    "Alternator or regulator not charging",
+    "Corroded battery terminals or poor ground",
+    "High electrical load (e.g. accessories) at low engine speed"
+   ],
+   "suggested_tests": [
+    "Measure battery voltage with the engine off (a charged lead-acid battery is usually about 12.4–12.7 V; general guidance)",
+    "Measure voltage with the engine running (charging systems usually give about 13.5–14.7 V; general guidance, check the vehicle's specification)",
+    "Inspect battery terminals and ground straps"
+   ],
+   "related_measurements": [
+    "module_voltage"
+   ],
+   "driving_advice": "Low voltage can cause starting problems and other electrical faults."
+  },
+  {
+   "code": "P0563",
+   "title": "System voltage high",
+   "plain": "The supply voltage seen by the control module is too high.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty voltage regulator / alternator",
+    "Incorrect battery charger connected"
+   ],
+   "suggested_tests": [
+    "Measure voltage with the engine running"
+   ],
+   "related_measurements": [
+    "module_voltage"
+   ],
+   "driving_advice": "Overvoltage can damage electronics. Have the charging system checked soon."
+  },
+  {
+   "code": "P0600",
+   "title": "Serial communication link",
+   "plain": "The engine computer has a problem communicating with another module.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Network wiring fault",
+    "Another module offline",
+    "Module fault"
+   ],
+   "suggested_tests": [
+    "Check other modules for communication codes"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0601",
+   "title": "Internal control module memory checksum error",
+   "plain": "The engine computer found an error in its own memory.",
+   "severity": "high",
+   "possible_causes": [
+    "Control module fault",
+    "Interrupted software update"
+   ],
+   "suggested_tests": [
+    "Have the module checked by a qualified professional"
+   ],
+   "related_measurements": [],
+   "driving_advice": "This is a module fault; do not attempt reprogramming without the manufacturer's tools."
+  },
+  {
+   "code": "P0606",
+   "title": "Control module processor",
+   "plain": "The engine computer detected an internal processor fault.",
+   "severity": "high",
+   "possible_causes": [
+    "Control module fault",
+    "Supply or ground problem to the module"
+   ],
+   "suggested_tests": [
+    "Check the module's power and ground circuits",
+    "Have the module checked by a qualified professional"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0700",
+   "title": "Transmission control system (MIL request)",
+   "plain": "The transmission computer has stored a fault and asked for the warning light.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Any transmission fault"
+   ],
+   "suggested_tests": [
+    "Read the transmission module's own codes"
+   ],
+   "related_measurements": [
+    "speed"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0715",
+   "title": "Input/turbine speed sensor \"A\" circuit",
+   "plain": "The transmission computer has a problem with the input shaft speed signal.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty input speed sensor",
+    "Damaged wiring or a loose/corroded connector",
+    "Low or contaminated transmission fluid"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor connector",
+    "Check transmission fluid level following the manufacturer's procedure"
+   ],
+   "related_measurements": [
+    "speed",
+    "rpm"
+   ],
+   "driving_advice": "Gear shifting may be harsh or the transmission may go into a limp mode."
+  },
+  {
+   "code": "P0720",
+   "title": "Output speed sensor circuit",
+   "plain": "The transmission computer has a problem with the output shaft speed signal.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty output speed sensor",
+    "Damaged wiring or a loose/corroded connector"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor connector"
+   ],
+   "related_measurements": [
+    "speed"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0730",
+   "title": "Incorrect gear ratio",
+   "plain": "The transmission's input and output speeds do not match any expected gear.",
+   "severity": "high",
+   "possible_causes": [
+    "Low or degraded transmission fluid",
+    "Slipping clutch or band",
+    "Faulty speed sensor",
+    "Solenoid or valve body problem"
+   ],
+   "suggested_tests": [
+    "Check transmission fluid level and condition following the manufacturer's procedure",
+    "Check for speed sensor codes"
+   ],
+   "related_measurements": [
+    "speed",
+    "rpm"
+   ],
+   "driving_advice": "Driving with a slipping transmission can cause more damage."
+  },
+  {
+   "code": "P0740",
+   "title": "Torque converter clutch circuit",
+   "plain": "There is a problem in the torque converter lock-up clutch circuit.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty lock-up solenoid",
+    "Damaged wiring or a loose/corroded connector",
+    "Transmission fluid problem"
+   ],
+   "suggested_tests": [
+    "Read the transmission module's codes"
+   ],
+   "related_measurements": [
+    "rpm",
+    "speed"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P2002",
+   "title": "Diesel particulate filter efficiency below threshold (bank 1)",
+   "plain": "The diesel particulate filter does not seem to be trapping soot properly.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Damaged or removed particulate filter",
+    "Faulty differential pressure sensor or its hoses",
+    "Exhaust leak"
+   ],
+   "suggested_tests": [
+    "Inspect the pressure sensor hoses",
+    "Check for other particulate filter codes"
+   ],
+   "related_measurements": [
+    "map"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P2096",
+   "title": "Post catalyst fuel trim system too lean (bank 1)",
+   "plain": "The rear oxygen sensor shows the mixture is lean after the catalyst.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Exhaust leak near the rear sensor",
+    "Faulty rear oxygen sensor",
+    "Lean running engine"
+   ],
+   "suggested_tests": [
+    "Check for exhaust leaks",
+    "Check fuel trims"
+   ],
+   "related_measurements": [
+    "o2_b1s2",
+    "ltft_b1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P2097",
+   "title": "Post catalyst fuel trim system too rich (bank 1)",
+   "plain": "The rear oxygen sensor shows the mixture is rich after the catalyst.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty rear oxygen sensor",
+    "Rich running engine",
+    "Catalyst problem"
+   ],
+   "suggested_tests": [
+    "Check fuel trims and oxygen sensors"
+   ],
+   "related_measurements": [
+    "o2_b1s2",
+    "ltft_b1"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P242F",
+   "title": "Diesel particulate filter restriction: ash accumulation",
+   "plain": "The particulate filter is filling up with ash, which regeneration cannot burn off.",
+   "severity": "moderate",
+   "possible_causes": [
+    "High mileage particulate filter",
+    "High oil consumption"
+   ],
+   "suggested_tests": [
+    "Check the service history for the filter",
+    "Consult a qualified professional about cleaning or replacement"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "P0A80",
+   "title": "Replace hybrid battery pack",
+   "plain": "The hybrid system computer reports that the high-voltage battery pack is degraded.",
+   "severity": "high",
+   "possible_causes": [
+    "Weak cells or modules in the hybrid battery",
+    "Battery cooling problem"
+   ],
+   "suggested_tests": [
+    "Have the high-voltage system checked by a qualified professional"
+   ],
+   "related_measurements": [],
+   "driving_advice": "High-voltage systems can be lethal. Do not open the battery or orange cables without training."
+  },
+  {
+   "code": "U0100",
+   "title": "Lost communication with ECM/PCM \"A\"",
+   "plain": "Another module stopped hearing the engine computer on the vehicle network.",
+   "severity": "high",
+   "possible_causes": [
+    "Engine computer without power or ground",
+    "Network wiring fault",
+    "Low battery voltage during cranking"
+   ],
+   "suggested_tests": [
+    "Check whether the engine computer answers this scan",
+    "Check battery voltage",
+    "Inspect network wiring and connectors"
+   ],
+   "related_measurements": [
+    "module_voltage"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "U0101",
+   "title": "Lost communication with TCM",
+   "plain": "A module stopped hearing the transmission computer.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Transmission computer without power",
+    "Network wiring fault"
+   ],
+   "suggested_tests": [
+    "Check the transmission module's fuses and connectors"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "U0121",
+   "title": "Lost communication with anti-lock brake system (ABS) control module",
+   "plain": "A module stopped hearing the ABS computer.",
+   "severity": "high",
+   "possible_causes": [
+    "ABS module without power",
+    "Network wiring fault",
+    "ABS module fault"
+   ],
+   "suggested_tests": [
+    "Check ABS fuses",
+    "Check whether the ABS warning light is on"
+   ],
+   "related_measurements": [],
+   "driving_advice": "ABS and stability control may not work. Drive carefully and have it checked."
+  },
+  {
+   "code": "U0140",
+   "title": "Lost communication with body control module",
+   "plain": "A module stopped hearing the body control module.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Body control module without power",
+    "Network wiring fault"
+   ],
+   "suggested_tests": [
+    "Check the body control module's fuses"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  },
+  {
+   "code": "U0155",
+   "title": "Lost communication with instrument panel cluster (IPC) control module",
+   "plain": "A module stopped hearing the instrument cluster.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Instrument cluster without power",
+    "Network wiring fault"
+   ],
+   "suggested_tests": [
+    "Check the cluster's fuses and connector"
+   ],
+   "related_measurements": [],
+   "driving_advice": null
+  }
+ ]
+}

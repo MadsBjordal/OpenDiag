@@ -1,0 +1,12 @@
+[package]
+name = "opendiag-definitions"
+description = "Community vehicle definitions: versioned schema, validation and matching."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+opendiag-core.workspace = true
+opendiag-safety.workspace = true

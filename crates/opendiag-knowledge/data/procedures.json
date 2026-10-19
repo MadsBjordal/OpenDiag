@@ -1,0 +1,84 @@
+{
+  "format": "opendiag-procedures",
+  "version": 1,
+  "procedures": [
+    {
+      "id": "heated-grips-not-working",
+      "title": "Heated grips not working",
+      "summary": "Step-by-step electrical check of a motorcycle's heated grips: fuse, switch, supply voltage and heating element.",
+      "applies_to": { "vehicle_kinds": ["motorcycle"], "codes": [], "systems": ["Heated grips", "Accessories"] },
+      "source": "General automotive electrical practice written for OpenDiag. Values marked 'general guidance' are not manufacturer specifications.",
+      "verification": "general_guidance",
+      "start": "confirm",
+      "steps": [
+        { "id": "confirm", "kind": "question", "text": "Are the heated grips factory-fitted (controlled from the dashboard or a handlebar switch supplied with the bike)?", "help": "Aftermarket grips have their own controller; check its instructions too.", "next": { "yes": "warnings", "no": "aftermarket" } },
+        { "id": "aftermarket", "kind": "info", "text": "Aftermarket grips are powered through their own controller. Continue with the same checks, using the controller's instructions for its fuse and connectors.", "next": { "ok": "warnings" } },
+        { "id": "warnings", "kind": "question", "text": "Do any warning lights show on the dashboard, or did the scan find fault codes?", "help": "Many bikes switch off accessories when the battery voltage is low. Run Scan Vehicle first if you have not.", "next": { "yes": "fix-codes-first", "no": "battery" } },
+        { "id": "fix-codes-first", "kind": "info", "text": "Look at the fault codes first. A low system voltage code (such as P0562) explains grips that switch off: many bikes disable heated grips to protect the battery.", "next": { "ok": "battery" } },
+        { "id": "battery", "kind": "measurement", "text": "Measure the battery voltage with the engine running at a fast idle (about 3000 rpm).", "help": "Multimeter on DC volts, red probe on +, black on −.", "measurement": { "unit": "V", "spec": { "min": 13.5, "max": 14.7, "kind": "general_guidance", "source": "Typical 12 V charging system range (general guidance; check your bike's manual)" } }, "next": { "in_range": "fuse", "below": "charging", "above": "charging-high" } },
+        { "id": "charging", "kind": "outcome", "outcome": "charging-low" },
+        { "id": "charging-high", "kind": "outcome", "outcome": "charging-high" },
+        { "id": "fuse", "kind": "question", "text": "Find the heated grip fuse (see the fuse box lid or manual). Is it intact?", "next": { "yes": "supply", "no": "fuse-blown" } },
+        { "id": "fuse-blown", "kind": "outcome", "outcome": "fuse" },
+        { "id": "supply", "kind": "measurement", "text": "Unplug one grip's connector. With the ignition on and the grips switched to high, measure the voltage on the supply side of the connector.", "help": "Use back-probe pins; do not force the probe into the connector.", "measurement": { "unit": "V", "relative_to": "battery", "max_below": 1.0, "max_above": 0.2, "kind": "derived", "source": "Should be close to the battery voltage you measured (within about 1 V; general guidance)" }, "next": { "in_range": "element", "below": "no-supply", "above": "element" } },
+        { "id": "no-supply", "kind": "outcome", "outcome": "supply" },
+        { "id": "element", "kind": "measurement", "text": "Measure the resistance of the grip's heating element across its two connector pins (connector unplugged, ignition off). Enter the specification from your service manual when asked.", "measurement": { "unit": "Ω", "user_spec": true, "kind": "documented", "source": "Specification entered from your service manual" }, "next": { "in_range": "grip-ok", "below": "element-short", "above": "element-open" } },
+        { "id": "grip-ok", "kind": "outcome", "outcome": "controller" },
+        { "id": "element-short", "kind": "outcome", "outcome": "element-short" },
+        { "id": "element-open", "kind": "outcome", "outcome": "element-open" }
+      ],
+      "outcomes": {
+        "charging-low": { "kind": "hypothesis", "text": "The charging voltage is below the typical range. A weak battery or charging fault can make the bike switch off the heated grips. Have the battery and charging system checked first." },
+        "charging-high": { "kind": "hypothesis", "text": "The charging voltage is above the typical range, which points to a regulator fault. This can damage electronics: have it checked before continuing." },
+        "fuse": { "kind": "finding", "text": "The fuse has blown. Replace it with one of the same rating. If it blows again there is a short circuit in the grips or wiring: do not fit a bigger fuse." },
+        "supply": { "kind": "hypothesis", "text": "Power is not reaching the grip. Likely places: the grip switch or controller, its relay, or the wiring and connectors between them." },
+        "controller": { "kind": "hypothesis", "text": "Power arrives and the element's resistance is within your specification, so the element is probably fine. Check the connector for corrosion and the controller/switch output under load." },
+        "element-short": { "kind": "finding", "text": "The element's resistance is below the specification: it is probably shorted. The grip (element) likely needs replacing." },
+        "element-open": { "kind": "finding", "text": "The element's resistance is above the specification or open: the element or its wiring inside the grip is probably broken." }
+      }
+    },
+    {
+      "id": "battery-and-charging",
+      "title": "Battery and charging check",
+      "summary": "Check a 12 V battery and the charging system with a multimeter, and compare with the voltage the vehicle reports.",
+      "applies_to": { "vehicle_kinds": ["car", "motorcycle", "van"], "codes": ["P0560", "P0562", "P0563"], "systems": ["Battery", "Charging"] },
+      "source": "General 12 V lead-acid battery practice written for OpenDiag (general guidance, not manufacturer specifications). Lithium batteries and start-stop systems may differ.",
+      "verification": "general_guidance",
+      "start": "rest",
+      "steps": [
+        { "id": "rest", "kind": "measurement", "text": "With the engine off for at least an hour, measure the battery voltage.", "measurement": { "unit": "V", "spec": { "min": 12.4, "max": 12.9, "kind": "general_guidance", "source": "A charged 12 V lead-acid battery usually rests at about 12.4–12.9 V (general guidance)" } }, "next": { "in_range": "running", "below": "low-rest", "above": "running" } },
+        { "id": "low-rest", "kind": "info", "text": "The battery is low or discharged. Charge it fully and measure again before judging the battery. Continue to check the charging system.", "next": { "ok": "running" } },
+        { "id": "running", "kind": "measurement", "text": "Start the engine and measure the battery voltage at a fast idle. You can also read the vehicle's 'Control module voltage' in Live Data.", "live_pid": "module_voltage", "measurement": { "unit": "V", "spec": { "min": 13.5, "max": 14.7, "kind": "general_guidance", "source": "Typical charging range (general guidance; some smart-charging systems run lower)" } }, "next": { "in_range": "ok", "below": "charge-low", "above": "charge-high" } },
+        { "id": "ok", "kind": "outcome", "outcome": "ok" },
+        { "id": "charge-low", "kind": "outcome", "outcome": "charge-low" },
+        { "id": "charge-high", "kind": "outcome", "outcome": "charge-high" }
+      ],
+      "outcomes": {
+        "ok": { "kind": "finding", "text": "Battery and charging voltages are within the general ranges. If problems continue, a load test of the battery is the next step." },
+        "charge-low": { "kind": "hypothesis", "text": "The charging voltage is low. Possible causes: alternator/regulator fault, slipping drive belt, poor connections. Some vehicles with smart charging deliberately run lower, so check the vehicle's specification." },
+        "charge-high": { "kind": "hypothesis", "text": "The charging voltage is high, pointing to a regulator fault. Have it checked soon: overvoltage can damage electronics." }
+      }
+    },
+    {
+      "id": "lean-mixture",
+      "title": "Engine running lean (P0171 / P0174)",
+      "summary": "Use live fuel trims to tell an air leak from a fuel delivery problem.",
+      "applies_to": { "vehicle_kinds": ["car", "van", "motorcycle"], "codes": ["P0171", "P0174"], "systems": ["Engine", "Fuel"] },
+      "source": "General fuel trim diagnosis practice written for OpenDiag (general guidance).",
+      "verification": "general_guidance",
+      "start": "warm",
+      "steps": [
+        { "id": "warm", "kind": "question", "text": "Is the engine at normal operating temperature (coolant about 80–100 °C)?", "live_pid": "coolant_temp", "next": { "yes": "idle-trim", "no": "warm-up" } },
+        { "id": "warm-up", "kind": "info", "text": "Let the engine warm up first: fuel trims are only meaningful in closed loop.", "next": { "ok": "idle-trim" } },
+        { "id": "idle-trim", "kind": "measurement", "text": "At idle, read short term + long term fuel trim for bank 1 and add them together. Enter the total.", "live_pid": "ltft_b1", "measurement": { "unit": "%", "spec": { "min": -10, "max": 10, "kind": "general_guidance", "source": "Total trim within about ±10 % is usually considered normal (general guidance)" } }, "next": { "in_range": "fast-trim", "below": "fast-trim", "above": "fast-trim" } },
+        { "id": "fast-trim", "kind": "measurement", "text": "Hold the engine at about 2500 rpm and enter the total fuel trim again.", "live_pid": "ltft_b1", "measurement": { "unit": "%", "relative_to": "idle-trim", "max_below": 5, "max_above": 1000, "kind": "derived", "source": "Compared with the idle value: a total that drops by more than about 5 points at higher speed suggests extra air at idle (general guidance)" }, "next": { "in_range": "fuel", "below": "vacuum", "above": "fuel" } },
+        { "id": "vacuum", "kind": "outcome", "outcome": "vacuum" },
+        { "id": "fuel", "kind": "outcome", "outcome": "fuel" }
+      ],
+      "outcomes": {
+        "vacuum": { "kind": "hypothesis", "text": "Trims improve at higher engine speed. That points to unmetered air at idle: check vacuum hoses, intake gaskets, the crankcase breather and the brake booster hose." },
+        "fuel": { "kind": "hypothesis", "text": "Trims stay high at higher engine speed. That points to fuel delivery or air flow measurement: check fuel pressure, injectors and the air flow sensor." }
+      }
+    }
+  ]
+}

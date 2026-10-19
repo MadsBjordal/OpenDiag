@@ -1,0 +1,26 @@
+[package]
+name = "opendiag-engine"
+description = "OpenDiag's diagnostic engine: connection, scan, live data, safe code clearing, reports, compatibility."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["serial"]
+serial = ["opendiag-transport/serial"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+opendiag-core.workspace = true
+opendiag-obd.workspace = true
+opendiag-safety.workspace = true
+opendiag-elm327.workspace = true
+opendiag-sim.workspace = true
+opendiag-store.workspace = true
+opendiag-knowledge.workspace = true
+opendiag-definitions.workspace = true
+opendiag-transport = { workspace = true, default-features = false }

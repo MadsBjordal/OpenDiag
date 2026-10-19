@@ -1,0 +1,11 @@
+[package]
+name = "opendiag-knowledge"
+description = "Offline diagnostic knowledge: fault code explanations and guided troubleshooting procedures."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+opendiag-obd.workspace = true

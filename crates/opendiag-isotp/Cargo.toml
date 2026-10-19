@@ -1,0 +1,9 @@
+[package]
+name = "opendiag-isotp"
+description = "ISO 15765-2 (ISO-TP) segmentation and reassembly for classic CAN."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+thiserror.workspace = true

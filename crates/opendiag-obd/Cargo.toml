@@ -1,0 +1,10 @@
+[package]
+name = "opendiag-obd"
+description = "Generic OBD-II / EOBD services (SAE J1979 / ISO 15031-5): requests, decoding, DTCs, VIN."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+opendiag-core.workspace = true

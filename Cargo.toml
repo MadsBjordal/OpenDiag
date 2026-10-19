@@ -1,0 +1,61 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/opendiag-core",
+  "crates/opendiag-isotp",
+  "crates/opendiag-obd",
+  "crates/opendiag-safety",
+  "crates/opendiag-elm327",
+  "crates/opendiag-sim",
+  "crates/opendiag-transport",
+  "crates/opendiag-knowledge",
+  "crates/opendiag-definitions",
+  "crates/opendiag-store",
+  "crates/opendiag-engine",
+]
+# `cargo test` at the root runs everything except the Tauri shell (needs a WebView toolkit).
+default-members = [
+  "crates/opendiag-core",
+  "crates/opendiag-isotp",
+  "crates/opendiag-obd",
+  "crates/opendiag-safety",
+  "crates/opendiag-elm327",
+  "crates/opendiag-sim",
+  "crates/opendiag-transport",
+  "crates/opendiag-knowledge",
+  "crates/opendiag-definitions",
+  "crates/opendiag-store",
+  "crates/opendiag-engine",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/MadsBjordal/OpenDiag"
+rust-version = "1.77"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde", "std"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+sha2 = "0.10"
+log = "0.4"
+opendiag-core = { path = "crates/opendiag-core" }
+opendiag-isotp = { path = "crates/opendiag-isotp" }
+opendiag-obd = { path = "crates/opendiag-obd" }
+opendiag-safety = { path = "crates/opendiag-safety" }
+opendiag-elm327 = { path = "crates/opendiag-elm327" }
+opendiag-transport = { path = "crates/opendiag-transport" }
+opendiag-sim = { path = "crates/opendiag-sim" }
+opendiag-knowledge = { path = "crates/opendiag-knowledge" }
+opendiag-definitions = { path = "crates/opendiag-definitions" }
+opendiag-store = { path = "crates/opendiag-store" }
+opendiag-engine = { path = "crates/opendiag-engine" }
+opendiag-api = { path = "crates/opendiag-api" }
+
+[profile.release]
+lto = "thin"
