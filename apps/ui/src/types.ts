@@ -357,3 +357,28 @@ export interface CatalogEntry {
   linux: SupportStatus;
   note: string;
 }
+
+export type ConnectorCategory = 'car' | 'motorcycle' | 'truck' | 'agricultural' | 'powersports' | 'marine';
+
+export interface Connector {
+  id: string;
+  name: string;
+  category: ConnectorCategory;
+  makes: string[];
+  applies_to: string;
+  pins: number | null;
+  description: string;
+  voltage: string;
+  access: 'data_link' | 'blink_codes' | 'data_link_or_blink_codes' | 'dashboard_self_test';
+  protocols: string[];
+  pinout: { pin: string; signal: string }[];
+  elm327: 'yes' | 'with_cable' | 'limited' | 'no' | 'not_needed';
+  adapter: string;
+  support: SupportStatus;
+  support_note: string;
+  how_to_read: string[];
+  warnings: string[];
+  confidence: 'low' | 'medium' | 'high';
+  sources: { url: string; note: string }[];
+  notes: string[];
+}

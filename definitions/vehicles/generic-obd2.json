@@ -9,17 +9,88 @@
     "license": "CC0-1.0"
   },
   "applies_to": {
-    "vehicle": { "make": "*", "models": ["*"], "years": { "from": 1996, "to": null }, "kinds": ["car", "van", "motorcycle"], "markets": ["*"] },
+    "vehicle": {
+      "make": "*",
+      "models": [
+        "*"
+      ],
+      "years": {
+        "from": 1996,
+        "to": null
+      },
+      "kinds": [
+        "car",
+        "van",
+        "motorcycle"
+      ],
+      "markets": [
+        "*"
+      ]
+    },
     "ecus": []
   },
-  "requires": { "adapter": { "protocols": [], "headers": false, "multi_frame": false } },
+  "requires": {
+    "adapter": {
+      "protocols": [],
+      "headers": false,
+      "multi_frame": false
+    }
+  },
+  "connector": "sae-j1962-obd2",
   "functions": [
-    { "id": "read_supported_pids", "kind": "read_info", "risk_level": 0, "request": "0100", "verification": "standard_defined", "evidence": [] },
-    { "id": "read_stored_dtcs", "kind": "read_dtc", "risk_level": 0, "request": "03", "verification": "standard_defined", "evidence": [] },
-    { "id": "read_pending_dtcs", "kind": "read_dtc", "risk_level": 0, "request": "07", "verification": "standard_defined", "evidence": [] },
-    { "id": "read_permanent_dtcs", "kind": "read_dtc", "risk_level": 0, "request": "0A", "verification": "standard_defined", "evidence": [] },
-    { "id": "read_vin", "kind": "read_info", "risk_level": 0, "request": "0902", "verification": "standard_defined", "evidence": [] },
-    { "id": "clear_emission_dtcs", "kind": "clear_dtc", "risk_level": 1, "request": "04", "verification": "standard_defined", "evidence": [] }
+    {
+      "id": "read_supported_pids",
+      "kind": "read_info",
+      "risk_level": 0,
+      "request": "0100",
+      "verification": "standard_defined",
+      "evidence": []
+    },
+    {
+      "id": "read_stored_dtcs",
+      "kind": "read_dtc",
+      "risk_level": 0,
+      "request": "03",
+      "verification": "standard_defined",
+      "evidence": []
+    },
+    {
+      "id": "read_pending_dtcs",
+      "kind": "read_dtc",
+      "risk_level": 0,
+      "request": "07",
+      "verification": "standard_defined",
+      "evidence": []
+    },
+    {
+      "id": "read_permanent_dtcs",
+      "kind": "read_dtc",
+      "risk_level": 0,
+      "request": "0A",
+      "verification": "standard_defined",
+      "evidence": []
+    },
+    {
+      "id": "read_vin",
+      "kind": "read_info",
+      "risk_level": 0,
+      "request": "0902",
+      "verification": "standard_defined",
+      "evidence": []
+    },
+    {
+      "id": "clear_emission_dtcs",
+      "kind": "clear_dtc",
+      "risk_level": 1,
+      "request": "04",
+      "verification": "standard_defined",
+      "evidence": []
+    }
   ],
-  "contributors": [{ "name": "OpenDiag maintainers", "date": "2026-10-19" }]
+  "contributors": [
+    {
+      "name": "OpenDiag maintainers",
+      "date": "2026-10-19"
+    }
+  ]
 }

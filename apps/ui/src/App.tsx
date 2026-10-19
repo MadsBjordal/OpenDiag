@@ -16,11 +16,13 @@ import Compat from './pages/Compat';
 import SettingsPage from './pages/Settings';
 import Console from './pages/Console';
 import Simulator from './pages/Simulator';
+import Connectors from './pages/Connectors';
 import { format } from './units';
 
 const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?: boolean }[] = [
   { page: 'home', icon: '⌂', label: 'Home', mobile: true },
   { page: 'connect', icon: '🔌', label: 'Connect', mobile: true },
+  { page: 'connectors', icon: '🔍', label: 'Find my connector' },
   { page: 'scan', icon: '🩺', label: 'Scan Vehicle', mobile: true },
   { page: 'codes', icon: '⚠', label: 'Fault Codes' },
   { page: 'live', icon: '📈', label: 'Live Data', mobile: true },
@@ -72,6 +74,7 @@ export default function App() {
     settings: <SettingsPage />,
     console: <Console />,
     simulator: <Simulator />,
+    connectors: <Connectors />,
     menu: (
       <>
         <h1>{t('Menu')}</h1>

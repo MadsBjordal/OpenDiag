@@ -151,6 +151,12 @@ export default function Connect() {
     <>
       <h1>{t('Connect to Vehicle')}</h1>
       <p className="muted">{t('Plug the adapter into the vehicle\'s diagnostic socket (usually under the dashboard; on motorcycles often under the seat, with an adapter cable) and switch the ignition on.')}</p>
+      <div className="banner info">
+        {t('Not every vehicle has the standard 16-pin socket. Motorcycles, older cars, trucks and boats often use other connectors, and some only flash codes.')}{' '}
+        <button className="btn small" onClick={() => go('connectors')}>
+          🔍 {t('Find my connector')}
+        </button>
+      </div>
       <h2>{t('Step 1 · How is your adapter connected?')}</h2>
       <div className="grid tiles">
         {KINDS.map((k) => (

@@ -10,6 +10,8 @@
 //! provenance, level 4 functions, requests whose real risk is higher than
 //! declared, and changing functions without verification and evidence.
 
+pub mod connectors;
+
 use opendiag_safety::{classify, RiskLevel};
 use serde::{Deserialize, Serialize};
 
@@ -129,6 +131,12 @@ pub struct Definition {
     pub provenance: Provenance,
     pub applies_to: AppliesTo,
     pub requires: Requires,
+    /// Diagnostic connector (an id from `definitions/connectors.json`).
+    #[serde(default)]
+    pub connector: Option<String>,
+    /// Cable needed between that connector and the adapter, in plain words.
+    #[serde(default)]
+    pub cable: Option<String>,
     pub functions: Vec<Function>,
     pub contributors: Vec<Contributor>,
 }
@@ -154,6 +162,13 @@ pub fn parse(json: &str) -> Result<Definition, Vec<String>> {
 
 pub fn validate(d: &Definition) -> Result<(), Vec<String>> {
     let mut errs = Vec::new();
+    if let Some(c) = &d.connector {
+        if !connectors::bundled().iter().any(|k| &k.id == c) {
+            errs.push(format!(
+                "connector \"{c}\" is not in definitions/connectors.json"
+            ));
+        }
+    }
     if d.schema_version != SCHEMA_VERSION {
         errs.push(format!("schema_version must be {SCHEMA_VERSION}"));
     }

@@ -3,16 +3,83 @@
   "id": "sim-car",
   "name": "SIMULATED generic OBD-II petrol car",
   "version": "1.0.0",
-  "provenance": { "kind": "simulated", "source": "OpenDiag simulator profile sim-car. Not a real vehicle.", "license": "CC0-1.0" },
-  "applies_to": {
-    "vehicle": { "make": "Simulated", "models": ["Generic car"], "years": { "from": 2016, "to": 2016 }, "kinds": ["car"], "markets": ["*"] },
-    "ecus": [{ "role": "engine", "address": "7E8", "hw_ids": [], "sw_ids": ["SIMCAL-CAR-0001"] }]
+  "provenance": {
+    "kind": "simulated",
+    "source": "OpenDiag simulator profile sim-car. Not a real vehicle.",
+    "license": "CC0-1.0"
   },
-  "requires": { "adapter": { "protocols": ["can11_500"], "headers": true, "multi_frame": true } },
+  "applies_to": {
+    "vehicle": {
+      "make": "Simulated",
+      "models": [
+        "Generic car"
+      ],
+      "years": {
+        "from": 2016,
+        "to": 2016
+      },
+      "kinds": [
+        "car"
+      ],
+      "markets": [
+        "*"
+      ]
+    },
+    "ecus": [
+      {
+        "role": "engine",
+        "address": "7E8",
+        "hw_ids": [],
+        "sw_ids": [
+          "SIMCAL-CAR-0001"
+        ]
+      }
+    ]
+  },
+  "requires": {
+    "adapter": {
+      "protocols": [
+        "can11_500"
+      ],
+      "headers": true,
+      "multi_frame": true
+    }
+  },
+  "connector": "sae-j1962-obd2",
   "functions": [
-    { "id": "read_stored_dtcs", "kind": "read_dtc", "risk_level": 0, "request": "03", "verification": "simulator_tested", "evidence": ["cargo test -p opendiag-engine"] },
-    { "id": "read_engine_speed", "kind": "read_live", "risk_level": 0, "request": "010C", "verification": "simulator_tested", "evidence": ["cargo test -p opendiag-engine"] },
-    { "id": "read_calibration_id", "kind": "read_info", "risk_level": 0, "request": "0904", "verification": "simulator_tested", "evidence": [] }
+    {
+      "id": "read_stored_dtcs",
+      "kind": "read_dtc",
+      "risk_level": 0,
+      "request": "03",
+      "verification": "simulator_tested",
+      "evidence": [
+        "cargo test -p opendiag-engine"
+      ]
+    },
+    {
+      "id": "read_engine_speed",
+      "kind": "read_live",
+      "risk_level": 0,
+      "request": "010C",
+      "verification": "simulator_tested",
+      "evidence": [
+        "cargo test -p opendiag-engine"
+      ]
+    },
+    {
+      "id": "read_calibration_id",
+      "kind": "read_info",
+      "risk_level": 0,
+      "request": "0904",
+      "verification": "simulator_tested",
+      "evidence": []
+    }
   ],
-  "contributors": [{ "name": "OpenDiag maintainers", "date": "2026-10-19" }]
+  "contributors": [
+    {
+      "name": "OpenDiag maintainers",
+      "date": "2026-10-19"
+    }
+  ]
 }

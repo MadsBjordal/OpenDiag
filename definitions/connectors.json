@@ -1,0 +1,36 @@
+{
+  "format": "opendiag-connectors",
+  "version": 1,
+  "connectors": [
+    {
+      "id": "sae-j1962-obd2",
+      "name": "OBD-II / EOBD 16-pin (SAE J1962 / ISO 15031-3)",
+      "category": "car",
+      "makes": ["*"],
+      "applies_to": "Petrol cars sold in the US from 1996 and the EU from 2001, diesels in the EU from 2004; most light vans",
+      "pins": 16,
+      "description": "Trapezoid 16-pin socket in two rows of 8, usually under the dashboard on the driver's side.",
+      "voltage": "12 V",
+      "access": "data_link",
+      "protocols": ["ISO 15765-4 CAN", "ISO 14230-4 KWP2000", "ISO 9141-2", "SAE J1850 PWM", "SAE J1850 VPW"],
+      "pinout": [
+        { "pin": "2", "signal": "SAE J1850 bus +" },
+        { "pin": "4", "signal": "Chassis ground" },
+        { "pin": "5", "signal": "Signal ground" },
+        { "pin": "6", "signal": "CAN high (ISO 15765-4)" },
+        { "pin": "7", "signal": "K-line (ISO 9141-2 / ISO 14230-4)" },
+        { "pin": "10", "signal": "SAE J1850 bus − (PWM only)" },
+        { "pin": "14", "signal": "CAN low (ISO 15765-4)" },
+        { "pin": "15", "signal": "L-line (ISO 9141-2 / ISO 14230-4)" },
+        { "pin": "16", "signal": "Battery positive" }
+      ],
+      "elm327": "yes",
+      "adapter": "Any ELM327-compatible OBD-II adapter (USB, Bluetooth or Wi-Fi).",
+      "support": "implemented_not_hardware_verified",
+      "support_note": "Generic OBD-II scan, live data and clearing are implemented and simulator-tested, not yet verified on real vehicles.",
+      "confidence": "high",
+      "sources": [{ "url": "https://en.wikipedia.org/wiki/On-board_diagnostics", "note": "Summary of the SAE J1962 pin assignment with cited standards" }],
+      "notes": ["Pins not listed are left to the manufacturer."]
+    }
+  ]
+}

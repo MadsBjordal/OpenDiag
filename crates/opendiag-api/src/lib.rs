@@ -116,6 +116,17 @@ enum Cmd {
         answers: Vec<Answer>,
     },
     Definitions,
+    Connectors {
+        category: Option<opendiag_definitions::connectors::Category>,
+        make: Option<String>,
+    },
+    BlinkTableGet {
+        key: String,
+    },
+    BlinkTableSet {
+        key: String,
+        entries: Vec<BlinkEntry>,
+    },
     ValidateDefinition {
         json: String,
     },
@@ -148,6 +159,26 @@ enum Cmd {
         settings: SimSettings,
     },
     SimProfiles,
+}
+
+/// One row of a blink-code table the user copied from their own service manual.
+#[derive(serde::Serialize, Deserialize)]
+struct BlinkEntry {
+    code: String,
+    meaning: String,
+}
+
+fn blink_key(key: &str) -> Result<String, EngineError> {
+    let ok = !key.is_empty()
+        && key.len() <= 80
+        && key
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+    if ok {
+        Ok(format!("blink_table:{key}"))
+    } else {
+        Err(EngineError::Invalid("Bad table name.".into()))
+    }
 }
 
 fn err_kind(e: &EngineError) -> &'static str {
@@ -357,6 +388,33 @@ impl Api {
                 to(serde_json::to_value(self.engine().guided(&id, &answers)?))?
             }
             Cmd::Definitions => to(serde_json::to_value(self.engine().definitions()))?,
+            Cmd::Connectors { category, make } => {
+                let all = opendiag_definitions::connectors::bundled();
+                to(serde_json::to_value(
+                    opendiag_definitions::connectors::find(&all, category, make.as_deref()),
+                ))?
+            }
+            Cmd::BlinkTableGet { key } => {
+                let k = blink_key(&key)?;
+                match self.engine().store().setting(&k)? {
+                    Some(s) => serde_json::from_str(&s).unwrap_or(Value::Array(vec![])),
+                    None => Value::Array(vec![]),
+                }
+            }
+            Cmd::BlinkTableSet { key, entries } => {
+                let k = blink_key(&key)?;
+                if entries.len() > 500
+                    || entries
+                        .iter()
+                        .any(|e| e.code.len() > 20 || e.meaning.len() > 500)
+                {
+                    return Err(EngineError::Invalid("Table too large.".into()));
+                }
+                self.engine()
+                    .store()
+                    .set_setting(&k, &serde_json::to_string(&entries).unwrap_or_default())?;
+                Value::Null
+            }
             Cmd::ValidateDefinition { json } => match opendiag_definitions::parse(&json) {
                 Ok(d) => json!({ "valid": true, "id": d.id, "name": d.name, "errors": [] }),
                 Err(errs) => json!({ "valid": false, "errors": errs }),
@@ -504,6 +562,23 @@ mod tests {
                 json!({"cmd":"set_setting","key":"mode","value":"x"}),
                 &|_, _| {}
             )["kind"],
+            "invalid"
+        );
+        let c = ok(
+            &a,
+            json!({"cmd":"connectors","category":"car","make":"Honda"}),
+        );
+        assert!(!c.as_array().unwrap().is_empty());
+        ok(
+            &a,
+            json!({"cmd":"blink_table_set","key":"honda-test","entries":[{"code":"12","meaning":"from my manual"}]}),
+        );
+        assert_eq!(
+            ok(&a, json!({"cmd":"blink_table_get","key":"honda-test"}))[0]["code"],
+            "12"
+        );
+        assert_eq!(
+            a.call(json!({"cmd":"blink_table_get","key":"../x"}), &|_, _| {})["kind"],
             "invalid"
         );
         let v = ok(&a, json!({"cmd":"validate_definition","json":"{}"}));

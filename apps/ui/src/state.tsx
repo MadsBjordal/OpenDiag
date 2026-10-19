@@ -17,7 +17,8 @@ export type Page =
   | 'settings'
   | 'console'
   | 'simulator'
-  | 'menu';
+  | 'menu'
+  | 'connectors';
 
 interface AppState {
   page: Page;
