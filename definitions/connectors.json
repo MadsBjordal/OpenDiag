@@ -1,36 +1,2311 @@
 {
-  "format": "opendiag-connectors",
-  "version": 1,
-  "connectors": [
+ "format": "opendiag-connectors",
+ "version": 1,
+ "connectors": [
+  {
+   "id": "sae-j1962-obd2",
+   "name": "OBD-II / EOBD 16-pin, Type A (SAE J1962 / ISO 15031-3)",
+   "category": "car",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "Petrol cars sold in the US from 1996 and the EU from 2001, diesels in the EU from 2004; most light vans",
+   "pins": 16,
+   "description": "Trapezoid 16-pin socket in two rows of 8, usually within reach of the driver under the dashboard.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "ISO 15765-4 CAN",
+    "ISO 14230-4 KWP2000",
+    "ISO 9141-2",
+    "SAE J1850 PWM",
+    "SAE J1850 VPW"
+   ],
+   "pinout": [
     {
-      "id": "sae-j1962-obd2",
-      "name": "OBD-II / EOBD 16-pin (SAE J1962 / ISO 15031-3)",
-      "category": "car",
-      "makes": ["*"],
-      "applies_to": "Petrol cars sold in the US from 1996 and the EU from 2001, diesels in the EU from 2004; most light vans",
-      "pins": 16,
-      "description": "Trapezoid 16-pin socket in two rows of 8, usually under the dashboard on the driver's side.",
-      "voltage": "12 V",
-      "access": "data_link",
-      "protocols": ["ISO 15765-4 CAN", "ISO 14230-4 KWP2000", "ISO 9141-2", "SAE J1850 PWM", "SAE J1850 VPW"],
-      "pinout": [
-        { "pin": "2", "signal": "SAE J1850 bus +" },
-        { "pin": "4", "signal": "Chassis ground" },
-        { "pin": "5", "signal": "Signal ground" },
-        { "pin": "6", "signal": "CAN high (ISO 15765-4)" },
-        { "pin": "7", "signal": "K-line (ISO 9141-2 / ISO 14230-4)" },
-        { "pin": "10", "signal": "SAE J1850 bus − (PWM only)" },
-        { "pin": "14", "signal": "CAN low (ISO 15765-4)" },
-        { "pin": "15", "signal": "L-line (ISO 9141-2 / ISO 14230-4)" },
-        { "pin": "16", "signal": "Battery positive" }
-      ],
-      "elm327": "yes",
-      "adapter": "Any ELM327-compatible OBD-II adapter (USB, Bluetooth or Wi-Fi).",
-      "support": "implemented_not_hardware_verified",
-      "support_note": "Generic OBD-II scan, live data and clearing are implemented and simulator-tested, not yet verified on real vehicles.",
-      "confidence": "high",
-      "sources": [{ "url": "https://en.wikipedia.org/wiki/On-board_diagnostics", "note": "Summary of the SAE J1962 pin assignment with cited standards" }],
-      "notes": ["Pins not listed are left to the manufacturer."]
+     "pin": "2",
+     "signal": "SAE J1850 bus +"
+    },
+    {
+     "pin": "4",
+     "signal": "Chassis ground"
+    },
+    {
+     "pin": "5",
+     "signal": "Signal ground"
+    },
+    {
+     "pin": "6",
+     "signal": "CAN high (ISO 15765-4)"
+    },
+    {
+     "pin": "7",
+     "signal": "K-line (ISO 9141-2 / ISO 14230-4)"
+    },
+    {
+     "pin": "10",
+     "signal": "SAE J1850 bus − (PWM only)"
+    },
+    {
+     "pin": "14",
+     "signal": "CAN low (ISO 15765-4)"
+    },
+    {
+     "pin": "15",
+     "signal": "L-line (ISO 9141-2 / ISO 14230-4)"
+    },
+    {
+     "pin": "16",
+     "signal": "Battery positive"
     }
-  ]
+   ],
+   "elm327": "yes",
+   "adapter": "Any ELM327-compatible OBD-II adapter (USB, Bluetooth or Wi-Fi).",
+   "support": "implemented_not_hardware_verified",
+   "support_note": "Generic OBD-II scan, live data and clearing are implemented and simulator-tested, not yet verified on real vehicles.",
+   "how_to_read": [],
+   "warnings": [
+    "Pins 1, 3, 8, 9, 11, 12 and 13 belong to the manufacturer. Some carry programming voltage (e.g. Ford pin 13): never connect anything to them without a model-specific definition."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/On-board_diagnostics",
+     "note": "SAE J1962 pin assignment with cited standards"
+    },
+    {
+     "url": "https://www.elmelectronics.com/wp-content/uploads/2017/01/ELM327DS.pdf",
+     "note": "ELM327 data sheet: supported protocols"
+    },
+    {
+     "url": "https://ww2.arb.ca.gov/sites/default/files/barcu/regact/2022/accii/2acciifro1962.5.pdf",
+     "note": "CARB 13 CCR 1962.5: electric cars from MY2026 must have a J1962 Type A connector"
+    }
+   ],
+   "notes": [
+    "Examples of manufacturer pins (Wikipedia, medium confidence): GM single-wire CAN on 1, Ford/Chrysler buses on 3 and 11, a second K-line on 8 on many BMWs.",
+    "Electric cars: California requires a J1962 Type A connector on electric cars from model year 2026 (40%) and 2027 (100%). Older electric cars often have no standard diagnostics."
+   ]
+  },
+  {
+   "id": "doip-j1962",
+   "name": "Diagnostics over Ethernet (DoIP, ISO 13400) on the 16-pin socket",
+   "category": "car",
+   "makes": [
+    "BMW",
+    "*"
+   ],
+   "applies_to": "Newer vehicles with Ethernet diagnostics (e.g. BMW with ENET cables)",
+   "pins": 16,
+   "description": "The same 16-pin socket, with an Ethernet pair on manufacturer pins and an activation line on pin 8.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "ISO 13400 DoIP"
+   ],
+   "pinout": [
+    {
+     "pin": "3",
+     "signal": "Ethernet pair A + (option 1; sources disagree on RX/TX direction)"
+    },
+    {
+     "pin": "11",
+     "signal": "Ethernet pair A − (option 1)"
+    },
+    {
+     "pin": "12",
+     "signal": "Ethernet pair B +"
+    },
+    {
+     "pin": "13",
+     "signal": "Ethernet pair B −"
+    },
+    {
+     "pin": "8",
+     "signal": "Ethernet activation"
+    }
+   ],
+   "elm327": "no",
+   "adapter": "An Ethernet (ENET/DoIP) cable; ELM327 adapters cannot do Ethernet.",
+   "support": "planned",
+   "support_note": "DoIP is planned for a later phase.",
+   "how_to_read": [],
+   "warnings": [
+    "The direction of the pairs and the activation resistance must be confirmed from ISO 13400 before any implementation."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://python-doipclient.readthedocs.io/en/latest/automotive_ethernet.html",
+     "note": "DoIP pin options"
+    },
+    {
+     "url": "https://docs.autopi.io/developer_guides/setting-up-doip/",
+     "note": "DoIP pin options"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/On-board_diagnostics",
+     "note": "SAE J1962 pin assignment with cited standards"
+    }
+   ],
+   "notes": [
+    "Option 2 uses pins 1 and 9 instead of 3 and 11 for the first pair (python-doipclient)."
+   ]
+  },
+  {
+   "id": "vag-2x2",
+   "name": "VAG 2×2 round connectors (VW, Audi, SEAT, Škoda)",
+   "category": "car",
+   "makes": [
+    "Volkswagen",
+    "Audi",
+    "SEAT",
+    "Škoda"
+   ],
+   "applies_to": "Most Audi 1990–1995, VW 1990–1993 (Ross-Tech); pre-1996 in general",
+   "pins": 4,
+   "description": "Two separate 2-pin round connectors in the engine bay or fuse box.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "KW1281 (VAG K-line protocol)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A KKL (raw K-line) cable with a 2×2 adapter, or a VAG-specific interface.",
+   "support": "unsupported",
+   "support_note": "KW1281 is not implemented.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://mail.register.ross-tech.com/vag-com/old-interfaces/max-com.html",
+     "note": "Ross-Tech: models with 2×2 connectors"
+    },
+    {
+     "url": "https://www.elektroda.com/rtvforum/topic2848768.html",
+     "note": "forum wiring discussion"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "bmw-20pin-round",
+   "name": "BMW 20-pin round connector (engine bay)",
+   "category": "car",
+   "makes": [
+    "BMW"
+   ],
+   "applies_to": "BMW cars until about 2000–2001",
+   "pins": 20,
+   "description": "Round 20-pin socket with a screw-on cap, under the bonnet.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "BMW K/L-line (DS2/KWP)",
+    "CAN on later cars (one source)"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A 20-pin to 16-pin adapter; most BMW systems need BMW-specific protocols, so a generic adapter reaches little or nothing.",
+   "support": "unsupported",
+   "support_note": "BMW protocols are not implemented; generic OBD-II only where the car offers it.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/BMW_20_pin_to_OBD_adapter.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "mercedes-38pin",
+   "name": "Mercedes-Benz 38-pin round connector",
+   "category": "car",
+   "makes": [
+    "Mercedes-Benz"
+   ],
+   "applies_to": "Roughly 1990s to 2002 (sources disagree on the start year)",
+   "pins": 38,
+   "description": "Round 38-pin socket in the engine bay.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line, one line per system"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A tool with a line-switching 38-pin cable (multiplexer).",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/Mercedes_38_pin_to_OBD-2.shtml",
+     "note": "community pinout"
+    },
+    {
+     "url": "https://www.youcanic.com/mercedes-benz-models-with-38-pin-port/",
+     "note": "models list"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "mercedes-x11-old",
+   "name": "Mercedes-Benz X11 8/9/16-pin (older)",
+   "category": "car",
+   "makes": [
+    "Mercedes-Benz"
+   ],
+   "applies_to": "Roughly 1988 to mid-1990s",
+   "pins": null,
+   "description": "Older diagnostic sockets with an on/off-ratio output and blink codes through a pulse counter.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "On/off ratio (duty cycle)",
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A blink-code reader or LED tester and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/mercedes_old_9pin.shtml",
+     "note": "community pinout"
+    },
+    {
+     "url": "https://www.peachparts.com/shopforum/tech-help/26298-self-made-blink-code-tool.html",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "Which pin gives the blink codes differs between sources and models."
+   ]
+  },
+  {
+   "id": "gm-aldl-12pin",
+   "name": "GM ALDL 12-pin",
+   "category": "car",
+   "makes": [
+    "Chevrolet",
+    "GMC",
+    "Buick",
+    "Cadillac",
+    "Pontiac",
+    "Oldsmobile",
+    "Opel"
+   ],
+   "applies_to": "GM vehicles from 1981; 1994–96 'OBD 1.5' cars carry ALDL on pin 9 of a 16-pin socket",
+   "pins": 12,
+   "description": "Two rows of 6 lettered terminals (A–F, G–M) under the dashboard.",
+   "voltage": "12 V",
+   "access": "data_link_or_blink_codes",
+   "protocols": [
+    "ALDL 160 baud (early)",
+    "ALDL 8192 baud (later)",
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "An ALDL interface for data; a jumper for blink codes.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. ALDL data is not implemented.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/ALDL",
+     "note": "ALDL overview"
+    },
+    {
+     "url": "https://en.wikipedia.org/wiki/On-board_diagnostics",
+     "note": "SAE J1962 pin assignment with cited standards"
+    }
+   ],
+   "notes": [
+    "The function of each lettered terminal varies by model; no reliable general pin table is listed."
+   ]
+  },
+  {
+   "id": "ford-eec-iv",
+   "name": "Ford EEC-IV self-test connector",
+   "category": "car",
+   "makes": [
+    "Ford",
+    "Mercury",
+    "Lincoln"
+   ],
+   "applies_to": "Roughly 1983–1995",
+   "pins": null,
+   "description": "Self-test connector plus a separate single-wire self-test input (STI).",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes (KOEO/KOER self tests)",
+    "STAR tester"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A jumper wire (or Ford STAR tester) and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://broncozone.com/topic/24492-eec-iv-technical-notes-by-tom-c/",
+     "note": "quotes Ford TSB 92-24-03"
+    }
+   ],
+   "notes": [
+    "Codes are 2-digit before model year 1991 and 3-digit after (TSB as quoted)."
+   ]
+  },
+  {
+   "id": "toyota-dlc1",
+   "name": "Toyota DLC1 (engine bay check connector)",
+   "category": "car",
+   "makes": [
+    "Toyota",
+    "Lexus"
+   ],
+   "applies_to": "Pre-1996",
+   "pins": null,
+   "description": "Rectangular check connector under the bonnet; the terminal names are printed on its lid.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A jumper wire and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your model in its service manual.",
+    "Ignition off. Bridge the two terminals the manual names (commonly reported as TE1 and E1, printed on the lid).",
+    "Ignition on, engine off: the check-engine light flashes the codes (pauses separate digits and codes).",
+    "Ignition off and remove the jumper."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://alflash.com.ua/dtctoyota2.htm",
+     "note": "procedure description"
+    }
+   ],
+   "notes": [
+    "DLC2 (under the dashboard): no reliable information found."
+   ]
+  },
+  {
+   "id": "nissan-consult-14pin",
+   "name": "Nissan Consult 14-pin",
+   "category": "car",
+   "makes": [
+    "Nissan",
+    "Infiniti"
+   ],
+   "applies_to": "Roughly late 1980s to early 2000s",
+   "pins": 14,
+   "description": "Grey 14-pin connector, usually under the dashboard.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "Nissan Consult (clocked serial, logic level)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A Consult interface; it is not an OBD protocol.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/nissan_14pin_diag.shtml",
+     "note": "community pinout"
+    },
+    {
+     "url": "https://nistune.com/forum/viewtopic.php?p=27460",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "mazda-17pin",
+   "name": "Mazda 17-pin diagnostic box",
+   "category": "car",
+   "makes": [
+    "Mazda"
+   ],
+   "applies_to": "e.g. MX-5 1989–1995, RX-7",
+   "pins": 17,
+   "description": "Diagnostic box in the engine bay with TEN (test) and FEN (fault output) terminals.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A jumper wire and an LED (or test light) per the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.miata.net/garage/Engine_Diagnostics.html",
+     "note": "procedure"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "mitsubishi-12pin",
+   "name": "Mitsubishi 12-pin",
+   "category": "car",
+   "makes": [
+    "Mitsubishi"
+   ],
+   "applies_to": "About 1989–1998",
+   "pins": 12,
+   "description": "12-pin connector under the dashboard.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "Mitsubishi MUT (unconfirmed)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A Mitsubishi-specific interface.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/mitsubishi_old_12pin.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "honda-car-2pin",
+   "name": "Honda car 2-pin service check connector",
+   "category": "car",
+   "makes": [
+    "Honda",
+    "Acura"
+   ],
+   "applies_to": "About 1992–1995 (1986–91 used an LED on the ECU)",
+   "pins": 2,
+   "description": "Small 2-pin connector, usually under the passenger-side dashboard.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A jumper and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://dannysengineportal.com/honda-obd1-codes/",
+     "note": "description"
+    }
+   ],
+   "notes": [
+    "Reported: long flashes count tens, short flashes units. Honda 3-pin: no reliable information found."
+   ]
+  },
+  {
+   "id": "fiat-3pin",
+   "name": "Fiat / Alfa Romeo / Lancia 3-pin",
+   "category": "car",
+   "makes": [
+    "Fiat",
+    "Alfa Romeo",
+    "Lancia"
+   ],
+   "applies_to": "Before about 2001",
+   "pins": 3,
+   "description": "Small 3-pin connector (also used on some Piaggio and Moto Guzzi motorcycles).",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line with L-line wake-up (Magneti Marelli / Bosch)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A KKL cable with a genuine FTDI chip and a 3-pin adapter (forum reports).",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/fiat_test.shtml",
+     "note": "community pinout"
+    },
+    {
+     "url": "https://www.alfabb.com/threads/what-the-stock-75-ts-motronic-can-and-cannot-do.190352/page-18",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "renault-12pin",
+   "name": "Renault 12-pin",
+   "category": "car",
+   "makes": [
+    "Renault"
+   ],
+   "applies_to": "Before 1998",
+   "pins": 12,
+   "description": "Rectangular 12-pin connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K/L-line"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A Renault-specific interface.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/renault_old_12pin.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "psa-30pin",
+   "name": "Peugeot / Citroën 30-pin",
+   "category": "car",
+   "makes": [
+    "Peugeot",
+    "Citroën"
+   ],
+   "applies_to": "Until the early 2000s (2-pin before about 1997)",
+   "pins": 30,
+   "description": "Rectangular 30-pin connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line (PSA tools)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A PSA-specific interface.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://frenchcarforum.co.uk/forum/viewtopic.php?p=711579",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "No reliable pin layout found."
+   ]
+  },
+  {
+   "id": "volvo-pre96",
+   "name": "Volvo diagnostic units A and B (engine bay)",
+   "category": "car",
+   "makes": [
+    "Volvo"
+   ],
+   "applies_to": "Up to 1995 (some 1995 940s have a 16-pin socket that is not OBD-II)",
+   "pins": null,
+   "description": "Two diagnostic boxes with a selector probe, a push button and an LED.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "Nothing extra: the boxes have their own button and LED. Use the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure for your model in the service manual (which socket of the box selects which system).",
+    "Ignition on. Put the probe in the socket for the system, press the button for the time the manual gives.",
+    "Count the LED flashes with the reader below."
+   ],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.matthewsvolvosite.com/read-codes-Volvo-850",
+     "note": "procedure"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "opel-10pin",
+   "name": "Opel / Vauxhall 10-pin",
+   "category": "car",
+   "makes": [
+    "Opel",
+    "Vauxhall"
+   ],
+   "applies_to": "1988–1996",
+   "pins": 10,
+   "description": "Lettered 10-pin connector.",
+   "voltage": "12 V",
+   "access": "data_link_or_blink_codes",
+   "protocols": [
+    "Slow blink codes",
+    "K-line"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A jumper for blink codes; an Opel-specific interface for data.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. The data link is not implemented.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/opel_10pin_diag.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "iso19689-euro5-6pin",
+   "name": "Euro 5 motorcycle 6-pin (ISO 19689)",
+   "category": "motorcycle",
+   "makes": [
+    "Honda",
+    "Yamaha",
+    "Kawasaki",
+    "Triumph",
+    "Aprilia",
+    "*"
+   ],
+   "applies_to": "EU motorcycles at OBD stage II (Euro 5), e.g. Honda CRF1100L Africa Twin 2020+, Yamaha MT-09 2021+, Kawasaki ZX-4R 2023+, Triumph from about 2024, Aprilia RSV4/Tuono 2021+",
+   "pins": 6,
+   "description": "Small sealed 6-pin connector, often red, usually under the seat (the owner's manual must say where).",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "ISO 15765-4 CAN",
+    "ISO 14230-4 / ISO 9141-2 (allowed)",
+    "ISO 14229 UDS (allowed)"
+   ],
+   "pinout": [
+    {
+     "pin": "2",
+     "signal": "CAN high"
+    },
+    {
+     "pin": "3",
+     "signal": "Ground"
+    },
+    {
+     "pin": "4",
+     "signal": "Battery positive"
+    },
+    {
+     "pin": "5",
+     "signal": "CAN low"
+    },
+    {
+     "pin": "6",
+     "signal": "K-line"
+    }
+   ],
+   "elm327": "with_cable",
+   "adapter": "A 6-pin to 16-pin adapter cable and an ELM327-compatible adapter.",
+   "support": "implemented_not_hardware_verified",
+   "support_note": "The regulation requires these bikes to answer a generic scan tool, so OpenDiag's generic OBD-II scan should work through the cable. Not yet tested on a real bike.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://www.legislation.gov.uk/eur/2014/44/2018-03-20/data.html",
+     "note": "Reg. (EU) 44/2014 Annex XII 3.12–3.13 (UK-retained text, 2018)"
+    },
+    {
+     "url": "https://www.iso.org/standard/66030.html",
+     "note": "ISO 19689: common motorcycle diagnostic connector"
+    },
+    {
+     "url": "https://store.aimsports.com/download/ecu/stock/Bike_euro5_std_eng_100.pdf",
+     "note": "AiM Euro 5 connector guide (vendor)"
+    },
+    {
+     "url": "https://www.hptuners.com/product/moto-euro5-obdii-adapter-cable/",
+     "note": "lists CRF1100L 2020–2023 among bikes with the Euro 5 6-pin"
+    }
+   ],
+   "notes": [
+    "Pin assignment from a data-logger maker (AiM), not from the ISO text; pin 1 is not listed.",
+    "Enduro (L3e-AxE), trial (L3e-AxT), mopeds and some light vehicles are exempt from stage II.",
+    "The regulation also allows the 16-pin ISO 15031-3 connector instead."
+   ]
+  },
+  {
+   "id": "honda-moto-4pin-dlc",
+   "name": "Honda motorcycle 4-pin red DLC",
+   "category": "motorcycle",
+   "makes": [
+    "Honda"
+   ],
+   "applies_to": "Fuel-injected (PGM-FI) Honda bikes from about 2003, e.g. CBR600RR 2003+, CTX700, CRF250L; CRF1000L Africa Twin 2016–2019 has a DLC under the seat (pin count not confirmed for that model)",
+   "pins": 4,
+   "description": "Red 4-pin connector (often with a dummy plug), usually under the seat.",
+   "voltage": "12 V",
+   "access": "data_link_or_blink_codes",
+   "protocols": [
+    "Honda K-line (proprietary, 10400 baud)",
+    "Blink codes via the SCS service connector"
+   ],
+   "pinout": [
+    {
+     "pin": "1",
+     "signal": "Ground"
+    },
+    {
+     "pin": "2",
+     "signal": "Reset"
+    },
+    {
+     "pin": "3",
+     "signal": "+12 V"
+    },
+    {
+     "pin": "4",
+     "signal": "K-line"
+    }
+   ],
+   "elm327": "no",
+   "adapter": "For data: a raw K-line interface (e.g. FTDI USB serial with a K-line transceiver) and a 4-pin cable. For blink codes: Honda's SCS service connector 070PZ-ZY30100 or equivalent jumper.",
+   "support": "planned",
+   "support_note": "Blink codes: OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. The Honda K-line data protocol is planned; sources disagree on its wake-up message, so it needs testing on a real bike first.",
+   "how_to_read": [
+    "Ignition off. Remove the dummy plug from the red DLC.",
+    "Connect the SCS service connector (Honda 070PZ-ZY30100) to the DLC. The terminals to short differ per model: check the manual.",
+    "Switch the ignition on (engine off, kill switch to RUN). The fuel-injection warning light (MIL) blinks the codes.",
+    "Long blink (about 1.3 s) = 10, short blink (about 0.3 s) = 1; codes come smallest first. Use the reader below.",
+    "Ignition off, remove the SCS connector and refit the dummy plug."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess.",
+    "On the CRF1000L, disconnecting the battery does not clear stored codes (manual excerpt quoted on a forum)."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://github.com/sophienyaa/Honda-Motorcycle-ECU-Tools",
+     "note": "pinout and protocol notes"
+    },
+    {
+     "url": "https://gonzos.net/projects/ctx-obd/",
+     "note": "protocol notes"
+    },
+    {
+     "url": "https://www.cyclepedia.com/?p=40745",
+     "note": "blink-code reading"
+    },
+    {
+     "url": "https://africatwin.com.pl/showthread.php?p=650454",
+     "note": "CRF1000L manual excerpt (forum)"
+    }
+   ],
+   "notes": [
+    "The pinout comes from one open-source project; a second agrees on the functions but gives no numbers.",
+    "A generic ELM327 does not work: Honda does not use the ISO wake-up and uses a different checksum."
+   ]
+  },
+  {
+   "id": "honda-moto-2pin-service",
+   "name": "Honda motorcycle 2-pin service check connector",
+   "category": "motorcycle",
+   "makes": [
+    "Honda"
+   ],
+   "applies_to": "Some older fuel-injected Hondas, e.g. VFR800 1998–2001 (forum reports)",
+   "pins": 2,
+   "description": "Small 2-pin connector near the ECU or under the seat.",
+   "voltage": "12 V",
+   "access": "blink_codes",
+   "protocols": [
+    "Blink codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A jumper wire and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings.",
+   "how_to_read": [
+    "Find the procedure in the service manual for your model.",
+    "Ignition off. Bridge the 2-pin connector with a jumper.",
+    "Ignition on, side stand down (reported): count the fuel-injection light flashes with the reader below.",
+    "Ignition off and remove the jumper."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://vfrworld.com/posts/356578/",
+     "note": "forum"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "no-ecu-carburettor",
+   "name": "No electronic diagnostics (carburettor engines)",
+   "category": "motorcycle",
+   "makes": [
+    "Honda",
+    "*"
+   ],
+   "applies_to": "Carburettor bikes without a fuel-injection ECU, e.g. Honda Africa Twin XRV650/750 (1988–2003)",
+   "pins": null,
+   "description": "These bikes have carburettors and a simple ignition unit (CDI) with no stored fault codes, so there is nothing for a scan tool to read.",
+   "voltage": "12 V",
+   "access": "no_diagnostics",
+   "protocols": [],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "A multimeter and the service manual for electrical checks.",
+   "support": "partially_implemented",
+   "support_note": "Use Guided Diagnostics for electrical checks (battery and charging, heated grips). There are no codes to read.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/Honda_XRV750",
+     "note": "XRV750: carburettors"
+    },
+    {
+     "url": "https://gegshop.nl/en/products/improved-cdi-xrv750-africa-twin-rd04-rd07-carmo",
+     "note": "XRV750 CDI ignition"
+    }
+   ],
+   "notes": [
+    "The newer Africa Twins (CRF1000L, CRF1100L) are fuel-injected and do have a diagnostic connector: see their entries."
+   ]
+  },
+  {
+   "id": "yamaha-3pin",
+   "name": "Yamaha 3-pin coupler",
+   "category": "motorcycle",
+   "makes": [
+    "Yamaha"
+   ],
+   "applies_to": "e.g. YZF-R3 2015–2017",
+   "pins": 3,
+   "description": "3-pin coupler under the seat.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "Yamaha K-line (proprietary)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A raw K-line interface and a 3-pin cable.",
+   "support": "unsupported",
+   "support_note": "The Yamaha protocol is not implemented.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://aimsports.com/download/ecu/stock/yamaha/Yamaha_YZF-R3_2015-2017_eng.pdf",
+     "note": "AiM: K-line wire"
+    },
+    {
+     "url": "https://github.com/aster94/Keyword-Protocol-2000/issues/11",
+     "note": "protocol notes"
+    }
+   ],
+   "notes": [
+    "AiM gives the K-line as the yellow/blue wire on the R3. Baud rate not found."
+   ]
+  },
+  {
+   "id": "yamaha-4pin",
+   "name": "Yamaha 4-pin coupler",
+   "category": "motorcycle",
+   "makes": [
+    "Yamaha"
+   ],
+   "applies_to": "e.g. MT-09 / FZ-09 2014–2020, MT-07 2017+",
+   "pins": 4,
+   "description": "4-pin coupler under the tail.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (MT-09, AiM)",
+    "K-line on some models (forum, conflicting)"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A 4-pin to 16-pin cable and an ELM327-compatible adapter (one forum report of it reading faults on an MT-07).",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag's generic OBD-II scan may work through the cable; untested. Yamaha-specific diagnostics are not implemented.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://store.aimsports.com/download/ecu/stock/yamaha/Yamaha_FZ_MT_09_all_models_ecu_eng.pdf",
+     "note": "AiM MT-09 wiring"
+    },
+    {
+     "url": "https://fz07.org/thread/13558/tested-out-4-pin-to-obd2-cable-for-diagnostics-and-fault-resets/",
+     "note": "forum report"
+    }
+   ],
+   "notes": [
+    "AiM (MT-09) by wire colour: blue/red CAN high, blue/black CAN low, red/black battery +, black ground. No pin numbers given.",
+    "Do not assume every Yamaha 4-pin is CAN."
+   ]
+  },
+  {
+   "id": "yamaha-dashboard-selftest",
+   "name": "Yamaha dashboard self-diagnosis",
+   "category": "motorcycle",
+   "makes": [
+    "Yamaha"
+   ],
+   "applies_to": "Older fuel-injected models, e.g. FZ1, R1",
+   "pins": null,
+   "description": "Diagnostic mode built into the instrument panel; no connector needed.",
+   "voltage": "12 V",
+   "access": "dashboard_self_test",
+   "protocols": [
+    "Dashboard codes"
+   ],
+   "pinout": [],
+   "elm327": "not_needed",
+   "adapter": "Nothing: use the dashboard buttons and the service manual.",
+   "support": "partially_implemented",
+   "support_note": "Record the codes in the reader and look them up in your own table from the manual.",
+   "how_to_read": [
+    "Check the service manual for your model.",
+    "Reported for some older models: hold SELECT and RESET while switching the ignition on to enter the diagnostic mode.",
+    "Write down the codes shown and look them up with the reader below."
+   ],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://es.scribd.com/document/370389058",
+     "note": "third-party guide"
+    },
+    {
+     "url": "https://www.cyclepedia.com/?p=39894",
+     "note": "newer models: display menu"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "suzuki-sds-6pin",
+   "name": "Suzuki SDS 6-pin (white)",
+   "category": "motorcycle",
+   "makes": [
+    "Suzuki"
+   ],
+   "applies_to": "e.g. GSX-R600/750 2006–2016, GSX-R1000 2005–2016, Hayabusa 2008–2016",
+   "pins": 6,
+   "description": "White 6-pin connector near the ECU under the seat.",
+   "voltage": "12 V",
+   "access": "data_link_or_blink_codes",
+   "protocols": [
+    "KWP2000 / ISO 14230 fast init (K-line)",
+    "Dealer mode (codes on the dashboard)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A raw K-line interface for data; Suzuki's dealer-mode jumper (09930-82720 / 09930-82710 reported) for codes.",
+   "support": "partially_implemented",
+   "support_note": "Dealer-mode codes: record them in the reader. The SDS data protocol is not implemented.",
+   "how_to_read": [
+    "Check the service manual for your model.",
+    "Ignition off. Fit the dealer-mode jumper to the connector the manual names.",
+    "Ignition on: the dashboard or FI light shows the codes. Record them below.",
+    "Ignition off and remove the jumper."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://aim-sportline.com/download/ecu/stock/suzuki/Suzuki_SDS_Protocol_eng.pdf",
+     "note": "AiM: power, K-line, ground"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/aster94/Keyword-Protocol-2000/master/src/KWP2000.cpp",
+     "note": "open-source KWP2000 for Suzuki/Kawasaki"
+    }
+   ],
+   "notes": [
+    "AiM shows power, K-line and ground on this connector but without pin numbers."
+   ]
+  },
+  {
+   "id": "kawasaki-kds-4pin",
+   "name": "Kawasaki KDS 4-pin",
+   "category": "motorcycle",
+   "makes": [
+    "Kawasaki"
+   ],
+   "applies_to": "Many fuel-injected Kawasakis (e.g. Versys 650 2012)",
+   "pins": 4,
+   "description": "4-pin connector under the seat.",
+   "voltage": "12 V",
+   "access": "data_link_or_blink_codes",
+   "protocols": [
+    "KWP2000 / ISO 14230 (K-line)",
+    "Self-diagnosis via the FI light on older models"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A raw K-line interface (Kawasaki harness 57001-1868 reported) for data; the manual's grounding procedure for codes.",
+   "support": "partially_implemented",
+   "support_note": "Blink codes: OpenDiag's blink-code reader helps you count the flashes and looks them up in a table you copy from your service manual. OpenDiag does not ship the code meanings. The KDS data protocol is not implemented.",
+   "how_to_read": [
+    "Find the procedure for your exact model and year in its service manual before touching the connector.",
+    "Ignition off. Bridge only the terminals the manual names, with the correct jumper or service tool.",
+    "Switch the ignition on (engine off) and watch the warning light; use the reader below to count long and short flashes.",
+    "Ignition off and remove the jumper when you are done."
+   ],
+   "warnings": [
+    "Bridging the wrong terminals can damage the engine control unit. If you are not sure which terminals to use, do not guess."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://raw.githubusercontent.com/aster94/Keyword-Protocol-2000/master/src/KWP2000.cpp",
+     "note": "open-source KWP2000, Versys 650 tested"
+    },
+    {
+     "url": "https://www.vulcandrifterriders.com/ECUFaultCodes.html",
+     "note": "self-diagnosis description"
+    }
+   ],
+   "notes": [
+    "Sources disagree on whether the 4-pin or the 6-pin carries the K-line.",
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "kawasaki-6pin",
+   "name": "Kawasaki 6-pin (CAN)",
+   "category": "motorcycle",
+   "makes": [
+    "Kawasaki"
+   ],
+   "applies_to": "e.g. ZX-10R 2011+",
+   "pins": 6,
+   "description": "6-pin connector under the seat.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A 6-pin to 16-pin cable and a CAN-capable adapter (not confirmed).",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II may or may not answer; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://cdn.shopify.com/s/files/1/0214/9392/files/KawasakiZX10R_2011_103_eng.pdf",
+     "note": "AiM ZX-10R wiring"
+    }
+   ],
+   "notes": [
+    "AiM by wire colour: grey/blue CAN high, light blue CAN low; power and ground not given."
+   ]
+  },
+  {
+   "id": "bmw-moto-10pin-round",
+   "name": "BMW Motorrad 10-pin round",
+   "category": "motorcycle",
+   "makes": [
+    "BMW"
+   ],
+   "applies_to": "About 1996–2016 (seller claim)",
+   "pins": 10,
+   "description": "Round 10-pin connector, often near the battery.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line (KWP2000)",
+    "D-CAN on later bikes"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A BMW-specific tool (e.g. GS-911) with its round adapter; generic readers reportedly do not reach the gateway.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/BMW_motorcycle_10_pin_dia.shtml",
+     "note": "community pinout"
+    },
+    {
+     "url": "https://biketrailspfannenstiel.ch/auskunft/bmw-motorrad-obd-stecker/",
+     "note": "conflicting pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "bmw-moto-16pin",
+   "name": "BMW Motorrad 16-pin OBD",
+   "category": "motorcycle",
+   "makes": [
+    "BMW"
+   ],
+   "applies_to": "From 2016/2017 (sources disagree)",
+   "pins": 16,
+   "description": "Car-style 16-pin socket.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "An ELM327-compatible adapter may reach generic OBD only; BMW functions need a BMW tool.",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II scan may work; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://forum.hexcode.co.za/forum/index.php/topic,1507.0.html",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "Reported: CAN on 6/14, power 16, ground 4 (forum only, not listed as pins)."
+   ]
+  },
+  {
+   "id": "ducati-dda-4pin",
+   "name": "Ducati DDA 4-pin (under the tail)",
+   "category": "motorcycle",
+   "makes": [
+    "Ducati"
+   ],
+   "applies_to": "848/1098/1198 2007–2013, Panigale 2012–2019",
+   "pins": 4,
+   "description": "4-pin connector under the tail.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN"
+   ],
+   "pinout": [
+    {
+     "pin": "3",
+     "signal": "CAN high"
+    },
+    {
+     "pin": "4",
+     "signal": "CAN low"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "A 4-pin to 16-pin cable and an ELM327-compatible adapter (seller claims).",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II scan may work; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://www.aimsports.com/download/ecu/stock/ducati/Ducati_848_1098_1198_eng.pdf",
+     "note": "AiM wiring"
+    },
+    {
+     "url": "https://aim-sportline.com/download/ecu/stock/ducati/DucatiPanigale_eng.pdf",
+     "note": "AiM wiring"
+    }
+   ],
+   "notes": [
+    "Older Ducatis (Marelli 59M) reportedly use a 3-pin connector; no reliable details."
+   ]
+  },
+  {
+   "id": "triumph-16pin-kline",
+   "name": "Triumph 16-pin (K-line)",
+   "category": "motorcycle",
+   "makes": [
+    "Triumph"
+   ],
+   "applies_to": "Daytona 675 2006–2012, Street/Speed Triple 2007–2012",
+   "pins": 16,
+   "description": "Car-style 16-pin socket under the seat.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line (Triumph)"
+   ],
+   "pinout": [
+    {
+     "pin": "4",
+     "signal": "Ground"
+    },
+    {
+     "pin": "7",
+     "signal": "K-line"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "TuneECU users report an FTDI KKL cable works; reports on ELM327 adapters conflict.",
+   "support": "unsupported",
+   "support_note": "Triumph diagnostics are not implemented; generic OBD-II not confirmed.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://store.aimsports.com/download/ecu/stock/triumph/Triumph_Daytona675_2006-2012+StreetTriple+SpeedTriple_2007-2012_K_Line_101_eng.pdf",
+     "note": "AiM wiring"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "triumph-16pin-can",
+   "name": "Triumph 16-pin (CAN)",
+   "category": "motorcycle",
+   "makes": [
+    "Triumph"
+   ],
+   "applies_to": "675/765 2013 to about 2023",
+   "pins": 16,
+   "description": "Car-style 16-pin socket under the seat.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN"
+   ],
+   "pinout": [
+    {
+     "pin": "6",
+     "signal": "CAN high"
+    },
+    {
+     "pin": "14",
+     "signal": "CAN low"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "An ELM327-class adapter (OBDLink LX/MX named by TuneECU users).",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II scan may work; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://aim-sportline.com/download/ecu/stock/triumph/Triumph_CAN_2013+_100_eng.pdf",
+     "note": "AiM wiring"
+    }
+   ],
+   "notes": [
+    "From about 2024 Triumph uses the Euro 5 6-pin connector."
+   ]
+  },
+  {
+   "id": "harley-4pin-j1850",
+   "name": "Harley-Davidson 4-pin Deutsch (J1850)",
+   "category": "motorcycle",
+   "makes": [
+    "Harley-Davidson"
+   ],
+   "applies_to": "About 2001–2013, varies by family",
+   "pins": 4,
+   "description": "Light grey 4-pin Deutsch connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "SAE J1850 VPW (10.4 kbit/s)"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A 4-pin to 16-pin cable and a J1850 VPW-capable adapter (ELM327 supports VPW; Harley's own messages are not standard OBD).",
+   "support": "partially_implemented",
+   "support_note": "OpenDiag speaks J1850 VPW through ELM327, but whether a Harley answers generic OBD-II requests is not confirmed.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://biketrailspfannenstiel.ch/auskunft/harley-davidson-diagnosestecker/",
+     "note": "protocol, 3 used pins"
+    },
+    {
+     "url": "https://university.fuelmotousa.com/article/power-vision-h-d-diagnostic-connector-locations/",
+     "note": "connector locations"
+    },
+    {
+     "url": "https://www.elmelectronics.com/wp-content/uploads/2017/01/ELM327DS.pdf",
+     "note": "ELM327 data sheet: supported protocols"
+    }
+   ],
+   "notes": [
+    "One source: only 3 pins are used (J1850 bus +, ground, +12 V); pin numbers not given."
+   ]
+  },
+  {
+   "id": "harley-6pin-can",
+   "name": "Harley-Davidson 6-pin Deutsch (CAN)",
+   "category": "motorcycle",
+   "makes": [
+    "Harley-Davidson"
+   ],
+   "applies_to": "From 2011–2014 depending on model",
+   "pins": 6,
+   "description": "6-pin Deutsch connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (HD LAN)"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A 6-pin to 16-pin cable (sold by several vendors) and a CAN-capable adapter.",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II scan may work; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://university.fuelmotousa.com/article/power-vision-h-d-diagnostic-connector-locations/",
+     "note": "connector locations"
+    }
+   ],
+   "notes": [
+    "No pinout found."
+   ]
+  },
+  {
+   "id": "piaggio-3pin",
+   "name": "Piaggio / Vespa / Moto Guzzi 3-pin (Fiat-style)",
+   "category": "motorcycle",
+   "makes": [
+    "Piaggio",
+    "Vespa",
+    "Moto Guzzi"
+   ],
+   "applies_to": "e.g. Vespa GTS (MIU1/MIU3G), Moto Guzzi Griso/Quota",
+   "pins": 3,
+   "description": "Small 3-pin connector (same style as older Fiat cars).",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line (Magneti Marelli IAW/MIU)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A VAG KKL cable with a genuine FTDI chip and a 3-pin adapter (GuzziDiag/IAWdiag users; a CH340 cable failed).",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [
+    "The forum poster warns that wiring it wrong can damage the ECU."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://modernvespa.com/forum/topic150992",
+     "note": "forum wiring"
+    },
+    {
+     "url": "https://www.thisoldtractor.com/moto_guzzi_quota_guzzidiag_howto_-_a_tutorial_for_beginners.html",
+     "note": "GuzziDiag tutorial"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "royal-enfield-6pin",
+   "name": "Royal Enfield 6-pin",
+   "category": "motorcycle",
+   "makes": [
+    "Royal Enfield"
+   ],
+   "applies_to": "BS6 bikes, e.g. Interceptor",
+   "pins": 6,
+   "description": "6-pin connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (likely)"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "6-pin to 16-pin adapters are sold.",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II may work; untested.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.team-bhp.com/news/setting-obd-reader-indian-motorcycles",
+     "note": "owner's report"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "ktm-6pin-pre-euro5",
+   "name": "KTM / Husqvarna 6-pin (before Euro 5)",
+   "category": "motorcycle",
+   "makes": [
+    "KTM",
+    "Husqvarna"
+   ],
+   "applies_to": "Pre-Euro 5 (Keihin ECUs)",
+   "pins": 6,
+   "description": "6-pin connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "K-line and CAN (seller claims)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "TuneECU-compatible adapter cables are sold.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://tuning-shop.com/dimsport/motorcycle-complete-kable-kit/",
+     "note": "cable kit"
+    }
+   ],
+   "notes": [
+    "Husqvarna: no sources found; sharing KTM's connector is a guess.",
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "sae-j1962-type-b",
+   "name": "OBD 16-pin Type B (24 V)",
+   "category": "truck",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "24 V trucks and buses",
+   "pins": 16,
+   "description": "Like the car socket but its centre groove is split, so a 12 V (Type A) plug does not fit.",
+   "voltage": "24 V",
+   "access": "data_link",
+   "protocols": [
+    "ISO 15765-4 CAN",
+    "SAE J1939 (some trucks)",
+    "ISO 27145 WWH-OBD (some trucks)"
+   ],
+   "pinout": [
+    {
+     "pin": "4",
+     "signal": "Chassis ground"
+    },
+    {
+     "pin": "5",
+     "signal": "Signal ground"
+    },
+    {
+     "pin": "6",
+     "signal": "CAN high"
+    },
+    {
+     "pin": "14",
+     "signal": "CAN low"
+    },
+    {
+     "pin": "16",
+     "signal": "Battery positive (24 V)"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "An adapter rated for 24 V. Check the adapter's specification: not every ELM327 adapter survives 24 V.",
+   "support": "partially_implemented",
+   "support_note": "Generic OBD-II over ISO 15765-4 works the same as on cars; J1939 and WWH-OBD are not implemented.",
+   "how_to_read": [],
+   "warnings": [
+    "24 V on pin 16. A 12 V-only adapter can be destroyed."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/On-board_diagnostics",
+     "note": "SAE J1962 pin assignment with cited standards"
+    },
+    {
+     "url": "https://store.sfs.fi/en/iso-15031-3-2016",
+     "note": "ISO 15031-3"
+    }
+   ],
+   "notes": [
+    "Renault/Volvo trucks (community, low confidence): J1939 on 6/14, J1587 on 12/13, KWP2000 on 7. MAN 'HD-OBD' and others vary."
+   ]
+  },
+  {
+   "id": "j1939-9pin-deutsch",
+   "name": "SAE J1939-13 9-pin Deutsch (Type I black / Type II green)",
+   "category": "truck",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "North American heavy trucks and buses; also many machines",
+   "pins": 9,
+   "description": "Round 9-pin Deutsch connector. Type I (black) is 250 kbit/s; Type II (green) supports 250 or 500 kbit/s. A Type II cable fits both.",
+   "voltage": "12/24 V",
+   "access": "data_link",
+   "protocols": [
+    "SAE J1939 CAN (250/500 kbit/s)",
+    "SAE J1708/J1587 (on some)"
+   ],
+   "pinout": [
+    {
+     "pin": "A",
+     "signal": "Battery −"
+    },
+    {
+     "pin": "B",
+     "signal": "Battery + (usually unswitched)"
+    },
+    {
+     "pin": "C",
+     "signal": "CAN high (J1939)"
+    },
+    {
+     "pin": "D",
+     "signal": "CAN low (J1939)"
+    },
+    {
+     "pin": "E",
+     "signal": "CAN shield"
+    },
+    {
+     "pin": "F",
+     "signal": "J1708 (sources disagree on polarity)"
+    },
+    {
+     "pin": "G",
+     "signal": "J1708 (sources disagree on polarity)"
+    },
+    {
+     "pin": "H",
+     "signal": "Manufacturer use / second CAN (sources disagree)"
+    },
+    {
+     "pin": "J",
+     "signal": "Manufacturer use / second CAN (sources disagree)"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "A J1939 interface, or an ELM327 v2-class adapter with a 9-pin cable (the ELM327 can monitor DM1 codes and request PGNs; no address claim).",
+   "support": "planned",
+   "support_note": "J1939 is planned; OpenDiag cannot read it yet.",
+   "how_to_read": [],
+   "warnings": [
+    "Not every 9-pin Deutsch is standard: Caterpillar and John Deere use different layouts on 9-pin plugs."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://copperhilltech.com/blog/tag/SAE+J1939-13",
+     "note": "pin assignment"
+    },
+    {
+     "url": "https://digi.com/resources/documentation/digidocs/90001930/reference/r_hardware_connector_pinout.htm",
+     "note": "pin assignment"
+    },
+    {
+     "url": "https://kvaser.com/j1939-13-type-ii-connection-now-available/",
+     "note": "Type I/II"
+    },
+    {
+     "url": "https://www.elmelectronics.com/wp-content/uploads/2017/01/ELM327DS.pdf",
+     "note": "ELM327 data sheet: supported protocols"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "j1708-6pin-deutsch",
+   "name": "SAE J1708/J1587 6-pin Deutsch",
+   "category": "truck",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "Heavy trucks, roughly early 1990s to mid-2000s",
+   "pins": 6,
+   "description": "Round 6-pin Deutsch connector.",
+   "voltage": "12/24 V",
+   "access": "data_link",
+   "protocols": [
+    "SAE J1708 / J1587 (9600 bit/s)"
+   ],
+   "pinout": [
+    {
+     "pin": "A",
+     "signal": "J1708 +"
+    },
+    {
+     "pin": "B",
+     "signal": "J1708 −"
+    },
+    {
+     "pin": "C",
+     "signal": "Battery + (unswitched)"
+    },
+    {
+     "pin": "E",
+     "signal": "Ground"
+    }
+   ],
+   "elm327": "no",
+   "adapter": "A J1708 interface; ELM327 adapters do not support J1708.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/SAE_J1587",
+     "note": "pinout"
+    },
+    {
+     "url": "https://www.diesellaptops.com/blogs/tool-tutorials/troubleshooting-j1708-connections",
+     "note": "pinout, bit rate"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "man-12pin",
+   "name": "MAN 12-pin diagnostic connector",
+   "category": "truck",
+   "makes": [
+    "MAN"
+   ],
+   "applies_to": "TGL/TGM/TGA, buses",
+   "pins": null,
+   "description": "Manufacturer-specific diagnostic connector.",
+   "voltage": "24 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN / J1939 (vendor)",
+    "K-line (some)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A manufacturer adapter cable to a J1939 or 16-pin tool.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/MAN_12-pin_diagnostic_int.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "scania-16pin-round",
+   "name": "Scania round 16-pin",
+   "category": "truck",
+   "makes": [
+    "Scania"
+   ],
+   "applies_to": "Scania trucks",
+   "pins": null,
+   "description": "Manufacturer-specific diagnostic connector.",
+   "voltage": "24 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN / J1939 (vendor)",
+    "K-line (some)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A manufacturer adapter cable to a J1939 or 16-pin tool.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://docs.autopi.io/hardware/accessories/scania-16pin-j1939-obd2/",
+     "note": "vendor adapter pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "mercedes-truck-14pin",
+   "name": "Mercedes-Benz truck 14-pin",
+   "category": "truck",
+   "makes": [
+    "Mercedes-Benz"
+   ],
+   "applies_to": "Mercedes-Benz trucks",
+   "pins": null,
+   "description": "Manufacturer-specific diagnostic connector.",
+   "voltage": "24 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN / J1939 (vendor)",
+    "K-line (some)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A manufacturer adapter cable to a J1939 or 16-pin tool.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://docs.autopi.io/hardware/accessories/mercedes-14pin-j1939-obd2/",
+     "note": "vendor adapter pinout"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "isobus-iso11783",
+   "name": "ISOBUS (ISO 11783) diagnostic connector",
+   "category": "agricultural",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "Tractors and implements with ISOBUS",
+   "pins": null,
+   "description": "ISO 11783 defines a diagnostic connector (part 2, clause 6.4.5); its pin layout was not available in free sources.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "ISO 11783 CAN, 250 kbit/s"
+   ],
+   "pinout": [],
+   "elm327": "limited",
+   "adapter": "A CAN interface; ELM327 user CAN modes might monitor it (not verified).",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://www.sis.se/api/document/preview/914356/",
+     "note": "ISO 11783-2 preview: 250 kbit/s"
+    }
+   ],
+   "notes": [
+    "The optional 9-pin in-cab connector of ISO 11783-2 is not the diagnostic connector."
+   ]
+  },
+  {
+   "id": "caterpillar-cdl",
+   "name": "Caterpillar 9-pin / 14-pin (CDL)",
+   "category": "agricultural",
+   "makes": [
+    "Caterpillar"
+   ],
+   "applies_to": "Caterpillar machines and engines",
+   "pins": null,
+   "description": "Deutsch 9-pin or 14-pin with Caterpillar's own layout.",
+   "voltage": "12/24 V",
+   "access": "data_link",
+   "protocols": [
+    "Caterpillar CDL (proprietary)",
+    "J1939"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A Caterpillar tool for CDL; a J1939 interface with the correct adapter for J1939.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://docs.autopi.io/hardware/accessories/caterpillar-538-5051-9pin-j1939-obd2/",
+     "note": "vendor adapter"
+    },
+    {
+     "url": "https://docs.autopi.io/hardware/accessories/caterpillar-14pin-j1939-obd2/",
+     "note": "vendor adapter"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "john-deere-9pin",
+   "name": "John Deere 9-pin (non-standard)",
+   "category": "agricultural",
+   "makes": [
+    "John Deere"
+   ],
+   "applies_to": "e.g. Series 30",
+   "pins": 9,
+   "description": "Deutsch 9-pin with John Deere's own layout (CAN not on C/D).",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A John Deere-specific cable to a CAN/J1939 tool.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://pinouts.ru/CarElectronics/Jhon_Deere_9_pin_diagnost.shtml",
+     "note": "community pinout, marked unverified"
+    }
+   ],
+   "notes": [
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "polaris-8pin",
+   "name": "Polaris 8-pin 'Digital Wrench' connector",
+   "category": "powersports",
+   "makes": [
+    "Polaris"
+   ],
+   "applies_to": "Polaris EFI ATVs/UTVs with the 8-pin connector (some use 4-pin)",
+   "pins": 8,
+   "description": "8-way connector (reported as Delphi GT150).",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (some models)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "Polaris Digital Wrench or a matching CAN cable.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.rzrforums.net/threads/polaris-diagnostic-plug.103193/",
+     "note": "forum"
+    }
+   ],
+   "notes": [
+    "Forum posts disagree on pin order.",
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "brp-6pin",
+   "name": "BRP Can-Am 6-pin Deutsch",
+   "category": "powersports",
+   "makes": [
+    "Can-Am",
+    "BRP"
+   ],
+   "applies_to": "e.g. Renegade, Spyder",
+   "pins": 6,
+   "description": "6-pin Deutsch DT connector.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (proprietary)",
+    "K-line"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "BRP's BUDS/BUDS2 with its interface.",
+   "support": "unsupported",
+   "support_note": "Not supported (proprietary, no OBD-II).",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://sparxeng.com/blog/hardware/reverse-engineering-the-can-am-spyder-diagnostic-interface",
+     "note": "reverse-engineering notes"
+    },
+    {
+     "url": "https://pinouts.ru/CarElectronics/BRP_Can-Am_Renegade_Quad.shtml",
+     "note": "community pinout"
+    }
+   ],
+   "notes": [
+    "Reported to carry a CAN pair, K-line, ground and two fused +12 V lines.",
+    "Community sources give pin layouts for this connector but disagree or cannot be checked, so none is listed. Check the wiring diagram for your model."
+   ]
+  },
+  {
+   "id": "sea-doo-buds",
+   "name": "Sea-Doo / BRP watercraft diagnostic connector",
+   "category": "powersports",
+   "makes": [
+    "Sea-Doo",
+    "BRP"
+   ],
+   "applies_to": "2002 and newer",
+   "pins": null,
+   "description": "Diagnostic connector used with BRP's BUDS software and MPI interface.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "Proprietary"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "BRP BUDS/BUDS2 with the MPI interface.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://watercraftjournal.com/the-ultimate-sea-doo-diagnostic-tool-for-the-diyer/",
+     "note": "overview"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "nmea2000-m12",
+   "name": "NMEA 2000 (M12 5-pin Micro-C)",
+   "category": "marine",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "Boat networks: engines, instruments",
+   "pins": 5,
+   "description": "Round M12 5-pin connector on the boat's backbone.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "NMEA 2000 (CAN, 250 kbit/s)"
+   ],
+   "pinout": [
+    {
+     "pin": "1",
+     "signal": "Shield"
+    },
+    {
+     "pin": "2",
+     "signal": "NET-S (+12 V)"
+    },
+    {
+     "pin": "3",
+     "signal": "NET-C (ground)"
+    },
+    {
+     "pin": "4",
+     "signal": "NET-H (CAN high)"
+    },
+    {
+     "pin": "5",
+     "signal": "NET-L (CAN low)"
+    }
+   ],
+   "elm327": "limited",
+   "adapter": "A CAN / NMEA 2000 gateway. ELM327 user CAN modes might monitor it (not verified).",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/NMEA_2000",
+     "note": "bit rate, pinout"
+    },
+    {
+     "url": "https://www.peak-system.com/PCAN-Cable-M12.589.0.html?&L=1",
+     "note": "pinout"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "mercury-smartcraft",
+   "name": "Mercury SmartCraft 10-pin",
+   "category": "marine",
+   "makes": [
+    "Mercury"
+   ],
+   "applies_to": "Mercury engines with SmartCraft",
+   "pins": 10,
+   "description": "10-pin connector with a CAN pair.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "CAN (SmartCraft)"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "A Mercury-compatible interface.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://aimsports.com/download/ecu/racing/Mercury_CAN_101_eng.pdf",
+     "note": "AiM wiring"
+    }
+   ],
+   "notes": [
+    "AiM by wire colour: white CAN high, blue CAN low. Pin numbers and bit rate not given."
+   ]
+  },
+  {
+   "id": "yamaha-marine-3pin",
+   "name": "Yamaha outboard / WaveRunner 3-pin (YDS)",
+   "category": "marine",
+   "makes": [
+    "Yamaha"
+   ],
+   "applies_to": "Yamaha outboards and WaveRunners",
+   "pins": 3,
+   "description": "3-pin connector used with Yamaha Diagnostic System.",
+   "voltage": "12 V",
+   "access": "data_link",
+   "protocols": [
+    "Yamaha proprietary"
+   ],
+   "pinout": [],
+   "elm327": "no",
+   "adapter": "Yamaha YDS or a matching cable.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.hptuners.com/product/obdii-adapter-cable-yamaha-3-pin/",
+     "note": "cable"
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "energybus-6pin",
+   "name": "EnergyBus 6-pin (e-bikes, LEV)",
+   "category": "light_electric",
+   "makes": [
+    "*"
+   ],
+   "applies_to": "E-bikes and light electric vehicles using EnergyBus",
+   "pins": 6,
+   "description": "Rosenberger RoPD connector carrying power and CAN.",
+   "voltage": "12–48 V",
+   "access": "data_link",
+   "protocols": [
+    "CANopen CiA 454"
+   ],
+   "pinout": [
+    {
+     "pin": "1",
+     "signal": "CAN high"
+    },
+    {
+     "pin": "2",
+     "signal": "CAN low"
+    },
+    {
+     "pin": "3",
+     "signal": "+12 V auxiliary"
+    },
+    {
+     "pin": "5",
+     "signal": "Main power +"
+    },
+    {
+     "pin": "6",
+     "signal": "Main power −"
+    }
+   ],
+   "elm327": "no",
+   "adapter": "A CAN interface with CANopen support.",
+   "support": "unsupported",
+   "support_note": "Not supported.",
+   "how_to_read": [],
+   "warnings": [
+    "Main power pins carry battery voltage up to 48 V and high current."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://en.wikipedia.org/wiki/EnergyBus",
+     "note": "pinout"
+    },
+    {
+     "url": "https://pedelec-elektro-fahrrad.de/news/cia-454-offener-energybus-kommunikationsstandard-freigegeben",
+     "note": "CiA 454"
+    }
+   ],
+   "notes": [
+    "Big e-bike brands (e.g. Bosch) use their own systems; nothing reliable found."
+   ]
+  }
+ ]
 }

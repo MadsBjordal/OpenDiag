@@ -21,7 +21,7 @@ declare global {
 
 export const inApp = (): boolean => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
-const bridgeUrl = (): string => (import.meta.env.VITE_BRIDGE as string | undefined) ?? (location.port === '7878' ? '/api' : 'http://127.0.0.1:7878/api');
+const bridgeUrl = (): string => (import.meta.env.VITE_BRIDGE as string | undefined) ?? (location.port === '5173' ? 'http://127.0.0.1:7878/api' : '/api');
 
 export async function call<T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> {
   const request = { cmd, ...args };

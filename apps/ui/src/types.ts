@@ -358,7 +358,7 @@ export interface CatalogEntry {
   note: string;
 }
 
-export type ConnectorCategory = 'car' | 'motorcycle' | 'truck' | 'agricultural' | 'powersports' | 'marine';
+export type ConnectorCategory = 'car' | 'motorcycle' | 'truck' | 'agricultural' | 'powersports' | 'marine' | 'light_electric';
 
 export interface Connector {
   id: string;
@@ -369,7 +369,7 @@ export interface Connector {
   pins: number | null;
   description: string;
   voltage: string;
-  access: 'data_link' | 'blink_codes' | 'data_link_or_blink_codes' | 'dashboard_self_test';
+  access: 'data_link' | 'blink_codes' | 'data_link_or_blink_codes' | 'dashboard_self_test' | 'no_diagnostics';
   protocols: string[];
   pinout: { pin: string; signal: string }[];
   elm327: 'yes' | 'with_cable' | 'limited' | 'no' | 'not_needed';

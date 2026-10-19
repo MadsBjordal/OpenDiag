@@ -13,3 +13,5 @@
 | 2026-10-19 | Compatibility verification is capped: local = `unverified_local`, approved submission = `community_tested`, imported snapshot ≤ `community_tested` until signed snapshots exist. | Nothing becomes "verified" by being copied. |
 | 2026-10-19 | Licence: GPL-3.0-or-later for code; definitions and compatibility data CC0-1.0; contributions under the DCO. | See licensing.md. |
 | 2026-10-19 | Reports export as PDF (built-in writer), JSON, CSV and HTML; VIN masked by default. | Offline on every platform without a PDF library; privacy by default. |
+| 2026-10-19 | Connector catalog (`definitions/connectors.json`) with sources and confidence; low-confidence entries carry no pin table; no blink-code meanings shipped (the user copies them from their manual). | Many vehicles do not have the 16-pin socket; we must say so honestly without inventing pinouts. |
+| 2026-10-19 | Next connectivity priority after Phase 1: a raw K-line interface driver. | It unlocks most pre-Euro 5 motorcycles (Honda, Suzuki, Kawasaki, Yamaha) and older cars. |

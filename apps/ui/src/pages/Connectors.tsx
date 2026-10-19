@@ -12,6 +12,7 @@ const CATEGORIES: [ConnectorCategory, string, string][] = [
   ['powersports', '🛷', 'ATV, snowmobile, jet ski'],
   ['marine', '⛵', 'Boat engine'],
   ['agricultural', '🚜', 'Tractor or machine'],
+  ['light_electric', '🚲', 'E-bike or e-scooter'],
 ];
 
 const ELM: Record<Connector['elm327'], [string, string]> = {
@@ -27,6 +28,7 @@ const ACCESS: Record<Connector['access'], string> = {
   blink_codes: 'Blink codes only (no data)',
   data_link_or_blink_codes: 'Data or blink codes (depends on model)',
   dashboard_self_test: 'Codes shown on the dashboard',
+  no_diagnostics: 'No electronic diagnostics',
 };
 
 const CONF: Record<Connector['confidence'], string> = {
@@ -151,7 +153,7 @@ function ConnectorCard({ c, open, onOpen }: { c: Connector; open: boolean; onOpe
         <div>
           <b style={{ fontSize: 17 }}>{c.name}</b>
           <div className="muted small">
-            {c.makes.join(', ')} · {c.applies_to}
+            {c.makes.map((m) => (m === '*' ? t('other makes') : m)).join(', ')} · {c.applies_to}
           </div>
         </div>
         <StatusChip status={c.support} />
@@ -174,6 +176,11 @@ function ConnectorCard({ c, open, onOpen }: { c: Connector; open: boolean; onOpe
         <button className="btn small" onClick={onOpen}>
           {open ? t('Less') : t('Details and sources')}
         </button>
+        {c.access === 'no_diagnostics' && (
+          <button className="btn small primary" onClick={() => go('guided')}>
+            🧭 {t('Guided Diagnostics')}
+          </button>
+        )}
         {c.elm327 === 'yes' || c.elm327 === 'with_cable' ? (
           <button className="btn small primary" onClick={() => go('connect')}>
             {t('Connect')}

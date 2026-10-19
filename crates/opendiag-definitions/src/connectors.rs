@@ -18,6 +18,8 @@ pub enum Category {
     Agricultural,
     Powersports,
     Marine,
+    /// E-bikes, e-scooters and other light electric vehicles.
+    LightElectric,
 }
 
 /// How information comes out of the connector.
@@ -32,6 +34,8 @@ pub enum Access {
     DataLinkOrBlinkCodes,
     /// Codes are shown on the dashboard through a button/key sequence.
     DashboardSelfTest,
+    /// No electronic diagnostics at all (e.g. carburettor engines without an ECU).
+    NoDiagnostics,
 }
 
 /// Can an ELM327-class adapter (what most people own) be used?
@@ -163,6 +167,16 @@ pub fn load(json: &str) -> Result<Vec<Connector>, Vec<String>> {
                 }
             }
         }
+        if c.access == Access::NoDiagnostics
+            && (c.elm327 != Elm327::NotNeeded || !c.pinout.is_empty())
+        {
+            errs.push(format!(
+                "{id}: a vehicle without diagnostics has no adapter or pins"
+            ));
+        }
+        if c.access == Access::DataLinkOrBlinkCodes && c.how_to_read.is_empty() {
+            errs.push(format!("{id}: say how the blink codes are read"));
+        }
         let blink = matches!(c.access, Access::BlinkCodes | Access::DashboardSelfTest);
         if blink && c.how_to_read.is_empty() {
             errs.push(format!(
@@ -224,13 +238,26 @@ mod tests {
     #[test]
     fn bundled_catalog_is_valid() {
         let all = bundled();
-        assert!(!all.is_empty());
-        assert!(all.iter().any(|c| c.id == "sae-j1962-obd2"));
+        assert!(all.len() >= 50, "{}", all.len());
+        for id in [
+            "sae-j1962-obd2",
+            "iso19689-euro5-6pin",
+            "honda-moto-4pin-dlc",
+            "no-ecu-carburettor",
+            "j1939-9pin-deutsch",
+        ] {
+            assert!(all.iter().any(|c| c.id == id), "{id}");
+        }
     }
 
     #[test]
     fn find_by_make_and_category() {
         let all = bundled();
+        let honda = find(&all, Some(Category::Motorcycle), Some("honda"));
+        assert!(honda.iter().any(|c| c.id == "honda-moto-4pin-dlc"));
+        assert!(honda.iter().all(|c| c.category == Category::Motorcycle));
+        // The make's own connectors come before generic ones.
+        assert!(!honda[0].makes.contains(&"*".to_string()));
         let cars = find(&all, Some(Category::Car), Some("volkswagen"));
         assert!(
             cars.iter().any(|c| c.id == "sae-j1962-obd2"),
@@ -251,6 +278,26 @@ mod tests {
         assert!(load(&v.to_string()).is_err());
         let mut v: serde_json::Value = serde_json::from_str(BUNDLED).unwrap();
         v["connectors"][0]["surprise"] = serde_json::json!(1);
+        assert!(load(&v.to_string()).is_err());
+        // Low-confidence entries may not list pins.
+        let mut v: serde_json::Value = serde_json::from_str(BUNDLED).unwrap();
+        let i = v["connectors"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|c| c["confidence"] == "low")
+            .unwrap();
+        v["connectors"][i]["pinout"] = serde_json::json!([{"pin": "1", "signal": "guess"}]);
+        assert!(load(&v.to_string()).is_err());
+        // Blink-code connectors need instructions.
+        let mut v: serde_json::Value = serde_json::from_str(BUNDLED).unwrap();
+        let i = v["connectors"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|c| c["access"] == "blink_codes")
+            .unwrap();
+        v["connectors"][i]["how_to_read"] = serde_json::json!([]);
         assert!(load(&v.to_string()).is_err());
     }
 }

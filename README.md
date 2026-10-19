@@ -24,6 +24,7 @@ on **Windows** and **Android**, fully offline, without an account.
 | Guided troubleshooting (heated grips, battery and charging, lean mixture) | Implemented |
 | Compatibility database: combination-level records, submissions, moderation, version history, offline snapshots | Implemented |
 | Beginner and expert modes, dark/light theme, metric/imperial | Implemented |
+| Connector finder: 54 connector types (cars, motorcycles, trucks, boats, machines, e-bikes) with sources, what each needs, and a blink-code reader | Implemented (see docs/connectors.md) |
 | Manufacturer modules (ABS, airbag, body…) | Planned (Phase 3) |
 | Bluetooth Low Energy adapters | Planned (Phase 2) |
 | Vehicle configuration / personalization | Separate subsystem, off by default; no verified operations exist |

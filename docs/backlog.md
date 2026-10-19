@@ -39,6 +39,9 @@ criteria on real hardware (see [hardware-testing.md](hardware-testing.md)).
 | ⬜ Wi-Fi discovery | Finds adapters on the current network without typing an address, where the adapter supports it. |
 | ⬜ Reconnection | After a dropped link, the app reconnects or explains, within 10 s, without losing the report in progress. |
 | ⬜ Adapter capability database | Known adapters (identity + firmware) with tested capabilities shipped as a snapshot; probe results compared against it. |
+| ⬜ Raw K-line interface driver (FTDI/KKL cables) | Opens the cable with explicit wake-up control (5-baud, fast init, manufacturer wake-ups); tested with recorded traces. Prerequisite for most pre-Euro 5 motorcycles and older cars (see docs/connectors.md). |
+| ⬜ Honda motorcycle K-line (4-pin DLC) | Read-only fault codes and data on at least one real Honda bike; the wake-up message confirmed (sources disagree); status per model in compatibility.md. |
+| ⬜ J1939 read-only (DM1 codes, PGN requests) | Through ELM327 v2 protocol A and raw CAN interfaces; tested against a simulated J1939 ECU and one real truck or machine. |
 | ⬜ SocketCAN (Linux) and J2534 (Windows) drivers | Same engine workflows pass against a CAN interface + simulated ECU on a test bench. |
 | ⬜ Multi-platform CI | Windows, Linux, macOS builds and tests on every pull request. |
 
@@ -49,6 +52,7 @@ criteria on real hardware (see [hardware-testing.md](hardware-testing.md)).
 | ⬜ ISO-TP over raw CAN | Flow control, block size, STmin, timeouts per ISO 15765-2; tests with recorded traces. |
 | ⬜ UDS read services | 0x22, 0x19 (sub-functions 0x01, 0x02, 0x04, 0x06), 0x3E, default session only; response-pending handling; definitions describe DIDs with sources. |
 | ⬜ Manufacturer modules | Modules from verified definitions appear in the scan; everything else stays "not scanned". |
+| ⬜ Connector-aware vehicle definitions | Each definition names its connector and cable; the wizard warns before connecting when the connector needs a cable or another interface. |
 | ⬜ Legacy simulator profiles | KWP2000 and J1850 profiles; parser tests with recorded traces from real vehicles. |
 | ⬜ More vehicle profiles | Each with provenance; no fabricated data. |
 
