@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDiag test build</title>
+<meta name="description" content="Free, open-source vehicle diagnostics for Windows and Android. Help test it with your own adapter and vehicle.">
+<link rel="icon" href="icon.svg">
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --text:#16202a; --muted:#5b6774; --line:#e2e6ea; --accent:#0f766e; --accent-text:#fff; --accent-soft:#d5f0ec; --warn:#92400e; --warn-soft:#fef3c7; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1418; --card:#161d23; --text:#e6edf3; --muted:#9aa7b4; --line:#26313a; --accent:#2dd4bf; --accent-text:#04201d; --accent-soft:#12302c; --warn:#fbbf24; --warn-soft:#2d2410; } }
+* { box-sizing:border-box }
+body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
+main { max-width:860px; margin:0 auto; padding:32px 16px 64px }
+header { display:flex; align-items:center; gap:14px }
+header img { width:48px; height:48px }
+h1 { margin:0; font-size:30px }
+h2 { margin:36px 0 10px; font-size:21px }
+.muted { color:var(--muted) }
+.badge { display:inline-block; background:var(--warn-soft); color:var(--warn); font-weight:600; font-size:13px; padding:3px 10px; border-radius:999px }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:14px }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px }
+.card h3 { margin:0 0 6px; font-size:18px }
+.btn { display:inline-block; margin-top:10px; background:var(--accent); color:var(--accent-text); text-decoration:none; font-weight:600; padding:10px 16px; border-radius:10px }
+.btn.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent) }
+.small { font-size:14px }
+ol, ul { padding-left:22px }
+li { margin:4px 0 }
+table { width:100%; border-collapse:collapse; font-size:15px }
+td { padding:8px 6px; border-top:1px solid var(--line); vertical-align:top }
+td:last-child { color:var(--muted); width:38% }
+.note { background:var(--accent-soft); border-radius:12px; padding:14px 16px }
+code { background:var(--line); padding:1px 5px; border-radius:5px; font-size:14px }
+footer { margin-top:48px; font-size:14px }
+a { color:var(--accent) }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img src="icon.svg" alt="">
+  <div>
+    <h1>OpenDiag</h1>
+    <div class="muted">Free, open-source vehicle diagnostics for Windows and Android</div>
+  </div>
+</header>
+
+<p style="margin-top:22px"><span class="badge">Test build: please help us test it</span></p>
+<p>OpenDiag reads fault codes, readiness, live data and vehicle information through an ordinary
+OBD-II adapter, and works fully offline. Everything stays on your device. This is an early test build:
+almost nothing has been confirmed on real hardware yet, and that is what we need your help with.</p>
+
+<h2>Download</h2>
+<div class="grid">
+  <div class="card">
+    <h3>Windows 10 / 11</h3>
+    <div class="small muted">Installer (.exe)</div>
+    <a class="btn" id="dl-win" href="https://github.com/MadsBjordal/OpenDiag/releases">Download for Windows</a>
+    <p class="small muted">Windows may say it "protected your PC" because the installer is not signed yet:
+    click <b>More info → Run anyway</b>.</p>
+  </div>
+  <div class="card">
+    <h3>Android</h3>
+    <div class="small muted">App (.apk), 64-bit phones</div>
+    <a class="btn" id="dl-android" href="https://github.com/MadsBjordal/OpenDiag/releases">Download for Android</a>
+    <p class="small muted">Open the file on the phone and allow installing apps from your browser or file manager.</p>
+  </div>
+</div>
+<p class="small muted" id="release-info">All builds: <a href="https://github.com/MadsBjordal/OpenDiag/releases">github.com/MadsBjordal/OpenDiag/releases</a></p>
+
+<h2>What you need</h2>
+<ul>
+  <li>An <b>ELM327-compatible adapter</b> (USB, Bluetooth or Wi-Fi). Genuine ELM327 v1.4b+ or OBDLink/STN adapters work best; cheap "v1.5" clones vary.</li>
+  <li>A vehicle with an OBD-II socket (most petrol cars from 2001 in Europe, 1996 in the US; diesels from about 2004).</li>
+  <li>For older cars and motorcycles: a <b>K-line (KKL) USB cable</b>. Trucks, buses and machines: a 9-pin to 16-pin cable (see <i>Find my connector</i> in the app).</li>
+  <li>No vehicle? Choose <b>Connect → Simulator</b> to try everything with a simulated car, motorcycle or truck.</li>
+</ul>
+
+<h2>How to test</h2>
+<ol>
+  <li>Install and open OpenDiag, and read the short risk notice.</li>
+  <li>Plug the adapter in, switch the ignition on (engine off is fine) and go to <b>Connect</b>.
+    USB: if no port appears, install the driver for the adapter's chip (FTDI, CH340 or CP210x). Bluetooth on Windows: pair it in Settings first.</li>
+  <li>Open <b>Hardware test</b> and follow it. It checks the connection, scan, live data and reports, and asks you a few yes/no questions.</li>
+  <li>At the end press <b>Copy report</b> and paste it into a
+    <a href="https://github.com/MadsBjordal/OpenDiag/issues/new?template=compatibility-report.yml">compatibility report</a>
+    with the vehicle's make, model and year and your adapter's name.</li>
+  <li>Something broke or looked wrong? <a href="https://github.com/MadsBjordal/OpenDiag/issues/new?template=bug.yml">Report a problem</a>, with a screenshot if you can.</li>
+</ol>
+<div class="note small">Clearing fault codes is optional and only offered with the engine off, after the codes are saved.
+OpenDiag never programs or codes control units. Use it only on vehicles you own or may work on.</div>
+
+<h2>What works so far</h2>
+<table>
+  <tr><td>Fault codes (stored, pending, permanent), readiness, freeze frame, VIN</td><td>Not yet confirmed on real hardware</td></tr>
+  <tr><td>Live data, reports (PDF, JSON, CSV), garage, guided troubleshooting</td><td>Not yet confirmed on real hardware</td></tr>
+  <tr><td>USB, Bluetooth Classic and Wi-Fi adapters</td><td>Not yet confirmed on real hardware</td></tr>
+  <tr><td>Older cars and motorcycles over K-line cables</td><td>Not yet confirmed on real hardware</td></tr>
+  <tr><td>Trucks, buses and machines (J1939): codes and engine values</td><td>Not yet confirmed on real hardware</td></tr>
+  <tr><td>Honda motorcycle K-line (experimental)</td><td>Partly implemented</td></tr>
+  <tr><td>ABS, airbag and other manufacturer modules</td><td>Planned</td></tr>
+  <tr><td>Bluetooth Low Energy adapters, iPhone</td><td>Planned</td></tr>
+</table>
+<p class="small muted">Statuses only change when someone has tested on a real vehicle, so your report counts.</p>
+
+<footer class="muted">
+  OpenDiag is free and open source (GPL-3.0).
+  <a href="https://github.com/MadsBjordal/OpenDiag">Source code</a> ·
+  <a href="https://github.com/MadsBjordal/OpenDiag/blob/main/docs/privacy.md">Privacy</a> ·
+  <a href="https://github.com/MadsBjordal/OpenDiag/blob/main/docs/safety-policy.md">Safety policy</a>
+</footer>
+</main>
+<script>
+// Point the buttons at the newest build (test builds are pre-releases, which
+// GitHub's "latest" link skips). Falls back to the releases page.
+(async () => {
+  try {
+    const r = await fetch('https://api.github.com/repos/MadsBjordal/OpenDiag/releases?per_page=10');
+    if (!r.ok) return;
+    const rel = (await r.json()).find((x) => !x.draft && x.assets.length);
+    if (!rel) return;
+    const win = rel.assets.find((a) => a.name.endsWith('.exe'));
+    const apk = rel.assets.find((a) => a.name.endsWith('.apk'));
+    if (win) document.getElementById('dl-win').href = win.browser_download_url;
+    if (apk) document.getElementById('dl-android').href = apk.browser_download_url;
+    const d = new Date(rel.published_at).toLocaleDateString();
+    document.getElementById('release-info').innerHTML =
+      `Newest build: <a href="${rel.html_url}">${rel.name}</a> (${d}). All builds: <a href="https://github.com/MadsBjordal/OpenDiag/releases">releases</a>`;
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
