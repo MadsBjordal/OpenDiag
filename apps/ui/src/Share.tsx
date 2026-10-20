@@ -22,6 +22,7 @@ interface SharePayload {
   dtcs: { code: string; kind: string }[];
   freeze_frames: { values: unknown[] }[];
   monitors: unknown[];
+  modified: boolean;
   ecus: unknown[];
 }
 interface ShareRecord {
@@ -80,6 +81,11 @@ function Preview({ s }: { s: SharePayload }) {
             <td>
               {[v.make || t('make unknown'), v.model, v.year].filter(Boolean).join(' ')}
               {v.wmi && ` (${t('manufacturer code')} ${v.wmi})`}
+              {s.modified && (
+                <span className="chip warn" style={{ marginLeft: 6 }}>
+                  {t('modified')}
+                </span>
+              )}
             </td>
           </tr>
           <tr>
@@ -116,9 +122,11 @@ function Preview({ s }: { s: SharePayload }) {
 export function ShareCard({ reportId, simulated, tests = [] }: { reportId: number; simulated: boolean; tests?: ShareTest[] }) {
   const { settings, setSettings, go } = useApp();
   const [preview, setPreview] = useState<SharePayload | null>(null);
+  // Must be answered before sharing: modified vehicles are counted apart from standard ones.
+  const [modified, setModified] = useState<boolean | null>(null);
   const [sent, setSent] = useState(false);
   const answer = useAction(async (yes: boolean) => setSettings(await call<Settings>('set_setting', { key: 'share_results', value: yes ? 'true' : 'false' })));
-  const prepare = useAction(async () => setPreview(await call<SharePayload>('share_preview', { report_id: reportId, tests })));
+  const prepare = useAction(async () => setPreview(await call<SharePayload>('share_preview', { report_id: reportId, tests, modified })));
   const send = useAction(async () => {
     if (!preview) return;
     const r = await shell<{ id: string; delete_token: string }>('share_send', { share: preview });
@@ -158,7 +166,19 @@ export function ShareCard({ reportId, simulated, tests = [] }: { reportId: numbe
           <p className="small muted">
             {t('Shares which functions worked and the fault codes found, without the full VIN or anything personal. You see the data before it is sent.')}
           </p>
-          <button className="btn small" disabled={prepare.busy} onClick={() => prepare.run()}>
+          <fieldset className="small" style={{ border: 0, padding: 0, margin: '8px 0' }}>
+            <legend>{t('Is this vehicle as it came from the factory?')}</legend>
+            <label className="row">
+              <input type="radio" name={`modified-${reportId}`} checked={modified === false} onChange={() => setModified(false)} />
+              {t('Yes, standard')}
+            </label>
+            <label className="row">
+              <input type="radio" name={`modified-${reportId}`} checked={modified === true} onChange={() => setModified(true)} />
+              {t('No, modified (tune, replacement ECU, engine or similar)')}
+            </label>
+            <span className="muted">{t('Results from modified vehicles are counted separately, so they never change what is known about standard ones.')}</span>
+          </fieldset>
+          <button className="btn small" disabled={prepare.busy || modified === null} onClick={() => prepare.run()}>
             {prepare.busy ? <Spinner /> : '🤝'} {t('Share this result…')}
           </button>
         </>

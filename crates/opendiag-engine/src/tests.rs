@@ -521,7 +521,7 @@ fn shared_data_is_anonymous_and_never_simulated() {
     let r = e.scan(&mut no_progress()).unwrap();
     let id: i64 = r.id.parse().unwrap();
     // The simulator never feeds the community data.
-    assert!(e.share_preview(id, &[]).is_err());
+    assert!(e.share_preview(id, &[], false).is_err());
     // Pretend the same report came from real hardware.
     let mut real = e.report(id).unwrap();
     real.simulated = false;
@@ -535,8 +535,10 @@ fn shared_data_is_anonymous_and_never_simulated() {
                 function: "live_data".into(),
                 result: TestResult::Partial,
             }],
+            true,
         )
         .unwrap();
+    assert!(s.modified);
     let json = serde_json::to_string(&s).unwrap();
     let vin = real.vehicle.vin.as_ref().unwrap().vin.clone();
     assert!(!json.contains(&vin), "full VIN must never be shared");
@@ -562,7 +564,10 @@ fn community_summaries_import_as_community_reported() {
     let (e, _) = engine(profiles::car());
     // Exactly what services/feedback publishes (see its logic.ts).
     let snapshot = r#"{"format":"opendiag-compat-snapshot/1","snapshot_id":"community-2026-10-20T07","created_at":"2026-10-20T07:19:55.229Z","records":[{"uuid":"community-ab12","make":"Volkswagen","model":"Golf","year":2015,"ecu_hw":"","ecu_sw":"","adapter":"ELM327 v1.4b","adapter_firmware":"","os":"windows","protocol":"ISO 15765-4 CAN","function":"read_dtcs","result":"works","verification":"community_reported","app_version":"community","evidence":[],"notes":"2 community reports: 2 works","source":"community","version":1,"updated_at":"2026-10-20T07:19:55.229Z"}]}"#;
-    let codes = serde_json::json!([{ "make": "Volkswagen", "model": "Golf", "year": 2015, "code": "P0420", "reports": 2 }]);
+    let codes = serde_json::json!([
+        { "make": "Volkswagen", "model": "Golf", "year": 2015, "code": "P0420", "reports": 2, "modified": false },
+        { "make": "Volkswagen", "model": "Golf", "year": 2015, "code": "P0300", "reports": 5, "modified": true },
+    ]);
     assert_eq!(e.import_community(snapshot, &codes).unwrap(), 1);
     let recs = e.store().compat_records(&CompatFilter::default()).unwrap();
     let r = recs.iter().find(|r| r.make == "Volkswagen").unwrap();

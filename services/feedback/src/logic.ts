@@ -24,6 +24,8 @@ export interface Share {
   freeze_frames: { dtc: string | null; values: { key: string; value: number; unit: string }[] }[];
   mil_on: boolean | null;
   monitors: { name: string; complete: boolean }[];
+  /** The user said the vehicle is modified (tune, ECU, engine). Missing in shares from Test build 2 = not modified. */
+  modified?: boolean;
 }
 
 type Check = { ok: true; share: Share } | { ok: false; error: string };
@@ -39,7 +41,9 @@ export function validate(body: unknown): Check {
   const bad = (error: string): Check => ({ ok: false, error });
   if (!isObj(body)) return bad('not an object');
   const keys = ['schema', 'app_version', 'os', 'vehicle', 'adapter', 'protocol', 'ecus', 'results', 'dtcs', 'freeze_frames', 'mil_on', 'monitors'];
-  if (!onlyKeys(body, keys)) return bad('unexpected or missing fields');
+  const { modified, ...rest } = body;
+  if (!onlyKeys(rest, keys)) return bad('unexpected or missing fields');
+  if (!(modified === undefined || typeof modified === 'boolean')) return bad('modified');
   const b = body;
   if (b.schema !== SHARE_SCHEMA) return bad('unknown schema');
   if (!text(b.app_version, 20, /^[0-9A-Za-z.+-]+$/) || !['windows', 'android', 'linux', 'macos', 'ios'].includes(b.os as string)) return bad('app version or os');
@@ -61,7 +65,7 @@ export function validate(body: unknown): Check {
     return bad('freeze frames');
   if (!(b.mil_on === null || typeof b.mil_on === 'boolean')) return bad('mil');
   if (!list(b.monitors, 20) || !b.monitors.every((m) => isObj(m) && onlyKeys(m, ['name', 'complete']) && text(m.name, 40) && typeof m.complete === 'boolean')) return bad('monitors');
-  return { ok: true, share: b as unknown as Share };
+  return { ok: true, share: { ...(b as unknown as Share), modified: modified === true } };
 }
 
 const norm = (s: string) => s.trim().toLowerCase();
@@ -96,7 +100,8 @@ export async function compatSnapshot(shares: Share[], now: string, id: string) {
     for (const r of s.results) {
       const base = {
         make: s.vehicle.make,
-        model: s.vehicle.model,
+        // Modified vehicles are their own group, never mixed with standard ones.
+        model: s.modified ? `${s.vehicle.model || s.vehicle.make} (modified)` : s.vehicle.model,
         year: s.vehicle.year,
         ecu_hw: '',
         ecu_sw: '',
@@ -129,14 +134,15 @@ export async function compatSnapshot(shares: Share[], now: string, id: string) {
   return { format: SNAPSHOT_FORMAT, snapshot_id: id, created_at: now, records };
 }
 
-/** How often each fault code was reported per make / model / year (only codes reported at least MIN_REPORTS times). */
+/** How often each fault code was reported per make / model / year, standard and modified vehicles apart (only codes reported at least MIN_REPORTS times). */
 export function codeSummary(shares: Share[]) {
-  const counts = new Map<string, { make: string; model: string; year: number | null; code: string; reports: number }>();
+  const counts = new Map<string, { make: string; model: string; year: number | null; code: string; reports: number; modified: boolean }>();
   for (const s of shares) {
     if (!s.vehicle.make) continue;
     for (const code of new Set(s.dtcs.map((d) => d.code))) {
-      const key = [norm(s.vehicle.make), norm(s.vehicle.model), s.vehicle.year ?? '', code].join('|');
-      const c = counts.get(key) ?? { make: s.vehicle.make, model: s.vehicle.model, year: s.vehicle.year, code, reports: 0 };
+      const modified = s.modified === true;
+      const key = [norm(s.vehicle.make), norm(s.vehicle.model), s.vehicle.year ?? '', code, modified].join('|');
+      const c = counts.get(key) ?? { make: s.vehicle.make, model: s.vehicle.model, year: s.vehicle.year, code, reports: 0, modified };
       c.reports += 1;
       counts.set(key, c);
     }

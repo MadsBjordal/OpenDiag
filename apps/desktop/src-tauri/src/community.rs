@@ -100,7 +100,7 @@ mod tests {
         e.store()
             .update_report(id, &serde_json::to_value(&real).unwrap())
             .unwrap();
-        let mut share = serde_json::to_value(e.share_preview(id, &[]).unwrap()).unwrap();
+        let mut share = serde_json::to_value(e.share_preview(id, &[], false).unwrap()).unwrap();
         // The simulator's VIN has no known manufacturer; users name the make in My Garage.
         share["vehicle"]["make"] = "Testmake".into();
         let first = super::send(&share).unwrap();

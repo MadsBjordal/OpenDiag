@@ -17,8 +17,9 @@
   exact data and needs a press on Send. A share holds: make, model and year,
   the manufacturer code (first 3 VIN characters, never the full VIN), adapter,
   connection type, protocol, calibration IDs, which functions worked, fault
-  codes with freeze-frame values, and readiness monitors
-  (`crates/opendiag-engine/src/share.rs`). No names, notes, location, files or
+  codes with freeze-frame values, readiness monitors and whether the user
+  says the vehicle is modified (`crates/opendiag-engine/src/share.rs`;
+  modified vehicles are summarised apart from standard ones). No names, notes, location, files or
   full VIN. Simulator results are never shared. The service stores the share,
   the day it arrived and a hash of a delete token; it does not store IP
   addresses (a salted daily hash for rate limiting is deleted the next day).

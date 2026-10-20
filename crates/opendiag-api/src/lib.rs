@@ -190,6 +190,8 @@ enum Cmd {
         report_id: i64,
         #[serde(default)]
         tests: Vec<opendiag_engine::share::ShareResult>,
+        #[serde(default)]
+        modified: bool,
     },
     /// After the app shell sent a share: keep its id and delete token on this device.
     ShareRemember {
@@ -473,8 +475,12 @@ impl Api {
             }
             Cmd::Summary => to(serde_json::to_value(self.engine().summary()?))?,
             Cmd::J1939Scan => to(serde_json::to_value(self.engine().j1939_scan()?))?,
-            Cmd::SharePreview { report_id, tests } => to(serde_json::to_value(
-                self.engine().share_preview(report_id, &tests)?,
+            Cmd::SharePreview {
+                report_id,
+                tests,
+                modified,
+            } => to(serde_json::to_value(
+                self.engine().share_preview(report_id, &tests, modified)?,
             ))?,
             Cmd::ShareRemember {
                 id,

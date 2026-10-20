@@ -84,6 +84,9 @@ pub struct Share {
     pub freeze_frames: Vec<ShareFreezeFrame>,
     pub mil_on: Option<bool>,
     pub monitors: Vec<ShareMonitor>,
+    /// The user said the vehicle is modified (tune, replacement ECU, engine
+    /// changes): kept apart from standard vehicles in the community data.
+    pub modified: bool,
 }
 
 fn enum_str<T: Serialize>(v: &T) -> String {
@@ -163,8 +166,14 @@ fn results_from(r: &ScanReport) -> Vec<ShareResult> {
 impl Engine {
     /// The data that would be shared for a saved scan report. `tests` are
     /// results from the hardware test page; they replace what the scan shows
-    /// for the same function. Simulated reports cannot be shared.
-    pub fn share_preview(&self, report_id: i64, tests: &[ShareResult]) -> Result<Share> {
+    /// for the same function. `modified` is the user's answer to "is this
+    /// vehicle modified?". Simulated reports cannot be shared.
+    pub fn share_preview(
+        &self,
+        report_id: i64,
+        tests: &[ShareResult],
+        modified: bool,
+    ) -> Result<Share> {
         let r = self.report(report_id)?;
         if r.simulated {
             return Err(EngineError::Invalid(
@@ -276,6 +285,7 @@ impl Engine {
                         .collect()
                 })
                 .unwrap_or_default(),
+            modified,
         })
     }
 
@@ -349,6 +359,8 @@ impl Engine {
                 .unwrap_or(false)
         };
         all.into_iter()
+            // Counts from modified vehicles never describe standard ones.
+            .filter(|c| c["modified"] != serde_json::Value::Bool(true))
             .filter(|c| eq(&c["make"], make))
             .filter(|c| {
                 model

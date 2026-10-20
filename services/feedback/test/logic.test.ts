@@ -16,6 +16,7 @@ const share = (over: Partial<Share> = {}): Share => ({
   freeze_frames: [{ dtc: 'P0420', values: [{ key: 'rpm', value: 812, unit: 'rpm' }] }],
   mil_on: true,
   monitors: [{ name: 'Catalyst', complete: false }],
+  modified: false,
   ...over,
 });
 
@@ -48,5 +49,23 @@ test('fault codes are counted per model, once per share', () => {
   const twice = share({ dtcs: [{ code: 'P0420', kind: 'stored', ecu: 'Engine' }, { code: 'P0420', kind: 'pending', ecu: 'Engine' }] });
   assert.deepEqual(codeSummary([twice]), []);
   const c = codeSummary([twice, share(), share({ vehicle: { ...share().vehicle, model: 'Polo' } })]);
-  assert.deepEqual(c, [{ make: 'Volkswagen', model: 'Golf', year: 2015, code: 'P0420', reports: 2 }]);
+  assert.deepEqual(c, [{ make: 'Volkswagen', model: 'Golf', year: 2015, code: 'P0420', reports: 2, modified: false }]);
+});
+
+test('modified vehicles are kept apart from standard ones', async () => {
+  const mod = share({ modified: true });
+  // One standard + one modified report: neither group reaches two.
+  assert.deepEqual(codeSummary([share(), mod]), []);
+  assert.equal((await compatSnapshot([share(), mod], 'now', 's')).records.length, 0);
+  const c = codeSummary([mod, mod]);
+  assert.equal(c[0].modified, true);
+  const snap = await compatSnapshot([mod, mod], 'now', 's');
+  assert.equal(snap.records[0].model, 'Golf (modified)');
+});
+
+test('shares from older app builds without the modified answer count as standard', () => {
+  const { modified, ...old } = share();
+  const r = validate(old);
+  assert.equal(r.ok && r.share.modified, false);
+  assert.equal(validate({ ...share(), modified: 'yes' }).ok, false);
 });
