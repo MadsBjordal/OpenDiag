@@ -50,10 +50,41 @@ The APK is under `apps\desktop\src-tauri\gen\android\app\build\outputs\apk\`.
 Install it by copying it to the phone and opening it (allow "install unknown apps"),
 or with `adb install path\to.apk` with USB debugging on.
 
-Release signing: create a keystore once
-(`keytool -genkey -v -keystore opendiag.jks -keyalg RSA -keysize 2048 -validity 10000 -alias opendiag`),
-keep it and its passwords out of the repository, and configure it as described in the
-Tauri documentation ("Android code signing").
+### Android signing key (needed for updates)
+
+Android installs a new version over the old one only if both are signed with
+the same key. The release workflow signs every APK with the project's key,
+which lives in GitHub secrets, never in the repository. Create it **once**:
+
+1. On Windows, in PowerShell (Android Studio includes `keytool`):
+   ```powershell
+   & "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -genkeypair -v -keystore $HOME\opendiag.jks -keyalg RSA -keysize 2048 -validity 10000 -alias opendiag
+   ```
+   (Without Android Studio: any Java JDK has `keytool`, e.g. Temurin 17.)
+   Choose a strong password and answer the name questions (they appear in the certificate).
+2. Turn the key into text for GitHub:
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$HOME\opendiag.jks")) | Set-Clipboard
+   ```
+3. GitHub → the OpenDiag repository → **Settings → Secrets and variables → Actions → New repository secret**, four times:
+   - `ANDROID_KEYSTORE_BASE64`: paste (Ctrl+V) from step 2
+   - `ANDROID_KEYSTORE_PASSWORD`: the password
+   - `ANDROID_KEY_ALIAS`: `opendiag`
+   - `ANDROID_KEY_PASSWORD`: the password (same as above unless you chose another)
+4. **Keep `opendiag.jks` and the password safe** (e.g. a password manager and a
+   USB stick). If the key is lost, no later build can update installed apps:
+   everyone would have to uninstall and reinstall. Never commit it.
+
+Without these secrets the release workflow stops with a message saying so.
+
+## Updates
+
+Installed builds check GitHub for a newer release when they start (Settings →
+Updates; can be turned off). The release workflow stamps each build with its
+release name (`OPENDIAG_RELEASE`) and, on Android, a rising version code.
+Windows downloads the installer, checks it against GitHub's SHA-256 and runs it;
+Android opens the download, and Android's installer updates the app. Development
+builds (no `OPENDIAG_RELEASE`) are never offered updates.
 
 ## Linux / macOS
 

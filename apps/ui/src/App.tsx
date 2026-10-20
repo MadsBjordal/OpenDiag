@@ -19,6 +19,7 @@ import Simulator from './pages/Simulator';
 import Connectors from './pages/Connectors';
 import HardwareTest from './pages/HardwareTest';
 import Truck from './pages/Truck';
+import { UpdateBanner } from './Update';
 import { format } from './units';
 
 const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?: boolean }[] = [
@@ -149,6 +150,7 @@ export default function App() {
             </button>
           )}
         </header>
+        <UpdateBanner />
         <main className="page">{pages[page] ?? <Home />}</main>
       </div>
       <nav className="mobile-nav" aria-label={t('Main')}>

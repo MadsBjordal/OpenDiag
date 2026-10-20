@@ -21,8 +21,24 @@ android {
         applicationId = "org.opendiag.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
+        // Release builds count up (OPENDIAG_VERSION_CODE from the release workflow), so
+        // Android accepts each new build as an update.
+        versionCode = System.getenv("OPENDIAG_VERSION_CODE")?.toInt()
+            ?: tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    // The project's own signing key (never in the repository): the release workflow
+    // writes it from GitHub secrets. Every build signed with it can update the last one.
+    signingConfigs {
+        create("release") {
+            val keystore = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (keystore != null) {
+                storeFile = file(keystore)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -37,12 +53,11 @@ android {
             }
         }
         getByName("release") {
-            isMinifyEnabled = true
-            proguardFiles(
-                *fileTree(".") { include("**/*.pro") }
-                    .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
-                    .toList().toTypedArray()
-            )
+            // No code shrinking: it could remove the plugin classes Tauri finds by name.
+            isMinifyEnabled = false
+            if (System.getenv("ANDROID_KEYSTORE_PATH") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     kotlinOptions {

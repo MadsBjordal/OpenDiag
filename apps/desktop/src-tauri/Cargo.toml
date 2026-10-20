@@ -20,6 +20,11 @@ opendiag-api = { workspace = true, default-features = false }
 opendiag-engine = { workspace = true, default-features = false }
 opendiag-store.workspace = true
 tauri-plugin-opendiag-transport = { path = "../../../plugins/tauri-plugin-opendiag-transport" }
+# Update check: the only internet access of the app, from the shell (never the engine).
+ureq = { version = "2", features = ["json"] }
+serde = { workspace = true }
+sha2 = "0.10"
+tauri-plugin-opener = "2"
 
 # Serial ports exist on desktops; Android reaches USB and Bluetooth through the transport plugin.
 [target.'cfg(not(target_os = "android"))'.dependencies]

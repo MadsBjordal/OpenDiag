@@ -1,6 +1,9 @@
 //! The OpenDiag app: one Tauri shell for Windows, Linux, macOS and Android.
 //! The UI calls `od_call` with a JSON command; the engine runs locally on a
-//! worker thread. Nothing here needs the internet.
+//! worker thread. The only internet access is the optional update check in
+//! `update.rs` (GitHub releases of this project, nothing about the user).
+
+mod update;
 
 use base64::Engine as _;
 use opendiag_api::{Api, LinkFactory};
@@ -73,10 +76,47 @@ fn save_export(app: AppHandle, filename: String, base64: String) -> Result<Strin
     Ok(path.display().to_string())
 }
 
+/// Asks GitHub whether a newer OpenDiag build exists for this platform.
+#[tauri::command]
+async fn update_check() -> Result<update::UpdateInfo, String> {
+    tauri::async_runtime::spawn_blocking(|| update::check(platform()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Installs an update. Windows: downloads the installer, checks its checksum,
+/// starts it and closes OpenDiag. Android and others: opens the download in the
+/// browser, and Android's installer takes over from there.
+#[tauri::command]
+async fn update_install(app: AppHandle, url: String, sha256: Option<String>) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    if !update::allowed_url(&url) {
+        return Err("Refused: not an OpenDiag release file.".into());
+    }
+    if platform() == "windows" {
+        let path =
+            tauri::async_runtime::spawn_blocking(move || update::download(&url, sha256.as_deref()))
+                .await
+                .map_err(|e| e.to_string())??;
+        // /P: the installer runs without questions, showing its progress.
+        std::process::Command::new(&path)
+            .arg("/P")
+            .spawn()
+            .map_err(|e| format!("Could not start the installer: {e}"))?;
+        app.exit(0);
+        Ok(())
+    } else {
+        app.opener()
+            .open_url(url, None::<&str>)
+            .map_err(|e| e.to_string())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opendiag_transport::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             let store = Store::open(&dir.join("opendiag.db"))?;
@@ -86,7 +126,12 @@ pub fn run() {
             app.manage(AppState(Arc::new(api)));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![od_call, save_export])
+        .invoke_handler(tauri::generate_handler![
+            od_call,
+            save_export,
+            update_check,
+            update_install
+        ])
         .run(tauri::generate_context!())
         .expect("error while running OpenDiag");
 }

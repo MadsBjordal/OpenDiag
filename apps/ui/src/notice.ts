@@ -15,6 +15,7 @@ export const NOTICE: string[] = [
 export const PRIVACY: string[] = [
   'Everything is stored on this device only. No account is needed.',
   'Nothing is uploaded automatically: not your VIN, not your reports, not your location.',
+  'The app only asks GitHub whether a newer version exists (no data about you or your vehicle is sent). You can turn this off under Updates.',
   'Exports mask the VIN unless you choose to include it.',
   'You can delete all vehicle data in Settings at any time.',
 ];

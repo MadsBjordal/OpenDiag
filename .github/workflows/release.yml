@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+# The release this build becomes; the app compares it with GitHub's newest to offer updates.
+env:
+  OPENDIAG_RELEASE: ${{ github.ref_type == 'tag' && github.ref_name || format('test-build-{0}', github.run_number) }}
+
 jobs:
   windows:
     runs-on: windows-latest
@@ -45,14 +49,29 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      # A debug-signed APK: installable directly on a phone ("install unknown apps").
-      # Store releases will need the project's own signing key (see docs/building.md).
-      - run: pnpm tauri android build --apk --debug --target aarch64
-      - run: cp apps/desktop/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk OpenDiag-android-arm64-test.apk
+      # Signed with the project's own key (GitHub secrets, see docs/building.md), so
+      # each build installs as an update over the previous one.
+      - name: Build the signed APK
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::The Android signing key is missing. Add the ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD secrets (docs/building.md, 'Android signing key')."
+            exit 1
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/opendiag.jks"
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/opendiag.jks"
+          export OPENDIAG_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))
+          pnpm tauri android build --apk --target aarch64
+          cp apps/desktop/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk OpenDiag-android-arm64.apk
+          rm -f "$ANDROID_KEYSTORE_PATH"
       - uses: actions/upload-artifact@v4
         with:
           name: android
-          path: OpenDiag-android-arm64-test.apk
+          path: OpenDiag-android-arm64.apk
 
   publish:
     needs: [windows, android]
@@ -62,11 +81,11 @@ jobs:
         with: { path: out, merge-multiple: true }
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('test-build-{0}', github.run_number) }}
+          tag_name: ${{ env.OPENDIAG_RELEASE }}
           name: ${{ github.ref_type == 'tag' && github.ref_name || format('Test build {0}', github.run_number) }}
           prerelease: true
           body: |
             Pre-release test build of OpenDiag. Functions marked "not hardware-verified" have only been tested against the simulator.
             Windows: run the setup .exe (Windows may warn because it is not signed yet: More info → Run anyway).
-            Android: open the .apk on an arm64 phone and allow installing from this source.
+            Android: open the .apk on an arm64 phone and allow installing from this source. Installed builds offer the next update themselves.
           files: out/*

@@ -562,6 +562,7 @@ impl Engine {
             "terms_version": TERMS_VERSION,
             "configuration_enabled": self.setting_or("configuration_enabled", "false") == "true",
             "show_vin_in_log": self.setting_or("show_vin_in_log", "false") == "true",
+            "update_check": self.setting_or("update_check", "true") == "true",
             "platform": self.platform,
         })
     }
@@ -574,6 +575,7 @@ impl Engine {
             ("language", &["en"]),
             ("configuration_enabled", &["true", "false"]),
             ("show_vin_in_log", &["true", "false"]),
+            ("update_check", &["true", "false"]),
         ];
         let Some((_, values)) = allowed.iter().find(|(k, _)| *k == key) else {
             return Err(EngineError::Invalid(format!("Unknown setting {key}.")));

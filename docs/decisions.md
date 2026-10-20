@@ -39,3 +39,16 @@ its own pure crate (`opendiag-j1939`) so a future raw-CAN driver can reuse it.
 Only parameters published in the open FMS Standard are decoded; other SPNs are
 shown as numbers rather than guessed. Spaces on and `AT JHF0` are used in J1939
 mode; the parser also reads the default header format for adapters without JHF.
+
+## Update prompt instead of silent updates (2026-10-20)
+
+The owner chose prompts: the app checks GitHub releases at start (on by default,
+switch in Settings) and offers "Update now"; nothing installs without a press,
+and never while a vehicle is connected (Windows closes the app to install).
+Windows runs the NSIS installer after checking GitHub's SHA-256 digest (no
+separate updater signing key yet); Android opens the APK download, because
+outside Google Play an app cannot install itself silently. Android release
+builds are signed with one project key from GitHub secrets so updates install
+over the previous build; release builds are not minified (Tauri finds plugin
+classes by name). The update code lives in the app shell, not the engine, so the
+engine stays offline.
