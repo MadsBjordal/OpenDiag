@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { useApp } from '../state';
 import type { LiveSample, Report, Settings } from '../types';
 import { protocolName } from '../units';
+import { ShareCard, type ShareTest } from '../Share';
 
 type Result = 'works' | 'partial' | 'fails' | 'not_supported';
 type Outcome = Result | 'skipped';
@@ -480,6 +481,13 @@ export default function HardwareTest() {
             </>
           )}
         </div>
+      )}
+      {done && scan && (
+        <ShareCard
+          reportId={Number(scan.id)}
+          simulated={summary.simulated}
+          tests={rows.filter((r): r is Row & { fn: string; outcome: Result } => !!r.fn && r.outcome !== 'skipped').map((r): ShareTest => ({ function: r.fn, result: r.outcome }))}
+        />
       )}
     </>
   );

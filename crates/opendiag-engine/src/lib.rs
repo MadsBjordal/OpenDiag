@@ -14,6 +14,7 @@ mod j1939;
 pub mod pdf;
 pub mod report;
 mod scan;
+pub mod share;
 
 pub use clear::{ClearPlan, ClearResult, EcuClearResult};
 pub use j1939::{J1939Code, J1939Module, J1939Report};
@@ -563,6 +564,8 @@ impl Engine {
             "configuration_enabled": self.setting_or("configuration_enabled", "false") == "true",
             "show_vin_in_log": self.setting_or("show_vin_in_log", "false") == "true",
             "update_check": self.setting_or("update_check", "true") == "true",
+            // null = not asked yet (opt-in).
+            "share_results": match self.setting_or("share_results", "").as_str() { "true" => serde_json::Value::Bool(true), "false" => serde_json::Value::Bool(false), _ => serde_json::Value::Null },
             "platform": self.platform,
         })
     }
@@ -576,6 +579,8 @@ impl Engine {
             ("configuration_enabled", &["true", "false"]),
             ("show_vin_in_log", &["true", "false"]),
             ("update_check", &["true", "false"]),
+            // Anonymous result sharing: "" = not asked yet.
+            ("share_results", &["", "true", "false"]),
         ];
         let Some((_, values)) = allowed.iter().find(|(k, _)| *k == key) else {
             return Err(EngineError::Invalid(format!("Unknown setting {key}.")));

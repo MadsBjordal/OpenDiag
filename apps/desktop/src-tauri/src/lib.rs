@@ -1,8 +1,9 @@
 //! The OpenDiag app: one Tauri shell for Windows, Linux, macOS and Android.
 //! The UI calls `od_call` with a JSON command; the engine runs locally on a
-//! worker thread. The only internet access is the optional update check in
-//! `update.rs` (GitHub releases of this project, nothing about the user).
+//! worker thread. Internet access is limited to the optional update check
+//! (`update.rs`) and opt-in community sharing (`community.rs`).
 
+mod community;
 mod update;
 
 use base64::Engine as _;
@@ -112,6 +113,29 @@ async fn update_install(app: AppHandle, url: String, sha256: Option<String>) -> 
     }
 }
 
+/// Sends one anonymous share the user confirmed (see `opendiag_engine::share`).
+#[tauri::command]
+async fn share_send(share: Value) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || community::send(&share))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn share_delete(id: String, token: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || community::delete(&id, &token))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Downloads the community summaries (compatibility snapshot + fault code counts).
+#[tauri::command]
+async fn community_fetch() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(community::fetch)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -130,7 +154,10 @@ pub fn run() {
             od_call,
             save_export,
             update_check,
-            update_install
+            update_install,
+            share_send,
+            share_delete,
+            community_fetch
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenDiag");

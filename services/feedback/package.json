@@ -1,0 +1,11 @@
+{
+  "name": "opendiag-data",
+  "private": true,
+  "type": "module",
+  "description": "OpenDiag community data service (Cloudflare Worker). Not part of the pnpm workspace.",
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "dev": "npx wrangler@4 dev",
+    "deploy": "npx wrangler@4 deploy"
+  }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDiag privacy</title>
+<meta name="description" content="What OpenDiag stores, what it sends when you choose to share, and how to delete it.">
+<link rel="icon" href="icon.svg">
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --text:#16202a; --muted:#5b6774; --line:#e2e6ea; --accent:#0f766e; --accent-text:#fff; --accent-soft:#d5f0ec; --warn:#92400e; --warn-soft:#fef3c7; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1418; --card:#161d23; --text:#e6edf3; --muted:#9aa7b4; --line:#26313a; --accent:#2dd4bf; --accent-text:#04201d; --accent-soft:#12302c; --warn:#fbbf24; --warn-soft:#2d2410; } }
+* { box-sizing:border-box }
+body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
+main { max-width:860px; margin:0 auto; padding:32px 16px 64px }
+header { display:flex; align-items:center; gap:14px }
+header img { width:48px; height:48px }
+h1 { margin:0; font-size:30px }
+h2 { margin:36px 0 10px; font-size:21px }
+.muted { color:var(--muted) }
+.badge { display:inline-block; background:var(--warn-soft); color:var(--warn); font-weight:600; font-size:13px; padding:3px 10px; border-radius:999px }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:14px }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px }
+.card h3 { margin:0 0 6px; font-size:18px }
+.btn { display:inline-block; margin-top:10px; background:var(--accent); color:var(--accent-text); text-decoration:none; font-weight:600; padding:10px 16px; border-radius:10px }
+.btn.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent) }
+.small { font-size:14px }
+ol, ul { padding-left:22px }
+li { margin:4px 0 }
+table { width:100%; border-collapse:collapse; font-size:15px }
+td { padding:8px 6px; border-top:1px solid var(--line); vertical-align:top }
+td:last-child { color:var(--muted); width:38% }
+.note { background:var(--accent-soft); border-radius:12px; padding:14px 16px }
+code { background:var(--line); padding:1px 5px; border-radius:5px; font-size:14px }
+footer { margin-top:48px; font-size:14px }
+a { color:var(--accent) }
+.facts td:first-child { width:110px } .facts td:last-child { width:auto; color:var(--text) }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <img src="icon.svg" alt="">
+  <div>
+    <h1>Privacy</h1>
+    <div class="muted"><a href="./">OpenDiag</a> · how your data is handled</div>
+  </div>
+</header>
+
+<h2>On your device</h2>
+<p>Everything OpenDiag reads (vehicles, reports, logs) stays on your PC or phone. There is no account. You can delete all of it in <b>Settings → Privacy</b>.</p>
+
+<h2>What the app sends by itself</h2>
+<p>Only one thing: when it starts, it asks GitHub which OpenDiag version is the newest, so it can offer an update.
+Nothing about you or your vehicle is in that request. Turn it off in <b>Settings → Updates</b>.</p>
+
+<h2>Sharing results (only if you choose to)</h2>
+<p>After a scan or hardware test, the app can offer to share an anonymous result so others learn which vehicles and adapters work and which fault codes are common.
+It asks you once. Every time, it shows exactly what will be sent, and nothing goes until you press <b>Send</b>.</p>
+<table class="facts">
+  <tr><td><b>Sent</b></td><td>The make, model and year of the vehicle; the first 3 characters of the VIN (the manufacturer code); the adapter, connection type and protocol; the ECUs' calibration IDs; which functions worked; fault codes with their freeze-frame values; readiness monitors; the app version and operating system.</td></tr>
+  <tr><td><b>Never sent</b></td><td>Your name, the full VIN, your location, notes, files, live data, or anything from the simulator.</td></tr>
+  <tr><td><b>Stored</b></td><td>The shared result, the day it arrived and a code that lets you delete it. Your IP address is not stored (a scrambled version is kept for one day to stop abuse, then deleted).</td></tr>
+  <tr><td><b>Published</b></td><td>Only combined summaries, and only when at least two separate results report the same thing. Individual results are not published.</td></tr>
+  <tr><td><b>Where</b></td><td>A Cloudflare Workers service with a D1 database, run by the OpenDiag project (<a href="https://github.com/MadsBjordal/OpenDiag/tree/main/services/feedback">source code</a>).</td></tr>
+  <tr><td><b>Delete</b></td><td><b>Settings → Sharing → Delete</b> removes a shared result from the service at once; <b>Delete all my shared results</b> removes everything you shared from that device.</td></tr>
+</table>
+<p class="small muted">Questions or requests: <a href="https://github.com/MadsBjordal/OpenDiag/issues">open an issue</a>. Full technical details: <a href="https://github.com/MadsBjordal/OpenDiag/blob/main/docs/privacy.md">docs/privacy.md</a>.</p>
+
+<footer class="muted"><a href="./">Back to the download page</a></footer>
+</main>
+</body>
+</html>

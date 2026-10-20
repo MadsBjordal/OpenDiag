@@ -86,6 +86,7 @@ almost nothing has been confirmed on real hardware yet, and that is what we need
   <li>At the end press <b>Copy report</b> and paste it into a
     <a href="https://github.com/MadsBjordal/OpenDiag/issues/new?template=compatibility-report.yml">compatibility report</a>
     with the vehicle's make, model and year and your adapter's name.</li>
+  <li>Or press <b>Share this result</b> in the app: it sends an anonymous summary (you see exactly what first; <a href="privacy.html">details</a>).</li>
   <li>Something broke or looked wrong? <a href="https://github.com/MadsBjordal/OpenDiag/issues/new?template=bug.yml">Report a problem</a>, with a screenshot if you can.</li>
 </ol>
 <div class="note small">Clearing fault codes is optional and only offered with the engine off, after the codes are saved.
@@ -103,11 +104,12 @@ OpenDiag never programs or codes control units. Use it only on vehicles you own 
   <tr><td>Bluetooth Low Energy adapters, iPhone</td><td>Planned</td></tr>
 </table>
 <p class="small muted">Statuses only change when someone has tested on a real vehicle, so your report counts.</p>
+<p class="small" id="community" hidden></p>
 
 <footer class="muted">
   OpenDiag is free and open source (GPL-3.0).
   <a href="https://github.com/MadsBjordal/OpenDiag">Source code</a> ·
-  <a href="https://github.com/MadsBjordal/OpenDiag/blob/main/docs/privacy.md">Privacy</a> ·
+  <a href="privacy.html">Privacy</a> ·
   <a href="https://github.com/MadsBjordal/OpenDiag/blob/main/docs/safety-policy.md">Safety policy</a>
 </footer>
 </main>
@@ -127,6 +129,18 @@ OpenDiag never programs or codes control units. Use it only on vehicles you own 
     const d = new Date(rel.published_at).toLocaleDateString();
     document.getElementById('release-info').innerHTML =
       `Newest build: <a href="${rel.html_url}">${rel.name}</a> (${d}). All builds: <a href="https://github.com/MadsBjordal/OpenDiag/releases">releases</a>`;
+  } catch (e) {}
+})();
+// How many results testers have shared so far (combined numbers only).
+(async () => {
+  try {
+    const r = await fetch('https://opendiag-data.stencilshot.com/v1/stats');
+    if (!r.ok) return;
+    const s = await r.json();
+    if (!s.shares) return;
+    const el = document.getElementById('community');
+    el.textContent = `Shared by testers so far: ${s.shares} result(s) from ${s.vehicles} vehicle(s) and ${s.adapters} adapter(s).`;
+    el.hidden = false;
   } catch (e) {}
 })();
 </script>

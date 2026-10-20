@@ -6,6 +6,7 @@ import { NOTICE, NOTICE_TITLE, PRIVACY } from '../notice';
 import { useApp } from '../state';
 import type { Settings } from '../types';
 import { UpdateSettings } from '../Update';
+import { SharingSettings } from '../Share';
 
 export default function SettingsPage() {
   const { settings, setSettings } = useApp();
@@ -46,6 +47,7 @@ export default function SettingsPage() {
         </div>
       </div>
       <UpdateSettings onToggle={(on) => set.run('update_check', on ? 'true' : 'false')} />
+      <SharingSettings />
       <div className="card">
         <h2 style={{ marginTop: 0 }}>{t(NOTICE_TITLE)}</h2>
         {NOTICE.map((p) => (

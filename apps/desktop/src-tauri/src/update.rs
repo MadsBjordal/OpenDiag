@@ -91,7 +91,7 @@ pub fn choose(releases: &[GhRelease], current: Option<&str>, platform: &str) -> 
     info
 }
 
-fn agent() -> ureq::Agent {
+pub(crate) fn agent() -> ureq::Agent {
     ureq::AgentBuilder::new()
         .timeout_connect(Duration::from_secs(10))
         .timeout_read(Duration::from_secs(30))

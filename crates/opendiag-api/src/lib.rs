@@ -185,6 +185,36 @@ enum Cmd {
     HondaDisconnect,
     /// Trucks, buses and machines: switch to J1939 and read codes and values.
     J1939Scan,
+    /// The anonymous data that sharing a saved report would send (nothing is sent).
+    SharePreview {
+        report_id: i64,
+        #[serde(default)]
+        tests: Vec<opendiag_engine::share::ShareResult>,
+    },
+    /// After the app shell sent a share: keep its id and delete token on this device.
+    ShareRemember {
+        id: String,
+        delete_token: String,
+        report_id: i64,
+    },
+    /// Shares sent from this device.
+    Shares,
+    ShareForget {
+        id: String,
+    },
+    /// Stores downloaded community summaries (snapshot JSON text + code counts).
+    CommunityImport {
+        snapshot: String,
+        codes: Value,
+    },
+    /// Community fault code counts for a vehicle (offline).
+    CommunityCodes {
+        make: String,
+        #[serde(default)]
+        model: Option<String>,
+        #[serde(default)]
+        year: Option<u16>,
+    },
     /// A hardware-test result for one function with the current connection.
     RecordTest {
         function: String,
@@ -443,6 +473,31 @@ impl Api {
             }
             Cmd::Summary => to(serde_json::to_value(self.engine().summary()?))?,
             Cmd::J1939Scan => to(serde_json::to_value(self.engine().j1939_scan()?))?,
+            Cmd::SharePreview { report_id, tests } => to(serde_json::to_value(
+                self.engine().share_preview(report_id, &tests)?,
+            ))?,
+            Cmd::ShareRemember {
+                id,
+                delete_token,
+                report_id,
+            } => {
+                self.engine()
+                    .remember_share(&id, &delete_token, report_id)?;
+                Value::Null
+            }
+            Cmd::Shares => {
+                json!({ "shares": self.engine().shares(), "community_updated": self.engine().community_updated() })
+            }
+            Cmd::CommunityImport { snapshot, codes } => {
+                json!({ "imported": self.engine().import_community(&snapshot, &codes)? })
+            }
+            Cmd::CommunityCodes { make, model, year } => {
+                Value::Array(self.engine().community_codes(&make, model.as_deref(), year))
+            }
+            Cmd::ShareForget { id } => {
+                self.engine().forget_share(&id)?;
+                Value::Null
+            }
             Cmd::Scan => {
                 let mut e = self.engine();
                 let progress = &self.progress;

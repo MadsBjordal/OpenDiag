@@ -1,0 +1,12 @@
+// OpenDiag community data: receives anonymous shared results from the app
+// (opt-in) and publishes combined summaries. Cloudflare Workers + D1.
+// Deploy: Workers & Pages → opendiag-data, root directory "services/feedback",
+// deploy command "npx wrangler deploy" (see README.md in this folder).
+{
+  "name": "opendiag-data",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Created on the first deploy if it does not exist yet.
+  "d1_databases": [{ "binding": "DB", "database_name": "opendiag-data" }],
+  "observability": { "enabled": true }
+}

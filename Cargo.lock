@@ -2536,6 +2536,7 @@ dependencies = [
  "base64 0.22.1",
  "opendiag-api",
  "opendiag-engine",
+ "opendiag-sim",
  "opendiag-store",
  "serde",
  "serde_json",

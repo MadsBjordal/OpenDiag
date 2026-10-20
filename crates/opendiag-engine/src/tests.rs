@@ -514,3 +514,66 @@ fn j1939_needs_an_elm_adapter_and_cars_stay_quiet() {
     // OBD-II works again after reconnecting.
     assert!(e.connect_vehicle().unwrap().vehicle_connected);
 }
+
+#[test]
+fn shared_data_is_anonymous_and_never_simulated() {
+    let (mut e, _) = engine(profiles::car());
+    let r = e.scan(&mut no_progress()).unwrap();
+    let id: i64 = r.id.parse().unwrap();
+    // The simulator never feeds the community data.
+    assert!(e.share_preview(id, &[]).is_err());
+    // Pretend the same report came from real hardware.
+    let mut real = e.report(id).unwrap();
+    real.simulated = false;
+    e.store()
+        .update_report(id, &serde_json::to_value(&real).unwrap())
+        .unwrap();
+    let s = e
+        .share_preview(
+            id,
+            &[share::ShareResult {
+                function: "live_data".into(),
+                result: TestResult::Partial,
+            }],
+        )
+        .unwrap();
+    let json = serde_json::to_string(&s).unwrap();
+    let vin = real.vehicle.vin.as_ref().unwrap().vin.clone();
+    assert!(!json.contains(&vin), "full VIN must never be shared");
+    assert_eq!(s.vehicle.wmi.as_deref(), Some(&vin[..3]));
+    assert!(!s.dtcs.is_empty());
+    assert_eq!(
+        s.results
+            .iter()
+            .find(|r| r.function == "live_data")
+            .unwrap()
+            .result,
+        TestResult::Partial
+    );
+    assert!(!json.contains("notes"));
+    e.remember_share("abc", "tok", id).unwrap();
+    assert_eq!(e.shares().len(), 1);
+    e.forget_share("abc").unwrap();
+    assert!(e.shares().is_empty());
+}
+
+#[test]
+fn community_summaries_import_as_community_reported() {
+    let (e, _) = engine(profiles::car());
+    // Exactly what services/feedback publishes (see its logic.ts).
+    let snapshot = r#"{"format":"opendiag-compat-snapshot/1","snapshot_id":"community-2026-10-20T07","created_at":"2026-10-20T07:19:55.229Z","records":[{"uuid":"community-ab12","make":"Volkswagen","model":"Golf","year":2015,"ecu_hw":"","ecu_sw":"","adapter":"ELM327 v1.4b","adapter_firmware":"","os":"windows","protocol":"ISO 15765-4 CAN","function":"read_dtcs","result":"works","verification":"community_reported","app_version":"community","evidence":[],"notes":"2 community reports: 2 works","source":"community","version":1,"updated_at":"2026-10-20T07:19:55.229Z"}]}"#;
+    let codes = serde_json::json!([{ "make": "Volkswagen", "model": "Golf", "year": 2015, "code": "P0420", "reports": 2 }]);
+    assert_eq!(e.import_community(snapshot, &codes).unwrap(), 1);
+    let recs = e.store().compat_records(&CompatFilter::default()).unwrap();
+    let r = recs.iter().find(|r| r.make == "Volkswagen").unwrap();
+    assert_eq!(r.verification, Verification::CommunityReported);
+    assert_eq!(
+        e.community_codes("volkswagen", Some("golf"), Some(2015))
+            .len(),
+        1
+    );
+    assert!(e
+        .community_codes("Volkswagen", Some("Polo"), None)
+        .is_empty());
+    assert!(e.community_updated().is_some());
+}

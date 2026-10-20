@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { call, saveFile } from './api';
 import { ErrorBox, Kv, SimBanner, useAction } from './components';
 import { DtcCard } from './DtcCard';
+import { CommunityCodes, ShareCard } from './Share';
 import { t } from './i18n';
 import { useApp } from './state';
 import type { Report } from './types';
@@ -105,6 +106,7 @@ export function ReportView({ report }: { report: Report }) {
       ) : (
         report.dtcs.map((d) => <DtcCard key={d.code + d.kind + d.ecu} finding={d} observed={report.measurements} />)
       )}
+      <CommunityCodes report={report} />
       {(report.warnings.length > 0 || report.communication_errors.length > 0) && (
         <div className="card">
           <h3 style={{ marginTop: 0 }}>{t('Warnings and communication problems')}</h3>
@@ -200,6 +202,7 @@ export function ReportView({ report }: { report: Report }) {
         </div>
       </div>
       <ExportButtons id={Number(report.id)} />
+      <ShareCard reportId={Number(report.id)} simulated={report.simulated} />
       <div className="card">
         <h3 style={{ marginTop: 0 }}>{t('Important')}</h3>
         <ul className="tight small">

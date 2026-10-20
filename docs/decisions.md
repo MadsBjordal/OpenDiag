@@ -52,3 +52,17 @@ builds are signed with one project key from GitHub secrets so updates install
 over the previous build; release builds are not minified (Tauri finds plugin
 classes by name). The update code lives in the app shell, not the engine, so the
 engine stays offline.
+
+## Opt-in result sharing (2026-10-20)
+
+The owner wants OpenDiag to learn from other people's diagnostics. Chosen:
+opt-in (asked once, every share previewed and confirmed), compatibility results
+plus fault codes and freeze frames (no live data, no free text, never the full
+VIN; the WMI identifies only the manufacturer), and public summaries only (raw
+shares visible to the owner). The receiver is a Cloudflare Worker + D1 in
+`services/feedback` (the owner's DNS is already at Cloudflare; free tier; no
+server to maintain). A combination or code is published only after two
+separate shares, to avoid exposing a single vehicle. Shares come back to the
+app as a compatibility snapshot (format already used for offline snapshots) and
+are capped at `community_reported`, so the honesty rules hold. Users can delete
+their shares with a token kept only on their device.

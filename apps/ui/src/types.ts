@@ -238,6 +238,8 @@ export interface Settings {
   show_vin_in_log: boolean;
   /** Ask GitHub for newer builds when the app starts (the app's only internet access). */
   update_check: boolean;
+  /** Anonymous result sharing: null = not asked yet (opt-in). */
+  share_results: boolean | null;
   platform: string;
 }
 

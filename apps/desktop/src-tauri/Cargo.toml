@@ -29,3 +29,6 @@ tauri-plugin-opener = "2"
 # Serial ports exist on desktops; Android reaches USB and Bluetooth through the transport plugin.
 [target.'cfg(not(target_os = "android"))'.dependencies]
 opendiag-api = { workspace = true, features = ["serial"] }
+
+[dev-dependencies]
+opendiag-sim.workspace = true
