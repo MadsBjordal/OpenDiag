@@ -104,19 +104,18 @@ impl SimKLinePort {
                     .unwrap_or(false)
         });
         let Some(start) = start else { return };
-        let t0 = self.edges[start].0;
-        let level_low = |t: Instant| -> bool {
-            let mut low = false;
-            for (et, el) in &self.edges {
-                if *et <= t {
-                    low = *el;
-                }
-            }
-            low
-        };
+        // Decode by run length: each low/high stretch is rounded to whole
+        // 200 ms bits, so timing errors do not add up over the byte (sleeps
+        // overshoot on busy machines). Bits after the last change are high.
+        let mut bits: Vec<bool> = Vec::new();
+        for w in self.edges[start..].windows(2) {
+            let n = ((w[1].0 - w[0].0).as_millis() as f64 / 200.0).round() as usize;
+            bits.extend(std::iter::repeat_n(w[0].1, n));
+        }
+        bits.resize(bits.len().max(9), false);
         let mut addr = 0u8;
-        for k in 0..8u64 {
-            if !level_low(t0 + Duration::from_millis(200 * (k + 1) + 100)) {
+        for k in 0..8 {
+            if !bits[k + 1] {
                 addr |= 1 << k;
             }
         }
@@ -338,13 +337,22 @@ mod tests {
 
     #[test]
     fn decodes_five_baud_address() {
+        five_baud(Duration::from_millis(200));
+    }
+
+    #[test]
+    fn five_baud_tolerates_slow_sleeps() {
+        // Busy machines (macOS CI) oversleep; 40 ms per bit adds up to 360 ms.
+        five_baud(Duration::from_millis(240));
+    }
+
+    fn five_baud(bit: Duration) {
         let (mut p, _) = SimKLinePort::new(
             profiles::legacy_car(),
             SimSettings::default(),
             SimKLineMode::Iso9141,
         );
         p.set_break(false).unwrap();
-        let bit = Duration::from_millis(200);
         p.set_break(true).unwrap();
         std::thread::sleep(bit);
         for i in 0..8 {
