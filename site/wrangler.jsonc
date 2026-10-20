@@ -1,0 +1,7 @@
+// Cloudflare Workers static site for the tester download page.
+// Cloudflare: Workers & Pages → opendiag, root directory "site", deploy command "npx wrangler deploy".
+{
+  "name": "opendiag",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./public" }
+}
