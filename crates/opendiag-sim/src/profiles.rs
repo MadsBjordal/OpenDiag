@@ -9,6 +9,7 @@ pub enum VehicleKind {
     Car,
     Motorcycle,
     Van,
+    Truck,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -48,6 +49,24 @@ pub struct VehicleProfile {
     pub protocol: ObdProtocol,
     pub year: u16,
     pub ecus: Vec<SimEcu>,
+    /// Control units on a J1939 network (trucks, buses).
+    #[serde(default)]
+    pub j1939: Vec<SimJ1939Ecu>,
+}
+
+/// A control unit on a simulated J1939 network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimJ1939Ecu {
+    pub address: u8,
+    pub name: String,
+    /// DM1/DM2 lamp byte (MIL, red stop, amber warning, protect: 2 bits each).
+    pub lamps: u8,
+    /// Active codes (DM1) and previously active codes (DM2): SPN, FMI, occurrences.
+    pub active: Vec<(u32, u8, u8)>,
+    pub previous: Vec<(u32, u8, u8)>,
+    /// Parameter groups it broadcasts or answers (see `opendiag_j1939::PARAMS`).
+    pub pgns: Vec<u32>,
+    pub vin: Option<String>,
 }
 
 const PETROL_PIDS: &[u8] = &[
@@ -56,7 +75,7 @@ const PETROL_PIDS: &[u8] = &[
 ];
 
 pub fn all() -> Vec<VehicleProfile> {
-    vec![car(), motorcycle(), multi_ecu(), legacy_car()]
+    vec![car(), motorcycle(), multi_ecu(), legacy_car(), truck()]
 }
 
 pub fn by_id(id: &str) -> Option<VehicleProfile> {
@@ -76,6 +95,7 @@ pub fn car() -> VehicleProfile {
         engine: Engine::Petrol,
         protocol: ObdProtocol::Can11_500,
         year: 2016,
+        j1939: vec![],
         ecus: vec![SimEcu {
             address: 0x7E8,
             name: "Engine".into(),
@@ -102,6 +122,7 @@ pub fn motorcycle() -> VehicleProfile {
         engine: Engine::MotorcyclePetrol,
         protocol: ObdProtocol::Can11_500,
         year: 2021,
+        j1939: vec![],
         ecus: vec![SimEcu {
             address: 0x7E8,
             name: "Engine".into(),
@@ -128,6 +149,7 @@ pub fn multi_ecu() -> VehicleProfile {
         engine: Engine::Diesel,
         protocol: ObdProtocol::Can11_500,
         year: 2019,
+        j1939: vec![],
         ecus: vec![
             SimEcu {
                 address: 0x7E8,
@@ -185,6 +207,7 @@ pub fn legacy_car() -> VehicleProfile {
         engine: Engine::Petrol,
         protocol: ObdProtocol::Iso9141_2,
         year: 2003,
+        j1939: vec![],
         ecus: vec![SimEcu {
             address: 0x10,
             name: "Engine".into(),
@@ -202,5 +225,49 @@ pub fn legacy_car() -> VehicleProfile {
             monitors_available: 0x65,
             monitors_incomplete: 0x00,
         }],
+    }
+}
+
+/// A heavy truck that only talks J1939 (no OBD-II answers on the 16-pin socket
+/// through generic requests): the J1939 page reads it.
+pub fn truck() -> VehicleProfile {
+    VehicleProfile {
+        id: "sim-truck".into(),
+        name: "SIMULATED heavy truck (J1939)".into(),
+        description: "Diesel truck on J1939 (CAN 29 bit, 250 kbaud): engine, transmission and instrument cluster. Engine reports a coolant temperature code with the amber lamp on.".into(),
+        kind: VehicleKind::Truck,
+        engine: Engine::Diesel,
+        protocol: ObdProtocol::Can29_250,
+        year: 2018,
+        ecus: vec![],
+        j1939: vec![
+            SimJ1939Ecu {
+                address: 0x00,
+                name: "Engine #1".into(),
+                lamps: 0b0000_0100,
+                active: vec![(110, 16, 3)],
+                previous: vec![(168, 4, 1)],
+                pgns: vec![0xF004, 0xFEEE, 0xFEEF, 0xFEF2, 0xFEF5, 0xFEF7, 0xFEE5],
+                vin: Some("SMLTDTRK000000005".into()),
+            },
+            SimJ1939Ecu {
+                address: 0x03,
+                name: "Transmission #1".into(),
+                lamps: 0,
+                active: vec![],
+                previous: vec![],
+                pgns: vec![],
+                vin: None,
+            },
+            SimJ1939Ecu {
+                address: 0x17,
+                name: "Instrument cluster #1".into(),
+                lamps: 0,
+                active: vec![],
+                previous: vec![],
+                pgns: vec![0xFEF1, 0xFEFC, 0xFEE0],
+                vin: None,
+            },
+        ],
     }
 }

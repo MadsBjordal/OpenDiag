@@ -1670,7 +1670,7 @@
    "elm327": "limited",
    "adapter": "An adapter rated for 24 V. Check the adapter's specification: not every ELM327 adapter survives 24 V.",
    "support": "partially_implemented",
-   "support_note": "Generic OBD-II over ISO 15765-4 works the same as on cars; J1939 and WWH-OBD are not implemented.",
+   "support_note": "Generic OBD-II over ISO 15765-4 works the same as on cars. J1939 (250 kbit/s) is read on the Trucks (J1939) page, not hardware-verified; WWH-OBD is not implemented.",
    "how_to_read": [],
    "warnings": [
     "24 V on pin 16. A 12 V-only adapter can be destroyed."
@@ -1745,9 +1745,9 @@
     }
    ],
    "elm327": "limited",
-   "adapter": "A J1939 interface, or an ELM327 v2-class adapter with a 9-pin cable (the ELM327 can monitor DM1 codes and request PGNs; no address claim).",
-   "support": "planned",
-   "support_note": "J1939 is planned; OpenDiag cannot read it yet.",
+   "adapter": "An ELM327 (v1.4b or newer recommended) or STN adapter with a 9-pin to 16-pin cable (the ELM327 can monitor DM1 codes and request PGNs; no address claim). The adapter must be rated for 24 V on 24 V vehicles.",
+   "support": "implemented_not_hardware_verified",
+   "support_note": "Read only on the Trucks (J1939) page: active and previous codes (DM1/DM2) and engine values at 250 kbit/s; 500 kbit/s networks are not supported yet. Not hardware-verified.",
    "how_to_read": [],
    "warnings": [
     "Not every 9-pin Deutsch is standard: Caterpillar and John Deere use different layouts on 9-pin plugs."

@@ -17,6 +17,8 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | Bluetooth Low Energy adapter | Planned | Planned | Planned |
 | Raw K-line cable (KKL / FTDI), generic OBD-II, fast and 5-baud init | Not hardware-verified | Not hardware-verified (USB OTG) | Not hardware-verified |
 | Honda motorcycle K-line, experimental (wake-up, raw table reads) | Partially implemented | Partially implemented | Partially implemented |
+| Trucks, buses, machines (SAE J1939, 250 kbit/s): DM1/DM2 codes, read only | Not hardware-verified | Not hardware-verified | Not hardware-verified |
+| Trucks, buses, machines (SAE J1939): engine values, hours, distance, VIN | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Wi-Fi / Ethernet (TCP) adapter | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | SAE J2534 PassThru | Planned | Unsupported | Unsupported |
 | Adapter identification and capability probe | Not hardware-verified | Not hardware-verified | Not hardware-verified |

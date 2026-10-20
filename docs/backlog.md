@@ -43,7 +43,7 @@ criteria on real hardware (see [hardware-testing.md](hardware-testing.md)).
 | 🔶 Honda motorcycle K-line (4-pin DLC), wake-up + raw tables | Wake-up message confirmed on at least one real Honda bike (sources disagree); status per model in compatibility.md. |
 | ⬜ Honda motorcycle fault codes over K-line | Only from a documented or reproducibly tested source; decoded per model; never guessed. |
 | ⬜ Manufacturer K-line protocols (Suzuki SDS, Kawasaki KDS, VAG KW1281, Fiat/Marelli) | One at a time, each from a documented or open-source reference and tested on a real vehicle. |
-| ⬜ J1939 read-only (DM1 codes, PGN requests) | Through ELM327 v2 protocol A and raw CAN interfaces; tested against a simulated J1939 ECU and one real truck or machine. |
+| 🔶 J1939 read-only (DM1 codes, PGN requests) | Through ELM327 protocol A (done, tested against a simulated J1939 network; see docs/j1939.md) and raw CAN interfaces (not yet); one real truck or machine still to test. 500 kbit/s networks not yet. |
 | ⬜ SocketCAN (Linux) and J2534 (Windows) drivers | Same engine workflows pass against a CAN interface + simulated ECU on a test bench. |
 | ⬜ Multi-platform CI | Windows, Linux, macOS builds and tests on every pull request. |
 

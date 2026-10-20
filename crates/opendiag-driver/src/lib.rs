@@ -51,6 +51,21 @@ pub struct LogEntry {
     pub text: String,
 }
 
+/// J1939 (trucks, buses, machines) on adapters that support it. Read only:
+/// requests are limited by `opendiag_safety::may_request_pgn`.
+pub trait J1939Port {
+    /// Switches the adapter to J1939 (250 kbit/s). OBD-II needs a new connection afterwards.
+    fn j1939_start(&mut self) -> Result<(), DriverError>;
+    /// Requests one parameter group from every ECU (global request).
+    fn j1939_request(&mut self, pgn: u32) -> Result<opendiag_j1939::Parsed, DriverError>;
+    /// Listens for a broadcast parameter group for `window`. Sends nothing to the vehicle.
+    fn j1939_monitor(
+        &mut self,
+        pgn: u32,
+        window: std::time::Duration,
+    ) -> Result<opendiag_j1939::Parsed, DriverError>;
+}
+
 pub trait Driver: Send {
     fn capabilities(&self) -> &AdapterCapabilities;
     fn protocol(&self) -> Option<ObdProtocol>;
@@ -76,6 +91,10 @@ pub trait Driver: Send {
     /// Hide VIN answers in the log.
     fn set_redact_vin(&mut self, on: bool);
     fn close(&mut self);
+    /// J1939 access, if this driver and adapter support it.
+    fn j1939(&mut self) -> Option<&mut dyn J1939Port> {
+        None
+    }
 }
 
 /// A bounded in-memory log shared by drivers.

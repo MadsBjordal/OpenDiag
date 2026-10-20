@@ -2272,6 +2272,7 @@ name = "opendiag-driver"
 version = "0.1.0"
 dependencies = [
  "opendiag-core",
+ "opendiag-j1939",
  "opendiag-obd",
  "opendiag-safety",
  "serde",
@@ -2285,8 +2286,10 @@ dependencies = [
  "opendiag-core",
  "opendiag-driver",
  "opendiag-isotp",
+ "opendiag-j1939",
  "opendiag-obd",
  "opendiag-safety",
+ "opendiag-sim",
  "serde",
  "thiserror 2.0.21",
 ]
@@ -2300,6 +2303,7 @@ dependencies = [
  "opendiag-definitions",
  "opendiag-driver",
  "opendiag-elm327",
+ "opendiag-j1939",
  "opendiag-kline",
  "opendiag-knowledge",
  "opendiag-obd",
@@ -2318,6 +2322,13 @@ name = "opendiag-isotp"
 version = "0.1.0"
 dependencies = [
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "opendiag-j1939"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -2362,6 +2373,7 @@ version = "0.1.0"
 dependencies = [
  "opendiag-core",
  "opendiag-isotp",
+ "opendiag-j1939",
  "opendiag-obd",
  "serde",
 ]

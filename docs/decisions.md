@@ -27,3 +27,15 @@ yes/no questions. Results go through the new `record_test` command into the same
 per-OS compatibility records as before (simulated connections stay "Simulated").
 Steps 8 (offline) and 9 (disconnect) have no catalog function, so they appear only
 in the copied report.
+
+## J1939 read-only support (2026-10-20)
+
+J1939 is read through the ELM327's protocol A rather than a separate driver:
+the ELM327 does the transport-protocol handshake and the byte reversal of PGN
+requests itself (datasheet "Using J1939"). OpenDiag listens (`AT MP`) for
+broadcast data and only *requests* the five read-only groups on the safety
+list (`may_request_pgn`); DM3/DM11 (clear codes) are refused. Decoding lives in
+its own pure crate (`opendiag-j1939`) so a future raw-CAN driver can reuse it.
+Only parameters published in the open FMS Standard are decoded; other SPNs are
+shown as numbers rather than guessed. Spaces on and `AT JHF0` are used in J1939
+mode; the parser also reads the default header format for adapters without JHF.

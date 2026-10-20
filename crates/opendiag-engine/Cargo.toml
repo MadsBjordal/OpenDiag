@@ -22,6 +22,7 @@ opendiag-elm327.workspace = true
 opendiag-driver.workspace = true
 opendiag-kline.workspace = true
 opendiag-sim.workspace = true
+opendiag-j1939.workspace = true
 opendiag-store.workspace = true
 opendiag-knowledge.workspace = true
 opendiag-definitions.workspace = true

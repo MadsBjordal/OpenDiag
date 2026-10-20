@@ -10,11 +10,13 @@
 
 pub mod catalog;
 mod clear;
+mod j1939;
 pub mod pdf;
 pub mod report;
 mod scan;
 
 pub use clear::{ClearPlan, ClearResult, EcuClearResult};
+pub use j1939::{J1939Code, J1939Module, J1939Report};
 pub use scan::ScanProgress;
 
 use opendiag_core::{AdapterCapabilities, ByteLink, LinkInfo, ObdProtocol, SupportStatus};

@@ -8,6 +8,7 @@
 //! [`SimControl`] changes the vehicle while connected: engine on/off and faults
 //! (timeouts, disconnects, malformed and cut-off answers, low voltage, wrong VIN…).
 
+mod j1939;
 pub mod kline;
 pub mod profiles;
 pub mod signals;
@@ -79,6 +80,10 @@ struct State {
     started: Instant,
     disconnected: bool,
     requests: u64,
+    /// J1939 header printed as 4 bytes (AT JHF0) instead of the default format.
+    j1939_plain_header: bool,
+    /// `AT MP` without a count: monitoring until any character arrives.
+    monitoring: bool,
 }
 
 /// Change the simulated vehicle while the app is connected to it.
@@ -139,8 +144,10 @@ impl SimAdapter {
             reply.push_str(&l);
             reply.push_str(eol);
         }
-        reply.push_str(eol);
-        reply.push('>');
+        if !st.monitoring {
+            reply.push_str(eol);
+            reply.push('>');
+        }
         self.out.extend(reply.as_bytes());
     }
 }
@@ -151,6 +158,15 @@ impl ByteLink for SimAdapter {
             return Err(LinkError::Disconnected);
         }
         for &b in data {
+            {
+                let mut st = self.state.lock().unwrap();
+                if st.monitoring {
+                    // Any character stops monitoring.
+                    st.monitoring = false;
+                    self.out.extend(b"\r>");
+                    continue;
+                }
+            }
             match b {
                 b'\r' => {
                     let cmd = String::from_utf8_lossy(&std::mem::take(&mut self.line))
@@ -211,6 +227,8 @@ impl State {
             started: Instant::now(),
             disconnected: false,
             requests: 0,
+            j1939_plain_header: false,
+            monitoring: false,
         }
     }
 
@@ -235,6 +253,7 @@ impl State {
         self.headers = false;
         self.protocol_choice = None;
         self.connected = false;
+        self.j1939_plain_header = false;
     }
 
     fn ok(&self) -> Option<Vec<String>> {
@@ -304,6 +323,41 @@ impl State {
                     self.ok()
                 }
                 "AT0" | "AT1" | "AT2" | "CAF0" | "CAF1" => self.ok(),
+                "SPA" => {
+                    self.protocol_choice = Some(0xA);
+                    self.connected = false;
+                    self.ok()
+                }
+                "JHF0" | "JHF1" => {
+                    self.j1939_plain_header = at == "JHF0";
+                    self.ok()
+                }
+                "JE" | "JS" => self.ok(),
+                mp if mp.starts_with("MP") && self.j1939_active() => {
+                    let arg = &mp[2..];
+                    let (pgn, count) = match arg.len() {
+                        4 | 6 => (u32::from_str_radix(arg, 16).ok(), None),
+                        5 | 7 => (
+                            u32::from_str_radix(&arg[..arg.len() - 1], 16).ok(),
+                            arg[arg.len() - 1..].parse::<usize>().ok(),
+                        ),
+                        _ => (None, None),
+                    };
+                    let Some(pgn) = pgn else {
+                        return Some(vec!["?".into()]);
+                    };
+                    let mut lines = self.j1939_monitor(pgn);
+                    match count {
+                        Some(n) => {
+                            lines.truncate(n.max(1));
+                            Some(lines)
+                        }
+                        None => {
+                            self.monitoring = true;
+                            Some(lines)
+                        }
+                    }
+                }
                 sp if sp.starts_with("SP") => {
                     let n = sp.trim_start_matches("SP").trim_start_matches('A');
                     match u8::from_str_radix(n, 16) {
@@ -327,6 +381,17 @@ impl State {
         let Some(req) = opendiag_core::parse_hex(&cmd) else {
             return Some(vec!["?".into()]);
         };
+        if self.j1939_active() {
+            if self.settings.faults.no_response {
+                return None;
+            }
+            self.requests += 1;
+            return Some(if req.len() == 3 {
+                self.j1939_request(u32::from_be_bytes([0, req[0], req[1], req[2]]))
+            } else {
+                vec!["NO DATA".into()]
+            });
+        }
         self.vehicle_request(&req)
     }
 
@@ -364,7 +429,7 @@ impl State {
             } else {
                 prefix.push("SEARCHING...".to_string());
             }
-            if f.ignition_off {
+            if f.ignition_off || self.vehicle.profile.ecus.is_empty() {
                 prefix.push("UNABLE TO CONNECT".into());
                 return Some(prefix);
             }

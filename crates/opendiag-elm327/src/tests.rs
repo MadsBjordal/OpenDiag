@@ -316,3 +316,42 @@ fn twenty_nine_bit_headers() {
         vec![0x06, 0x41, 0x00, 0xBE, 0x3F, 0xA8, 0x13, 0x00]
     );
 }
+
+#[test]
+fn j1939_truck_through_the_real_driver() {
+    use opendiag_sim::{profiles, SimAdapter, SimSettings};
+    let (sim, _ctl) = SimAdapter::new(profiles::truck(), SimSettings::default());
+    let mut elm = Elm327::open(Box::new(sim)).unwrap();
+    // A J1939-only truck does not answer generic OBD-II.
+    assert!(matches!(
+        elm.connect_vehicle(None),
+        Err(ElmError::UnableToConnect)
+    ));
+    elm.j1939_start().unwrap();
+    let w = Duration::from_millis(100);
+    let dm1 = elm.j1939_monitor(opendiag_j1939::PGN_DM1, w).unwrap();
+    assert_eq!(dm1.messages.len(), 3);
+    let engine = dm1.messages.iter().find(|m| m.source == 0).unwrap();
+    let dm = opendiag_j1939::decode_dm(&engine.data).unwrap();
+    assert_eq!(dm.dtcs[0].spn, 110);
+    assert_eq!(dm.lamps.amber_warning, opendiag_j1939::LampState::On);
+    // Broadcast engine speed.
+    let eec1 = elm.j1939_monitor(0xF004, w).unwrap();
+    assert!(!eec1.messages.is_empty());
+    assert!(opendiag_j1939::decode(&eec1.messages[0])[0].value.unwrap() > 500.0);
+    // Multi-segment VIN on request, hidden in the log.
+    let vi = elm.j1939_request(opendiag_j1939::PGN_VI).unwrap();
+    assert_eq!(
+        opendiag_j1939::decode_vin(&vi.messages[0].data).as_deref(),
+        Some("SMLTDTRK000000005")
+    );
+    assert!(!elm.log().iter().any(|l| l.text.contains("53 4D 4C")));
+    // Nothing on the bus for a PGN nobody has; clearing groups are blocked.
+    assert!(elm.j1939_request(0xFEE0).is_ok());
+    assert!(matches!(
+        elm.j1939_request(0xFED3),
+        Err(ElmError::Blocked(_))
+    ));
+    // The adapter is usable again afterwards.
+    assert!(elm.read_voltage().is_some());
+}

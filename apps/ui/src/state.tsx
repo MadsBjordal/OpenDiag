@@ -19,7 +19,8 @@ export type Page =
   | 'simulator'
   | 'menu'
   | 'connectors'
-  | 'hwtest';
+  | 'hwtest'
+  | 'truck';
 
 interface AppState {
   page: Page;

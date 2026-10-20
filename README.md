@@ -15,6 +15,8 @@ on **Windows** and **Android**, fully offline, without an account.
 | | Status |
 | --- | --- |
 | Connect over USB/USB-C serial, Bluetooth Classic, Wi-Fi/Ethernet; simulator | Implemented, not hardware-verified |
+| Trucks, buses and machines (SAE J1939 at 250 kbit/s, through ELM327/STN): active and previous fault codes, engine values, hours, distance, VIN; read only | Implemented, not hardware-verified (see docs/j1939.md) |
+| Hardware test assistant: walks through the Phase 1 tests and records results per OS | Implemented |
 | Raw K-line cables (KKL/FTDI): generic OBD-II with fast and 5-baud wake-up; experimental Honda motorcycle mode | Implemented, not hardware-verified (see docs/kline.md) |
 | Identify ELM327 / STN (OBDLink) / clone adapters and what they really support | Implemented, not hardware-verified |
 | Generic OBD-II scan: VIN, calibration IDs, stored / pending / permanent codes, freeze frame, readiness | Implemented, not hardware-verified |

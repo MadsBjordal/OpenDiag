@@ -1,0 +1,9 @@
+[package]
+name = "opendiag-j1939"
+description = "SAE J1939 (trucks, buses, machines): ELM327 frame parsing, DM1/DM2 trouble codes and a small set of documented engine parameters. Read only."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true

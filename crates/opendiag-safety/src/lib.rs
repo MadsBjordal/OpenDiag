@@ -159,6 +159,30 @@ pub fn may_send_honda(frame: &[u8]) -> Result<(), String> {
     Err("Blocked by the safety policy: only the Honda wake-up and table reads are allowed in the experimental Honda mode.".into())
 }
 
+/// Parameter groups OpenDiag may request on a J1939 bus (a request is PGN
+/// 59904 carrying the wanted PGN). All are read-only information. Anything
+/// else is refused, in particular DM3 (0xFECC) and DM11 (0xFED3), which clear
+/// trouble codes, and every proprietary or command group.
+pub const J1939_REQUESTABLE: &[(u32, &str)] = &[
+    (0xFECA, "DM1 active trouble codes"),
+    (0xFECB, "DM2 previously active trouble codes"),
+    (0xFEEC, "Vehicle identification (VIN)"),
+    (0xFEE5, "Engine hours"),
+    (0xFEE0, "Vehicle distance"),
+];
+
+/// Only the read-only parameter groups in [`J1939_REQUESTABLE`] may be requested.
+/// Listening to the bus sends nothing and needs no check.
+pub fn may_request_pgn(pgn: u32) -> Result<(), String> {
+    if J1939_REQUESTABLE.iter().any(|(p, _)| *p == pgn) {
+        Ok(())
+    } else {
+        Err(format!(
+            "Blocked by the safety policy: requesting J1939 PGN {pgn} (0x{pgn:05X}) is not on the read-only list."
+        ))
+    }
+}
+
 /// What a clear-codes workflow knows when the user presses Confirm.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ClearContext {
@@ -377,6 +401,16 @@ mod tests {
             &[],
         ] {
             assert!(may_send(p, None).is_err(), "{p:?}");
+        }
+    }
+
+    #[test]
+    fn j1939_requests_are_read_only() {
+        assert!(may_request_pgn(0xFECA).is_ok());
+        assert!(may_request_pgn(0xFEEC).is_ok());
+        // DM3 and DM11 clear codes; DM14 is memory access.
+        for pgn in [0xFECC, 0xFED3, 0xD900, 0xEA00, 0xEF00] {
+            assert!(may_request_pgn(pgn).is_err(), "{pgn:X}");
         }
     }
 

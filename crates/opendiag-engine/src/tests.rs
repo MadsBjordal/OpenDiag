@@ -454,3 +454,63 @@ fn scan_and_clear_over_a_raw_k_line() {
     assert!(res.performed, "{:?}", res.decision);
     assert!(res.remaining.is_empty());
 }
+
+#[test]
+fn j1939_truck_scan() {
+    let (mut e, ctl) = engine(profiles::truck());
+    let s = e.summary().unwrap();
+    assert!(
+        !s.vehicle_connected,
+        "a J1939-only truck does not answer OBD-II"
+    );
+    let r = e.j1939_scan().unwrap();
+    assert!(r.simulated);
+    assert_eq!(r.modules.len(), 3);
+    let engine = r.modules.iter().find(|m| m.address == 0).unwrap();
+    assert_eq!(engine.active.len(), 1);
+    assert_eq!(engine.active[0].spn, 110);
+    assert_eq!(
+        engine.active[0].spn_name.as_deref(),
+        Some("Engine coolant temperature")
+    );
+    assert_eq!(engine.previous.as_ref().unwrap()[0].spn, 168);
+    assert_eq!(
+        engine.lamps.unwrap().amber_warning,
+        opendiag_j1939::LampState::On
+    );
+    let keys: Vec<&str> = r.values.iter().map(|v| v.key.as_str()).collect();
+    for k in [
+        "engine_speed",
+        "coolant_temp",
+        "vehicle_speed",
+        "battery_voltage",
+        "engine_hours",
+        "total_distance",
+    ] {
+        assert!(keys.contains(&k), "{k} missing: {keys:?}");
+    }
+    let hours = r.values.iter().find(|v| v.key == "engine_hours").unwrap();
+    assert!((hours.value.unwrap() - 12_345.6).abs() < 0.1);
+    assert_eq!(r.vin.as_deref(), Some("SMLTDTRK000000005"));
+    // Recorded as simulated, never as hardware evidence.
+    let st = e.compat_status().unwrap();
+    assert!(st.functions.iter().any(|f| f.id == "j1939_read_codes"));
+
+    // Ignition off: nothing heard, explained.
+    let mut set = ctl.settings();
+    set.faults.ignition_off = true;
+    ctl.set(set);
+    let r = e.j1939_scan().unwrap();
+    assert!(r.modules.is_empty());
+    assert!(r.notes[0].contains("Nothing was heard"));
+}
+
+#[test]
+fn j1939_needs_an_elm_adapter_and_cars_stay_quiet() {
+    // A car without J1939: the scan explains that nothing was heard.
+    let (mut e, _) = engine(profiles::car());
+    let r = e.j1939_scan().unwrap();
+    assert!(r.modules.is_empty() && r.notes[0].contains("Nothing was heard"));
+    // OBD-II works again after reconnecting.
+    assert!(e.connect_vehicle().unwrap().vehicle_connected);
+}

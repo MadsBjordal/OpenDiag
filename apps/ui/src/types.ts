@@ -1,14 +1,14 @@
 // Mirrors the engine's JSON (snake_case, as serde writes it).
 
 export type SupportStatus =
-  | 'implemented_tested'
-  | 'implemented_not_hardware_verified'
-  | 'partially_implemented'
-  | 'simulated_only'
-  | 'planned'
-  | 'unsupported';
+  | "implemented_tested"
+  | "implemented_not_hardware_verified"
+  | "partially_implemented"
+  | "simulated_only"
+  | "planned"
+  | "unsupported";
 
-export type Tri = 'yes' | 'no' | 'unknown';
+export type Tri = "yes" | "no" | "unknown";
 
 export interface Device {
   id: string;
@@ -50,7 +50,7 @@ export interface FunctionStatus {
   status: SupportStatus;
   status_label: string;
   note: string;
-  local_result: 'works' | 'partial' | 'fails' | 'not_supported' | null;
+  local_result: "works" | "partial" | "fails" | "not_supported" | null;
   best_verification: string | null;
 }
 
@@ -77,12 +77,12 @@ export interface Summary {
   compatibility: CompatStatus;
 }
 
-export type Severity = 'info' | 'low' | 'moderate' | 'high' | 'critical';
+export type Severity = "info" | "low" | "moderate" | "high" | "critical";
 
 export interface Explanation {
   code: string;
   system: string;
-  ownership: 'generic' | 'manufacturer' | 'reserved' | 'unknown';
+  ownership: "generic" | "manufacturer" | "reserved" | "unknown";
   known: boolean;
   title: string;
   plain: string;
@@ -96,7 +96,7 @@ export interface Explanation {
   source: string;
 }
 
-export type DtcKind = 'stored' | 'pending' | 'permanent';
+export type DtcKind = "stored" | "pending" | "permanent";
 
 export interface DtcFinding {
   code: string;
@@ -156,14 +156,24 @@ export interface Report {
     fuel_type: string | null;
     note: string;
   };
-  modules: { category: string; ecu: string | null; label: string; status: 'scanned' | 'partly_scanned' | 'not_scanned'; detail: string }[];
+  modules: {
+    category: string;
+    ecu: string | null;
+    label: string;
+    status: "scanned" | "partly_scanned" | "not_scanned";
+    detail: string;
+  }[];
   dtcs: DtcFinding[];
   readiness: [string, MonitorStatus][];
   freeze_frames: { ecu: string; dtc: string | null; values: Measurement[] }[];
   measurements: Measurement[];
   warnings: string[];
   communication_errors: string[];
-  health: { verdict: 'faults_found' | 'no_faults_in_scanned_modules' | 'incomplete'; headline: string; detail: string };
+  health: {
+    verdict: "faults_found" | "no_faults_in_scanned_modules" | "incomplete";
+    headline: string;
+    detail: string;
+  };
   notes: string;
   operations: { at: string; what: string; detail: string }[];
   cautions: string[];
@@ -213,7 +223,7 @@ export interface ClearPlan {
   codes: DtcFinding[];
   permanent: DtcFinding[];
   affected_modules: [string, string][];
-  freeze_frames: Report['freeze_frames'];
+  freeze_frames: Report["freeze_frames"];
   consequences: string[];
   preview: Decision;
   snapshot_id: number;
@@ -228,9 +238,9 @@ export interface ClearResult {
 }
 
 export interface Settings {
-  mode: 'beginner' | 'expert';
-  units: 'metric' | 'imperial';
-  theme: 'system' | 'light' | 'dark';
+  mode: "beginner" | "expert";
+  units: "metric" | "imperial";
+  theme: "system" | "light" | "dark";
   language: string;
   terms_accepted: boolean;
   terms_version: string;
@@ -254,7 +264,7 @@ export interface Vehicle {
 
 export interface Step {
   id: string;
-  kind: 'question' | 'info' | 'measurement' | 'outcome';
+  kind: "question" | "info" | "measurement" | "outcome";
   text: string | null;
   help: string | null;
   measurement: { unit: string; user_spec?: boolean } | null;
@@ -275,7 +285,7 @@ export interface Answer {
   step: string;
   choice?: string;
   value?: number;
-  value_source?: 'measured_by_user' | 'read_from_vehicle';
+  value_source?: "measured_by_user" | "read_from_vehicle";
   spec_min?: number;
   spec_max?: number;
 }
@@ -287,8 +297,13 @@ export interface Evaluated {
   measured: number | null;
   value_source: string | null;
   unit: string | null;
-  spec: { min: number; max: number; kind: 'documented' | 'general_guidance' | 'derived'; source: string } | null;
-  comparison: 'in_range' | 'below' | 'above' | null;
+  spec: {
+    min: number;
+    max: number;
+    kind: "documented" | "general_guidance" | "derived";
+    source: string;
+  } | null;
+  comparison: "in_range" | "below" | "above" | null;
   explanation: string | null;
 }
 
@@ -296,7 +311,7 @@ export interface GuidedState {
   procedure_id: string;
   current: Step | null;
   history: Evaluated[];
-  outcome: { kind: 'finding' | 'hypothesis'; text: string } | null;
+  outcome: { kind: "finding" | "hypothesis"; text: string } | null;
   error: string | null;
 }
 
@@ -312,7 +327,7 @@ export interface CompatRecord {
   os: string;
   protocol: string;
   function: string;
-  result: 'works' | 'partial' | 'fails' | 'not_supported';
+  result: "works" | "partial" | "fails" | "not_supported";
   verification: string;
   app_version: string;
   evidence: string[];
@@ -358,7 +373,14 @@ export interface CatalogEntry {
   note: string;
 }
 
-export type ConnectorCategory = 'car' | 'motorcycle' | 'truck' | 'agricultural' | 'powersports' | 'marine' | 'light_electric';
+export type ConnectorCategory =
+  | "car"
+  | "motorcycle"
+  | "truck"
+  | "agricultural"
+  | "powersports"
+  | "marine"
+  | "light_electric";
 
 export interface Connector {
   id: string;
@@ -369,16 +391,68 @@ export interface Connector {
   pins: number | null;
   description: string;
   voltage: string;
-  access: 'data_link' | 'blink_codes' | 'data_link_or_blink_codes' | 'dashboard_self_test' | 'no_diagnostics';
+  access:
+    | "data_link"
+    | "blink_codes"
+    | "data_link_or_blink_codes"
+    | "dashboard_self_test"
+    | "no_diagnostics";
   protocols: string[];
   pinout: { pin: string; signal: string }[];
-  elm327: 'yes' | 'with_cable' | 'limited' | 'no' | 'not_needed';
+  elm327: "yes" | "with_cable" | "limited" | "no" | "not_needed";
   adapter: string;
   support: SupportStatus;
   support_note: string;
   how_to_read: string[];
   warnings: string[];
-  confidence: 'low' | 'medium' | 'high';
+  confidence: "low" | "medium" | "high";
   sources: { url: string; note: string }[];
+  notes: string[];
+}
+
+// ── J1939 (trucks, buses, machines) ─────────────────────────────────────────
+
+export type LampState = "off" | "on" | "error" | "not_available";
+
+export interface J1939Lamps {
+  mil: LampState;
+  red_stop: LampState;
+  amber_warning: LampState;
+  protect: LampState;
+}
+
+export interface J1939Code {
+  spn: number;
+  fmi: number;
+  occurrences: number | null;
+  spn_name: string | null;
+  fmi_text: string;
+  old_conversion: boolean;
+}
+
+export interface J1939Module {
+  address: number;
+  name: string;
+  lamps: J1939Lamps | null;
+  active: J1939Code[];
+  previous: J1939Code[] | null;
+}
+
+export interface J1939Value {
+  key: string;
+  name: string;
+  spn: number;
+  pgn: number;
+  source: number;
+  value: number | null;
+  unit: string;
+  status: string | null;
+}
+
+export interface J1939Report {
+  simulated: boolean;
+  modules: J1939Module[];
+  values: J1939Value[];
+  vin: string | null;
   notes: string[];
 }

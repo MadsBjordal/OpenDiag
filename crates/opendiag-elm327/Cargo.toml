@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+opendiag-j1939.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 opendiag-core.workspace = true
@@ -13,3 +14,6 @@ opendiag-isotp.workspace = true
 opendiag-obd.workspace = true
 opendiag-safety.workspace = true
 opendiag-driver.workspace = true
+
+[dev-dependencies]
+opendiag-sim.workspace = true

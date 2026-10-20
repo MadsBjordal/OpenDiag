@@ -11,3 +11,4 @@ thiserror.workspace = true
 opendiag-core.workspace = true
 opendiag-obd.workspace = true
 opendiag-safety.workspace = true
+opendiag-j1939.workspace = true

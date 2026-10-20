@@ -183,6 +183,8 @@ enum Cmd {
     },
     HondaLog,
     HondaDisconnect,
+    /// Trucks, buses and machines: switch to J1939 and read codes and values.
+    J1939Scan,
     /// A hardware-test result for one function with the current connection.
     RecordTest {
         function: String,
@@ -440,6 +442,7 @@ impl Api {
                 Value::Null
             }
             Cmd::Summary => to(serde_json::to_value(self.engine().summary()?))?,
+            Cmd::J1939Scan => to(serde_json::to_value(self.engine().j1939_scan()?))?,
             Cmd::Scan => {
                 let mut e = self.engine();
                 let progress = &self.progress;

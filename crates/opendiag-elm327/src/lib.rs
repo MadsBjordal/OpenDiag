@@ -45,7 +45,7 @@ pub const ADAPTER_COMMANDS: &[&str] = &[
     "ATH1", "ATDP", "ATDPN", "ATRV", "ATAT0", "ATAT1", "ATAT2", "ATCAF0", "ATCAF1", "ATPC", "STI",
     "STDI", "ATSP0", "ATSP1", "ATSP2", "ATSP3", "ATSP4", "ATSP5", "ATSP6", "ATSP7", "ATSP8",
     "ATSP9", "ATSPA1", "ATSPA2", "ATSPA3", "ATSPA4", "ATSPA5", "ATSPA6", "ATSPA7", "ATSPA8",
-    "ATSPA9",
+    "ATSPA9", "ATSPA", "ATJHF0", "ATJHF1",
 ];
 
 const LOG_LIMIT: usize = 4000;
@@ -62,6 +62,8 @@ pub struct Elm327 {
     pub consecutive_errors: u32,
     /// Hide VIN answers in the log (default on).
     pub redact_vin: bool,
+    /// In J1939 mode (protocol A).
+    j1939: bool,
 }
 
 impl Elm327 {
@@ -82,6 +84,7 @@ impl Elm327 {
             log: Vec::new(),
             consecutive_errors: 0,
             redact_vin: true,
+            j1939: false,
         };
         elm.note(format!("Opening {} ({:?})", info.name, info.kind));
         elm.initialise(info.simulated)?;
@@ -196,6 +199,12 @@ impl Elm327 {
         &mut self,
         protocol: Option<ObdProtocol>,
     ) -> Result<(ObdProtocol, Vec<EcuMessage>), ElmError> {
+        if self.j1939 {
+            // Back from J1939: the OBD parser expects spaces off.
+            let _ = self.adapter_ok("ATS0");
+            let _ = self.adapter_ok("ATJHF1");
+            self.j1939 = false;
+        }
         let sp = match protocol {
             None => "ATSP0".to_string(),
             Some(p) => format!("ATSP{}", p.elm_number()),
@@ -265,6 +274,123 @@ impl Elm327 {
         let _ = self.adapter_raw("ATPC", Duration::from_millis(500));
         self.link.close();
         self.note("Closed".into());
+    }
+
+    // ── J1939 ───────────────────────────────────────────────────────────────
+
+    /// Selects protocol A (J1939, 250 kbit/s), spaces on and plain 4-byte
+    /// headers (`AT JHF0`; adapters without it keep the formatted header,
+    /// which the parser also reads). ELM327 datasheet, "Using J1939".
+    pub fn j1939_start(&mut self) -> Result<(), ElmError> {
+        if !self.headers {
+            return Err(ElmError::Unsupported(
+                "J1939 needs message headers (ATH1), which this adapter does not show".into(),
+            ));
+        }
+        if !self.adapter_ok("ATSPA")? {
+            return Err(ElmError::Unsupported(
+                "this adapter does not offer J1939 (protocol A)".into(),
+            ));
+        }
+        self.adapter_ok("ATS1")?;
+        if !self.adapter_ok("ATJHF0")? {
+            self.note("Adapter keeps the formatted J1939 header (no AT JHF0)".into());
+        }
+        self.j1939 = true;
+        self.protocol = None;
+        self.caps.vehicle_protocol = None;
+        self.note("J1939 mode (protocol A, 250 kbit/s)".into());
+        Ok(())
+    }
+
+    /// Requests a parameter group (global request, PGN 59904). Only PGNs on
+    /// the safety policy's read-only list are sent.
+    pub fn j1939_request(&mut self, pgn: u32) -> Result<opendiag_j1939::Parsed, ElmError> {
+        opendiag_safety::may_request_pgn(pgn).map_err(ElmError::Blocked)?;
+        if !self.j1939 {
+            return Err(ElmError::Garbled("not in J1939 mode".into()));
+        }
+        // The ELM327 reverses the bytes itself (AT JE, the default).
+        let lines = self.exchange(&format!("{pgn:06X}"), self.timeouts.request * 2)?;
+        if lines.iter().any(|l| l == "?") {
+            return Err(ElmError::Unsupported(format!("{pgn:06X}")));
+        }
+        self.j1939_parse(&lines, pgn)
+    }
+
+    /// Listens for a broadcast parameter group (`AT MP`) for `window`, then
+    /// stops monitoring by sending a carriage return. Sends nothing to the vehicle.
+    pub fn j1939_monitor(
+        &mut self,
+        pgn: u32,
+        window: Duration,
+    ) -> Result<opendiag_j1939::Parsed, ElmError> {
+        if !self.j1939 {
+            return Err(ElmError::Garbled("not in J1939 mode".into()));
+        }
+        let cmd = format!("ATMP{pgn:06X}");
+        self.log_entry(Direction::Tx, cmd.clone());
+        self.link.write_all(format!("{cmd}\r").as_bytes())?;
+        let mut acc = Vec::new();
+        let mut buf = [0u8; 256];
+        let deadline = Instant::now() + window;
+        let mut prompt = false;
+        while Instant::now() < deadline {
+            let n = self.link.read(&mut buf, deadline - Instant::now())?;
+            acc.extend(buf[..n].iter().copied().filter(|b| *b != 0));
+            if acc.contains(&b'>') {
+                prompt = true;
+                break;
+            }
+        }
+        if !prompt {
+            // Any character stops monitoring; the adapter then shows its prompt.
+            self.link.write_all(b"\r")?;
+            match self.read_until_prompt(self.timeouts.command)? {
+                Some(rest) => acc.extend(rest.bytes()),
+                None => return Err(ElmError::Timeout(cmd)),
+            }
+        }
+        let text = String::from_utf8_lossy(&acc).replace('>', "");
+        let lines: Vec<String> = text
+            .split(['\r', '\n'])
+            .map(|l| l.trim().to_string())
+            .filter(|l| !l.is_empty() && l.replace(' ', "") != cmd && l != "STOPPED")
+            .collect();
+        if lines.iter().any(|l| l == "?") {
+            return Err(ElmError::Unsupported(cmd));
+        }
+        // A frame being printed when monitoring stopped may be incomplete.
+        let lines: Vec<String> = if prompt {
+            lines
+        } else {
+            let mut l = lines;
+            if l.last()
+                .map(|x| x.split_whitespace().count() < 5)
+                .unwrap_or(false)
+            {
+                l.pop();
+            }
+            l
+        };
+        check_errors(&lines)?;
+        self.j1939_parse(&lines, pgn)
+    }
+
+    fn j1939_parse(
+        &mut self,
+        lines: &[String],
+        pgn: u32,
+    ) -> Result<opendiag_j1939::Parsed, ElmError> {
+        let parsed = opendiag_j1939::parse_elm(lines, pgn).map_err(ElmError::Garbled)?;
+        if self.redact_vin && pgn == opendiag_j1939::PGN_VI {
+            self.note("[VIN answer hidden in the log]".into());
+        } else {
+            for l in lines {
+                self.log_entry(Direction::Rx, l.clone());
+            }
+        }
+        Ok(parsed)
     }
 
     // ── internals ───────────────────────────────────────────────────────────
@@ -487,6 +613,25 @@ impl Driver for Elm327 {
     }
     fn close(&mut self) {
         Elm327::close(self)
+    }
+    fn j1939(&mut self) -> Option<&mut dyn opendiag_driver::J1939Port> {
+        Some(self)
+    }
+}
+
+impl opendiag_driver::J1939Port for Elm327 {
+    fn j1939_start(&mut self) -> Result<(), ElmError> {
+        Elm327::j1939_start(self)
+    }
+    fn j1939_request(&mut self, pgn: u32) -> Result<opendiag_j1939::Parsed, ElmError> {
+        Elm327::j1939_request(self, pgn)
+    }
+    fn j1939_monitor(
+        &mut self,
+        pgn: u32,
+        window: Duration,
+    ) -> Result<opendiag_j1939::Parsed, ElmError> {
+        Elm327::j1939_monitor(self, pgn, window)
     }
 }
 

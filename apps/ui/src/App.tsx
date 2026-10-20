@@ -18,6 +18,7 @@ import Console from './pages/Console';
 import Simulator from './pages/Simulator';
 import Connectors from './pages/Connectors';
 import HardwareTest from './pages/HardwareTest';
+import Truck from './pages/Truck';
 import { format } from './units';
 
 const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?: boolean }[] = [
@@ -27,6 +28,7 @@ const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?:
   { page: 'scan', icon: '🩺', label: 'Scan Vehicle', mobile: true },
   { page: 'codes', icon: '⚠', label: 'Fault Codes' },
   { page: 'live', icon: '📈', label: 'Live Data', mobile: true },
+  { page: 'truck', icon: '🚛', label: 'Trucks (J1939)' },
   { page: 'guided', icon: '🧭', label: 'Guided Diagnostics' },
   { page: 'config', icon: '⚙', label: 'Vehicle Settings' },
   { page: 'reports', icon: '📄', label: 'Reports' },
@@ -78,6 +80,7 @@ export default function App() {
     simulator: <Simulator />,
     connectors: <Connectors />,
     hwtest: <HardwareTest />,
+    truck: <Truck />,
     menu: (
       <>
         <h1>{t('Menu')}</h1>
