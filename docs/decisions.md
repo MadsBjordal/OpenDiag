@@ -17,3 +17,13 @@
 | 2026-10-19 | Next connectivity priority after Phase 1: a raw K-line interface driver. | It unlocks most pre-Euro 5 motorcycles (Honda, Suzuki, Kawasaki, Yamaha) and older cars. |
 | 2026-10-19 | Raw K-line driver behind a shared `Driver` interface; OpenDiag drives fast init and 5-baud init itself through serial break. | The engine's workflows work unchanged over ELM327 and K-line cables; break control works on FTDI cables on Windows, Linux and Android. |
 | 2026-10-19 | Honda motorcycle K-line only as an experimental, expert-only, read-only mode (wake-up + raw table reads) with its own allowlist (`may_send_honda`). | Only open-source sources exist and they disagree; no decoding until verified on a real bike. |
+
+## Hardware test assistant (2026-10-20)
+
+The 9 Phase 1 hardware tests are run from a page in the app (`pages/HardwareTest.tsx`)
+instead of only from the written checklist, so the owner and testers do not have to
+submit results by hand. Automatic checks decide their own result; manual checks are
+yes/no questions. Results go through the new `record_test` command into the same
+per-OS compatibility records as before (simulated connections stay "Simulated").
+Steps 8 (offline) and 9 (disconnect) have no catalog function, so they appear only
+in the copied report.

@@ -13,6 +13,17 @@ ground, with the parking brake on, in a ventilated place if the engine runs.
    adapter brand/model, how it connects, and what the app shows as adapter identity.
 2. Ignition on, engine off. Battery ≥ 12.2 V (measure, or read the voltage in the top bar).
 
+## The easy way: the Hardware test page
+
+Connect to the vehicle, then open **Hardware test** in the menu. It walks through
+the tests below one by one: it runs the connection, scan, live-data and report
+checks itself and asks you yes/no for the things only you can see (does the VIN
+match the plate, do the codes match the warning lights, did unplugging hang the
+app). Each result is saved in the compatibility database for your operating
+system. At the end, **Copy report** gives a ready-made table to paste into a
+"Compatibility report" issue on GitHub. A practice run with the simulator is
+recorded as *simulated* and never counts as hardware verification.
+
 ## Tests
 
 | # | Test | Pass when |

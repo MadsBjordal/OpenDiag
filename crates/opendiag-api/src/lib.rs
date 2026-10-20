@@ -183,6 +183,12 @@ enum Cmd {
     },
     HondaLog,
     HondaDisconnect,
+    /// A hardware-test result for one function with the current connection.
+    RecordTest {
+        function: String,
+        result: opendiag_store::compat::TestResult,
+        notes: String,
+    },
 }
 
 /// One row of a blink-code table the user copied from their own service manual.
@@ -638,6 +644,30 @@ impl Api {
                 Some(h) => to(serde_json::to_value(h.log()))?,
                 None => Value::Array(vec![]),
             },
+            Cmd::RecordTest {
+                function,
+                result,
+                notes,
+            } => {
+                if !opendiag_engine::catalog::FUNCTIONS
+                    .iter()
+                    .any(|f| f.id == function)
+                {
+                    return Err(EngineError::Invalid(format!(
+                        "Unknown function {function}."
+                    )));
+                }
+                let e = self.engine();
+                if !e.is_connected() {
+                    return Err(EngineError::NotConnected);
+                }
+                e.record_result(
+                    &function,
+                    result,
+                    &notes.chars().take(2000).collect::<String>(),
+                );
+                to(serde_json::to_value(e.compat_status()?))?
+            }
             Cmd::HondaDisconnect => {
                 if let Some(mut h) = self.honda.lock().unwrap_or_else(|p| p.into_inner()).take() {
                     h.close();
@@ -763,6 +793,40 @@ mod tests {
         assert_eq!(
             a.call(
                 json!({"cmd":"connect","address":"kline-sim:sim-legacy:nope"}),
+                &|_, _| {}
+            )["kind"],
+            "invalid"
+        );
+    }
+
+    #[test]
+    fn hardware_test_results_are_recorded_per_os() {
+        let a = api();
+        assert_eq!(
+            a.call(
+                json!({"cmd":"record_test","function":"read_dtcs","result":"works","notes":""}),
+                &|_, _| {}
+            )["kind"],
+            "not_connected"
+        );
+        ok(&a, json!({"cmd":"connect","address":"sim:sim-car"}));
+        let s = ok(
+            &a,
+            json!({"cmd":"record_test","function":"live_data","result":"partial","notes":"rpm froze once"}),
+        );
+        let f = s["functions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f["id"] == "live_data")
+            .unwrap()
+            .clone();
+        assert_eq!(f["local_result"], "partial");
+        // Simulated sessions can never produce a hardware verification.
+        assert_eq!(f["best_verification"], "simulated");
+        assert_eq!(
+            a.call(
+                json!({"cmd":"record_test","function":"fly","result":"works","notes":""}),
                 &|_, _| {}
             )["kind"],
             "invalid"

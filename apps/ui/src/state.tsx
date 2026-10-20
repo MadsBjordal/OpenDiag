@@ -18,7 +18,8 @@ export type Page =
   | 'console'
   | 'simulator'
   | 'menu'
-  | 'connectors';
+  | 'connectors'
+  | 'hwtest';
 
 interface AppState {
   page: Page;

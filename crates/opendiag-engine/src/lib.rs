@@ -774,7 +774,7 @@ impl Engine {
     }
 
     /// Records the result of running a function with the current hardware.
-    pub(crate) fn record_result(&self, function: &str, result: TestResult, notes: &str) {
+    pub fn record_result(&self, function: &str, result: TestResult, notes: &str) {
         let Some(c) = &self.conn else { return };
         let vin = c.vin.as_deref().map(opendiag_obd::vin::decode);
         let simulated = c.simulated();

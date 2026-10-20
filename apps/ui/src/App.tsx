@@ -17,6 +17,7 @@ import SettingsPage from './pages/Settings';
 import Console from './pages/Console';
 import Simulator from './pages/Simulator';
 import Connectors from './pages/Connectors';
+import HardwareTest from './pages/HardwareTest';
 import { format } from './units';
 
 const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?: boolean }[] = [
@@ -31,6 +32,7 @@ const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?:
   { page: 'reports', icon: '📄', label: 'Reports' },
   { page: 'garage', icon: '🚗', label: 'My Garage' },
   { page: 'compat', icon: '✔', label: 'Compatibility' },
+  { page: 'hwtest', icon: '🧪', label: 'Hardware test' },
   { page: 'console', icon: '⌨', label: 'Expert console', expert: true },
   { page: 'settings', icon: '☰', label: 'Settings' },
 ];
@@ -75,6 +77,7 @@ export default function App() {
     console: <Console />,
     simulator: <Simulator />,
     connectors: <Connectors />,
+    hwtest: <HardwareTest />,
     menu: (
       <>
         <h1>{t('Menu')}</h1>
