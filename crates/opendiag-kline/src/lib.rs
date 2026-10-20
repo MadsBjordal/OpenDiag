@@ -33,7 +33,15 @@ pub const BAUD: u32 = 10400;
 /// ms at most, and spins through the last few ms.
 pub fn hold(d: Duration) {
     let end = Instant::now() + d;
+    // Short pulses (fast init) spin the whole time: sleeping can overshoot
+    // by several milliseconds. Long ones (5-baud bits) sleep, then spin.
     const SPIN: Duration = Duration::from_millis(6);
+    if d <= Duration::from_millis(50) {
+        while Instant::now() < end {
+            std::hint::spin_loop();
+        }
+        return;
+    }
     loop {
         let now = Instant::now();
         if now >= end {

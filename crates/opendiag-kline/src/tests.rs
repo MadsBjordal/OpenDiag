@@ -132,10 +132,15 @@ fn honda_experimental_mode() {
 
 #[test]
 fn hold_is_accurate_enough_for_fast_init() {
-    for _ in 0..5 {
-        let t = Instant::now();
-        hold(Duration::from_millis(25));
-        let ms = t.elapsed().as_secs_f64() * 1000.0;
-        assert!((25.0..27.0).contains(&ms), "{ms}");
-    }
+    // Median of five: a shared CI machine may pause the thread once, which
+    // is not something the code can prevent; a systematic error still fails.
+    let mut ms: Vec<f64> = (0..5)
+        .map(|_| {
+            let t = Instant::now();
+            hold(Duration::from_millis(25));
+            t.elapsed().as_secs_f64() * 1000.0
+        })
+        .collect();
+    ms.sort_by(f64::total_cmp);
+    assert!((25.0..26.0).contains(&ms[2]), "{ms:?}");
 }
