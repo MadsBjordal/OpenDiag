@@ -41,6 +41,8 @@ pub struct SimKLinePort {
     rx: VecDeque<u8>,
     /// (time, line low?) for every change of the line.
     edges: Vec<(Instant, bool)>,
+    /// The stretches of the last 5-baud decode (for test diagnostics).
+    last_runs_ms: Vec<u32>,
     pending: Vec<u8>,
     phase: Phase,
     /// Echo every byte (real K-line); switch off to test cables without echo.
@@ -73,6 +75,7 @@ impl SimKLinePort {
                 mode,
                 rx: VecDeque::new(),
                 edges: Vec::new(),
+                last_runs_ms: Vec::new(),
                 pending: Vec::new(),
                 phase: Phase::Asleep,
                 echo: true,
@@ -104,13 +107,23 @@ impl SimKLinePort {
                     .unwrap_or(false)
         });
         let Some(start) = start else { return };
-        // Decode by run length: each low/high stretch is rounded to whole
-        // 200 ms bits, so timing errors do not add up over the byte (sleeps
-        // overshoot on busy machines). Bits after the last change are high.
+        // Decode by run length. The bit time is taken from the shortest
+        // stretch (the start bit, or any single bit), so a slow sender (e.g.
+        // sleeps overshooting on a busy machine) still decodes; each stretch
+        // is then rounded to whole bits. Bits after the last change are high.
+        let runs: Vec<(bool, f64)> = self.edges[start..]
+            .windows(2)
+            .map(|w| (w[0].1, (w[1].0 - w[0].0).as_secs_f64() * 1000.0))
+            .collect();
+        self.last_runs_ms = runs.iter().map(|r| r.1.round() as u32).collect();
+        let unit = runs.iter().map(|r| r.1).fold(f64::INFINITY, f64::min);
+        if !(150.0..=400.0).contains(&unit) {
+            self.edges.clear();
+            return;
+        }
         let mut bits: Vec<bool> = Vec::new();
-        for w in self.edges[start..].windows(2) {
-            let n = ((w[1].0 - w[0].0).as_millis() as f64 / 200.0).round() as usize;
-            bits.extend(std::iter::repeat_n(w[0].1, n));
+        for (low, ms) in &runs {
+            bits.extend(std::iter::repeat_n(*low, (ms / unit).round() as usize));
         }
         bits.resize(bits.len().max(9), false);
         let mut addr = 0u8;
@@ -342,8 +355,8 @@ mod tests {
 
     #[test]
     fn five_baud_tolerates_slow_sleeps() {
-        // Busy machines (macOS CI) oversleep; 40 ms per bit adds up to 360 ms.
-        five_baud(Duration::from_millis(240));
+        // Busy machines (macOS CI) oversleep: half a bit more per bit here.
+        five_baud(Duration::from_millis(300));
     }
 
     fn five_baud(bit: Duration) {
@@ -364,6 +377,11 @@ mod tests {
         p.clear_input().unwrap();
         let mut buf = [0u8; 8];
         let n = p.read(&mut buf, Duration::from_millis(50)).unwrap();
-        assert_eq!(&buf[..n], &[0x55, 0x08, 0x08], "edges: {:?}", p.edges.len());
+        assert_eq!(
+            &buf[..n],
+            &[0x55, 0x08, 0x08],
+            "stretches (ms): {:?}",
+            p.last_runs_ms
+        );
     }
 }
