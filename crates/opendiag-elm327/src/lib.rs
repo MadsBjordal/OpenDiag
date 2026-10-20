@@ -96,20 +96,37 @@ impl Elm327 {
         let _ = self.link.write_all(b"\r");
         let _ = self.read_until_prompt(Duration::from_millis(300));
         let reset = self.adapter_raw("ATZ", self.timeouts.reset)?;
-        let identity = reset
-            .iter()
-            .find(|l| {
-                l.to_ascii_uppercase().contains("ELM") || l.contains("STN") || l.contains("OBD")
-            })
-            .cloned();
-        let identity = match identity {
+        // Known families name themselves; ELM327-compatible adapters from other
+        // makers (e.g. "vLinker FS …") may not mention ELM at all.
+        let known = |l: &str| {
+            let u = l.to_ascii_uppercase();
+            ["ELM", "STN", "OBD", "VLINKER", "VGATE"]
+                .iter()
+                .any(|k| u.contains(k))
+        };
+        let mut unnamed = None;
+        let identity = match reset.iter().find(|l| known(l)).cloned() {
             Some(i) => i,
             None => {
                 // ATZ may only echo; ask ATI.
-                let i = self.adapter_raw("ATI", self.timeouts.command)?;
-                i.into_iter()
-                    .find(|l| l.to_ascii_uppercase().contains("ELM"))
-                    .ok_or_else(|| ElmError::NotElm(reset.join(" ")))?
+                let i = self
+                    .adapter_raw("ATI", self.timeouts.command)
+                    .unwrap_or_default();
+                match i.iter().find(|l| known(l)).cloned() {
+                    Some(i) => i,
+                    None => {
+                        // Accept an adapter that names itself differently only if it
+                        // obeys the ELM327 command set (echo off answers OK).
+                        let name = i.into_iter().find(|l| l != "?" && !l.is_empty());
+                        match name {
+                            Some(n) if self.adapter_ok("ATE0")? => {
+                                unnamed = Some(n.clone());
+                                n
+                            }
+                            _ => return Err(ElmError::NotElm(reset.join(" "))),
+                        }
+                    }
+                }
             }
         };
         self.caps.identity = identity.trim().to_string();
@@ -118,6 +135,11 @@ impl Elm327 {
         } else {
             AdapterFamily::Elm327
         };
+        if let Some(n) = unnamed {
+            self.caps.notes.push(format!(
+                "Identifies itself as \"{n}\", not as an ELM327, but accepts ELM327 commands: treated as ELM327-compatible."
+            ));
+        }
         if self.caps.identity.contains("v1.5") {
             self.caps.clone_suspected = true;
             self.caps.notes.push(

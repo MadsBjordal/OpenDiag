@@ -153,6 +153,30 @@ fn rejects_a_device_that_is_not_an_elm() {
 }
 
 #[test]
+fn accepts_compatible_adapters_with_their_own_name() {
+    // An adapter that never says "ELM" but obeys the ELM327 commands.
+    let (link, _) = Scripted::new(&[
+        ("ATZ", "ACME Diag 2.1"),
+        ("ATI", "ACME Diag 2.1"),
+        ("ATE0", "OK"),
+        ("ATE0", "OK"),
+        ("*", "OK"),
+        ("*", "OK"),
+        ("*", "OK"),
+        ("*", "?"),
+        ("*", "?"),
+        ("*", "12.6V"),
+    ]);
+    let elm = Elm327::open_with(Box::new(link), fast()).unwrap();
+    assert_eq!(elm.capabilities().identity, "ACME Diag 2.1");
+    assert!(elm
+        .capabilities()
+        .notes
+        .iter()
+        .any(|n| n.contains("ELM327-compatible")));
+}
+
+#[test]
 fn connects_on_can_and_reads_two_ecus() {
     let (mut elm, _) = open(&[
         ("ATSP0", "OK"),
