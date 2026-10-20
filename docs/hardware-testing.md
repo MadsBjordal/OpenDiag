@@ -46,3 +46,15 @@ recorded as *simulated* and never counts as hardware verification.
 3. Compatibility → Offline snapshots → Export snapshot, and attach it plus the
    log to a GitHub issue using the "Compatibility report" template.
 4. A maintainer adds the row to compatibility.md for that OS.
+
+## The owner's test vehicles (2026-10-20)
+
+| Vehicle | Connector | Plan |
+| --- | --- | --- |
+| Toyota GT86, 2014 | 16-pin OBD-II (CAN) | First test: generic scan with the Vgate vLinker FS USB on Windows, then Android. |
+| Audi A4 TDI, 2022 | 16-pin OBD-II (CAN) | Generic scan incl. diesel readiness; first candidate for the configuration subsystem (check for SFD gateway protection: if present, writes need the manufacturer's official unlock; never bypassed). |
+| Honda Africa Twin CRF1100L, 2021 | Euro 5 6-pin (ISO 19689), per the catalog | Generic scan through a 6-pin to 16-pin cable: the first motorcycle result. Confirm the socket on the bike. |
+| Honda CB1100 EX, 2014 | Honda 4-pin red DLC (PGM-FI) | Blink codes with an SCS jumper; experimental Honda K-line mode with a KKL FTDI cable. |
+| Husqvarna Nuda 900R, first model year (about 2012) | Not confirmed (possibly BMW Motorrad round 10-pin, unsupported) | Identify the socket first. |
+
+Adapters on hand: Vgate vLinker FS USB (arriving 2026-10-21).
