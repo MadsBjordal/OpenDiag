@@ -28,14 +28,22 @@ use std::time::{Duration, Instant};
 
 pub const BAUD: u32 = 10400;
 
-/// Waits `d` accurately enough for K-line timing (sleep, then spin for the last ms).
+/// Waits `d` accurately enough for K-line timing (the fast-init pulse must be
+/// 25 ± 1 ms). Sleeps in 1 ms steps, which operating systems overshoot by a few
+/// ms at most, and spins through the last few ms.
 pub fn hold(d: Duration) {
     let end = Instant::now() + d;
-    if d > Duration::from_millis(3) {
-        std::thread::sleep(d - Duration::from_millis(2));
-    }
-    while Instant::now() < end {
-        std::hint::spin_loop();
+    const SPIN: Duration = Duration::from_millis(6);
+    loop {
+        let now = Instant::now();
+        if now >= end {
+            return;
+        }
+        if end - now > SPIN {
+            std::thread::sleep(Duration::from_millis(1));
+        } else {
+            std::hint::spin_loop();
+        }
     }
 }
 
@@ -271,10 +279,15 @@ impl KLineObd {
         self.idle_bus()?;
         self.note("Fast init: K-line low 25 ms, high 25 ms".into());
         self.clear()?;
+        let pulse = Instant::now();
         self.port.set_break(true).map_err(kerr)?;
         hold(Duration::from_millis(25));
         self.port.set_break(false).map_err(kerr)?;
+        let low_ms = pulse.elapsed().as_secs_f64() * 1000.0;
         hold(Duration::from_millis(25));
+        self.note(format!(
+            "Wake-up pulse measured {low_ms:.1} ms (standard: 25 ± 1 ms)"
+        ));
         self.clear()?;
         self.send(&frame::KWP_START_COMMUNICATION, false)?;
         let raw = self.receive()?;

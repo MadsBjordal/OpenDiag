@@ -129,3 +129,13 @@ fn honda_experimental_mode() {
     assert!(h.wake(Wake::FfFf).unwrap().awake);
     assert!(h.read_table(0x10).is_ok());
 }
+
+#[test]
+fn hold_is_accurate_enough_for_fast_init() {
+    for _ in 0..5 {
+        let t = Instant::now();
+        hold(Duration::from_millis(25));
+        let ms = t.elapsed().as_secs_f64() * 1000.0;
+        assert!((25.0..27.0).contains(&ms), "{ms}");
+    }
+}
