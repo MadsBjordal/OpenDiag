@@ -350,30 +350,36 @@ mod tests {
 
     #[test]
     fn decodes_five_baud_address() {
-        five_baud(Duration::from_millis(200));
+        five_baud(&[200; 9]);
     }
 
     #[test]
-    fn five_baud_tolerates_slow_sleeps() {
-        // Busy machines (macOS CI) oversleep: half a bit more per bit here.
-        five_baud(Duration::from_millis(300));
+    fn five_baud_tolerates_a_slow_sender() {
+        // Every bit half a bit long, with jitter.
+        five_baud(&[300, 310, 290, 305, 300, 295, 300, 310, 300]);
     }
 
-    fn five_baud(bit: Duration) {
+    /// Feeds the line changes of address 0x33 (start bit + 8 data bits, then
+    /// the stop bit) with exact timestamps, so the test does not depend on how
+    /// well the machine sleeps. Real-time wake-ups are tested in opendiag-kline.
+    fn five_baud(bit_ms: &[u64; 9]) {
         let (mut p, _) = SimKLinePort::new(
             profiles::legacy_car(),
             SimSettings::default(),
             SimKLineMode::Iso9141,
         );
-        p.set_break(false).unwrap();
-        p.set_break(true).unwrap();
-        std::thread::sleep(bit);
-        for i in 0..8 {
-            p.set_break((0x33u8 >> i) & 1 == 0).unwrap();
-            std::thread::sleep(bit);
+        let total: u64 = bit_ms.iter().sum::<u64>() + 300;
+        let mut t = Instant::now() - Duration::from_millis(total);
+        p.edges.push((t, false));
+        // Line level per bit: start bit low, then data LSB first (0 = low).
+        let low = |k: usize| k == 0 || (0x33u8 >> (k - 1)) & 1 == 0;
+        for (k, ms) in bit_ms.iter().enumerate() {
+            if p.edges.last().map(|e| e.1) != Some(low(k)) {
+                p.edges.push((t, low(k)));
+            }
+            t += Duration::from_millis(*ms);
         }
-        p.set_break(false).unwrap();
-        std::thread::sleep(bit);
+        p.edges.push((t, false));
         p.clear_input().unwrap();
         let mut buf = [0u8; 8];
         let n = p.read(&mut buf, Duration::from_millis(50)).unwrap();
