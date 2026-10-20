@@ -25,7 +25,8 @@ android {
         // Android accepts each new build as an update.
         versionCode = System.getenv("OPENDIAG_VERSION_CODE")?.toInt()
             ?: tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
-        versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+        versionName = System.getenv("OPENDIAG_RELEASE")
+            ?: tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
     // The project's own signing key (never in the repository): the release workflow
     // writes it from GitHub secrets. Every build signed with it can update the last one.
