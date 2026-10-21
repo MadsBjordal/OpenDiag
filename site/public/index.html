@@ -121,9 +121,10 @@ OpenDiag never programs or codes control units. Use it only on vehicles you own 
 // GitHub's "latest" link skips). Falls back to the releases page.
 (async () => {
   try {
-    const r = await fetch('https://api.github.com/repos/MadsBjordal/OpenDiag/releases?per_page=10');
+    const r = await fetch('https://api.github.com/repos/MadsBjordal/OpenDiag/releases?per_page=50');
     if (!r.ok) return;
-    const rel = (await r.json()).find((x) => !x.draft && x.assets.length);
+    // Newest by date: GitHub's list order is not by date.
+    const rel = (await r.json()).filter((x) => !x.draft && x.assets.length).sort((a, b) => (b.published_at || '').localeCompare(a.published_at || ''))[0];
     if (!rel) return;
     const win = rel.assets.find((a) => a.name.endsWith('.exe'));
     const apk = rel.assets.find((a) => a.name.endsWith('.apk'));

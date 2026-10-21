@@ -62,13 +62,15 @@ fn asset_for<'a>(r: &'a GhRelease, platform: &str) -> Option<&'a GhAsset> {
     })
 }
 
-/// Picks the newest release with a file for this platform (GitHub lists the
-/// newest first) and says whether it differs from the running build.
+/// Picks the newest release with a file for this platform, by publication
+/// time (GitHub's list order is not by date: it put test-build-10 after
+/// test-build-5), and says whether it differs from the running build.
 pub fn choose(releases: &[GhRelease], current: Option<&str>, platform: &str) -> UpdateInfo {
     let newest = releases
         .iter()
         .filter(|r| !r.draft)
-        .find_map(|r| asset_for(r, platform).map(|a| (r, a)));
+        .filter_map(|r| asset_for(r, platform).map(|a| (r, a)))
+        .max_by(|(a, _), (b, _)| a.published_at.cmp(&b.published_at));
     let mut info = UpdateInfo {
         current: current.map(str::to_string),
         available: false,
@@ -114,7 +116,7 @@ pub fn check(platform: &str) -> Result<UpdateInfo, String> {
     let current = current_release();
     let releases: Vec<GhRelease> = agent()
         .get(&format!(
-            "https://api.github.com/repos/{REPO}/releases?per_page=10"
+            "https://api.github.com/repos/{REPO}/releases?per_page=50"
         ))
         .set("Accept", "application/vnd.github+json")
         .call()
@@ -204,7 +206,12 @@ mod tests {
             tag_name: tag.into(),
             name: Some(tag.into()),
             draft,
-            published_at: None,
+            published_at: Some(format!(
+                "2026-10-{:02}T12:00:00Z",
+                tag.trim_start_matches("test-build-")
+                    .parse::<u32>()
+                    .unwrap_or(1)
+            )),
             html_url: format!("https://github.com/{REPO}/releases/tag/{tag}"),
             body: Some("### Added\n- Things\n\n---\nInstall notes".into()),
             assets: files
@@ -241,6 +248,25 @@ mod tests {
         // Development builds never get an update offered.
         assert!(!choose(&list, None, "windows").available);
         assert!(!choose(&list, Some("test-build-1"), "linux").available);
+    }
+
+    #[test]
+    fn newest_by_date_not_by_list_order() {
+        // The order GitHub returned on 2026-10-21.
+        let list: Vec<_> = [9, 8, 7, 6, 5, 10, 4]
+            .iter()
+            .map(|n| {
+                rel(
+                    &format!("test-build-{n}"),
+                    &["OpenDiag_0.1.0_x64-setup.exe", "a.apk"],
+                    false,
+                )
+            })
+            .collect();
+        let w = choose(&list, Some("test-build-9"), "windows");
+        assert_eq!(w.tag.as_deref(), Some("test-build-10"));
+        assert!(w.available);
+        assert!(!choose(&list, Some("test-build-10"), "android").available);
     }
 
     #[test]
