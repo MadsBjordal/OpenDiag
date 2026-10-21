@@ -63,47 +63,80 @@ impl SerialLink {
 
     /// Opens the port at the first baud rate where an adapter answers `ATI`
     /// (an adapter-only identification command; nothing reaches the vehicle).
+    /// If none answers, the error says what came back at each speed.
     pub fn open_auto(path: &str, kind: LinkKind) -> Result<(Self, u32), LinkError> {
-        let mut last = None;
+        let mut seen = Vec::new();
         for baud in BAUD_RATES {
             match Self::open(path, baud, kind) {
-                Ok(mut link) => {
-                    if link.answers_ati() {
-                        return Ok((link, baud));
-                    }
-                    last = Some(LinkError::Open(format!(
-                        "{path}: no ELM327-compatible answer at any common speed"
-                    )));
-                }
+                Ok(mut link) => match link.probe() {
+                    Ok(()) => return Ok((link, baud)),
+                    Err(got) => seen.push(format!("{baud}: {}", describe(&got))),
+                },
                 Err(e @ LinkError::Permission(_)) => return Err(e),
-                Err(e) => last = Some(e),
+                Err(e) => seen.push(format!("{baud}: {e}")),
             }
         }
-        Err(last.unwrap_or_else(|| LinkError::Open(path.into())))
+        Err(LinkError::Open(format!(
+            "{path}: no ELM327-compatible answer at any common speed. Is the adapter plugged into \
+             the vehicle with the ignition on? (Most adapters are powered by the vehicle, not by USB.) \
+             Received: {}",
+            seen.join("; ")
+        )))
     }
 
-    fn answers_ati(&mut self) -> bool {
-        let _ = self.port.clear(serialport::ClearBuffer::All);
-        if self.write_all(b"\rATI\r").is_err() {
-            return false;
-        }
-        let deadline = Instant::now() + Duration::from_millis(1200);
+    /// Asks `ATI`; returns what arrived when it is not an ELM327-style answer.
+    fn probe(&mut self) -> Result<(), Vec<u8>> {
+        // Some adapters reset when the port opens: power the control lines,
+        // give them a moment, and ask twice before giving up on this speed.
+        let _ = self.port.write_data_terminal_ready(true);
+        let _ = self.port.write_request_to_send(true);
+        std::thread::sleep(Duration::from_millis(200));
         let mut got = Vec::new();
-        let mut buf = [0u8; 128];
-        while Instant::now() < deadline {
-            match self.read(&mut buf, Duration::from_millis(100)) {
-                Ok(n) => got.extend_from_slice(&buf[..n]),
-                Err(_) => return false,
+        for attempt in 0..2 {
+            let _ = self.port.clear(serialport::ClearBuffer::All);
+            if self.write_all(b"\rATI\r").is_err() {
+                return Err(got);
             }
-            if looks_like_elm(&got) {
-                // Let the rest of the answer arrive, then drop it.
-                std::thread::sleep(Duration::from_millis(100));
-                let _ = self.port.clear(serialport::ClearBuffer::Input);
-                return true;
+            got.clear();
+            let deadline =
+                Instant::now() + Duration::from_millis(if attempt == 0 { 1500 } else { 1000 });
+            let mut buf = [0u8; 128];
+            while Instant::now() < deadline {
+                match self.read(&mut buf, Duration::from_millis(100)) {
+                    Ok(n) => got.extend_from_slice(&buf[..n]),
+                    Err(_) => return Err(got),
+                }
+                if looks_like_elm(&got) {
+                    // Let the rest of the answer arrive, then drop it.
+                    std::thread::sleep(Duration::from_millis(100));
+                    let _ = self.port.clear(serialport::ClearBuffer::Input);
+                    return Ok(());
+                }
+            }
+            if !got.is_empty() {
+                break; // something answered, just not like an ELM327
             }
         }
-        false
+        Err(got)
     }
+}
+
+/// A short, readable summary of bytes received during the speed check.
+pub fn describe(got: &[u8]) -> String {
+    if got.is_empty() {
+        return "no reply".into();
+    }
+    let text: String = got
+        .iter()
+        .take(40)
+        .map(|b| match b {
+            b'\r' => "\\r".to_string(),
+            b'\n' => "\\n".to_string(),
+            0x20..=0x7E => (*b as char).to_string(),
+            _ => format!("<{b:02X}>"),
+        })
+        .collect();
+    format!("{} byte(s) \"{text}\"", got.len())
 }
 
 impl ByteLink for SerialLink {
@@ -247,6 +280,13 @@ impl opendiag_core::KLinePort for SerialKLine {
 #[cfg(test)]
 mod tests {
     use super::looks_like_elm;
+
+    #[test]
+    fn describes_what_arrived() {
+        assert_eq!(super::describe(b""), "no reply");
+        assert_eq!(super::describe(b"OK\r>"), "4 byte(s) \"OK\\r>\"");
+        assert_eq!(super::describe(&[0xF0, b'A']), "2 byte(s) \"<F0>A\"");
+    }
 
     #[test]
     fn recognises_elm_compatible_answers() {
