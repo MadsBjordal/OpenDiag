@@ -1165,6 +1165,67 @@
    "driving_advice": "A flashing check-engine light means severe misfire that can damage the catalyst: reduce load and have it checked."
   },
   {
+   "code": "P0320",
+   "title": "Ignition / distributor engine speed input circuit",
+   "plain": "The engine computer sees a problem with the engine speed signal (on most modern engines it comes from the crankshaft position sensor).",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Inspect the crankshaft sensor connector and wiring",
+    "Check the sensor's signal with an oscilloscope or meter against specification"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
+   "code": "P0321",
+   "title": "Ignition / distributor engine speed input circuit range/performance",
+   "plain": "The engine speed signal is present but does not make sense, for example it drops out or jumps.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor, its air gap and the trigger wheel",
+    "Check the wiring for chafing near hot or moving parts"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
+   "code": "P0322",
+   "title": "Ignition / distributor engine speed input circuit no signal",
+   "plain": "The engine computer received no engine speed signal at a moment it expected one. On most modern engines this signal comes from the crankshaft position sensor.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Inspect the crankshaft sensor connector and wiring for damage, corrosion and loose pins",
+    "Measure the sensor (resistance or signal) against specification",
+    "Check the battery and charging voltage"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
    "code": "P0325",
    "title": "Knock sensor 1 circuit (bank 1 or single sensor)",
    "plain": "There is an electrical problem in the knock sensor circuit.",
@@ -1201,6 +1262,86 @@
    "driving_advice": "The engine may stall or not start."
   },
   {
+   "code": "P0336",
+   "title": "Crankshaft position sensor \"A\" circuit range/performance",
+   "plain": "The crankshaft sensor signal is present but irregular or implausible.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Inspect the sensor, its mounting and the trigger wheel",
+    "Check the wiring and connector"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
+   "code": "P0337",
+   "title": "Crankshaft position sensor \"A\" circuit low",
+   "plain": "The crankshaft sensor signal stays too low, usually an electrical fault.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Check the wiring for a short to ground",
+    "Inspect the connector"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
+   "code": "P0338",
+   "title": "Crankshaft position sensor \"A\" circuit high",
+   "plain": "The crankshaft sensor signal stays too high, usually an electrical fault.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Check the wiring for an open circuit or a short to voltage",
+    "Inspect the connector"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
+   "code": "P0339",
+   "title": "Crankshaft position sensor \"A\" circuit intermittent",
+   "plain": "The crankshaft sensor signal comes and goes.",
+   "severity": "high",
+   "possible_causes": [
+    "Faulty crankshaft position (engine speed) sensor",
+    "Damaged wiring or a loose/corroded connector at the sensor",
+    "Dirt or metal debris on the sensor tip, or a damaged reluctor (trigger) wheel",
+    "Low battery voltage during cranking (uncommon)"
+   ],
+   "suggested_tests": [
+    "Wiggle-test the wiring and connector while watching engine speed",
+    "Inspect for chafed wiring"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": "The engine may cut out or not start. Avoid driving in traffic until it is checked."
+  },
+  {
    "code": "P0340",
    "title": "Camshaft position sensor \"A\" circuit (bank 1 or single sensor)",
    "plain": "The engine computer has a problem with the camshaft position signal.",
@@ -1213,6 +1354,83 @@
    "suggested_tests": [
     "Inspect the sensor connector",
     "Check for crank/cam correlation codes"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0341",
+   "title": "Camshaft position sensor \"A\" circuit range/performance (bank 1 or single sensor)",
+   "plain": "The camshaft sensor signal is present but does not match the crankshaft signal as expected.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft position (Hall) sensor",
+    "Damaged wiring, a loose/corroded connector, or a supply/ground fault shared with other sensors",
+    "Camshaft timing out of position (worn or jumped timing belt/chain) for range/performance faults"
+   ],
+   "suggested_tests": [
+    "Inspect the camshaft sensor and wiring",
+    "If the code returns, have the camshaft timing (belt/chain) checked"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0342",
+   "title": "Camshaft position sensor \"A\" circuit low (bank 1 or single sensor)",
+   "plain": "The camshaft sensor signal stays too low, usually an electrical fault.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft position (Hall) sensor",
+    "Damaged wiring, a loose/corroded connector, or a supply/ground fault shared with other sensors",
+    "Camshaft timing out of position (worn or jumped timing belt/chain) for range/performance faults"
+   ],
+   "suggested_tests": [
+    "Check the wiring for a short to ground",
+    "Check the sensor's supply voltage"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0343",
+   "title": "Camshaft position sensor \"A\" circuit high (bank 1 or single sensor)",
+   "plain": "The camshaft sensor signal stays too high, usually an open circuit, a bad connection or a sensor fault.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft position (Hall) sensor",
+    "Damaged wiring, a loose/corroded connector, or a supply/ground fault shared with other sensors",
+    "Camshaft timing out of position (worn or jumped timing belt/chain) for range/performance faults"
+   ],
+   "suggested_tests": [
+    "Inspect the camshaft sensor connector and wiring for an open circuit",
+    "Check the sensor's supply and ground",
+    "Replace the sensor only after the wiring checks out"
+   ],
+   "related_measurements": [
+    "rpm"
+   ],
+   "driving_advice": null
+  },
+  {
+   "code": "P0344",
+   "title": "Camshaft position sensor \"A\" circuit intermittent (bank 1 or single sensor)",
+   "plain": "The camshaft sensor signal comes and goes.",
+   "severity": "moderate",
+   "possible_causes": [
+    "Faulty camshaft position (Hall) sensor",
+    "Damaged wiring, a loose/corroded connector, or a supply/ground fault shared with other sensors",
+    "Camshaft timing out of position (worn or jumped timing belt/chain) for range/performance faults"
+   ],
+   "suggested_tests": [
+    "Wiggle-test the wiring and connector",
+    "Inspect for chafed wiring near the timing cover"
    ],
    "related_measurements": [
     "rpm"
@@ -1714,6 +1932,21 @@
    "driving_advice": null
   },
   {
+   "code": "P0A80",
+   "title": "Replace hybrid battery pack",
+   "plain": "The hybrid system computer reports that the high-voltage battery pack is degraded.",
+   "severity": "high",
+   "possible_causes": [
+    "Weak cells or modules in the hybrid battery",
+    "Battery cooling problem"
+   ],
+   "suggested_tests": [
+    "Have the high-voltage system checked by a qualified professional"
+   ],
+   "related_measurements": [],
+   "driving_advice": "High-voltage systems can be lethal. Do not open the battery or orange cables without training."
+  },
+  {
    "code": "P2002",
    "title": "Diesel particulate filter efficiency below threshold (bank 1)",
    "plain": "The diesel particulate filter does not seem to be trapping soot properly.",
@@ -1786,21 +2019,6 @@
    ],
    "related_measurements": [],
    "driving_advice": null
-  },
-  {
-   "code": "P0A80",
-   "title": "Replace hybrid battery pack",
-   "plain": "The hybrid system computer reports that the high-voltage battery pack is degraded.",
-   "severity": "high",
-   "possible_causes": [
-    "Weak cells or modules in the hybrid battery",
-    "Battery cooling problem"
-   ],
-   "suggested_tests": [
-    "Have the high-voltage system checked by a qualified professional"
-   ],
-   "related_measurements": [],
-   "driving_advice": "High-voltage systems can be lethal. Do not open the battery or orange cables without training."
   },
   {
    "code": "U0100",

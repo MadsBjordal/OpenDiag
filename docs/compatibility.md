@@ -12,7 +12,7 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 
 | Function | Windows | Android | Linux |
 | --- | --- | --- | --- |
-| USB / USB-C serial adapter (ELM327-compatible) | Not hardware-verified | Not hardware-verified (USB host bridge) | Not hardware-verified |
+| USB / USB-C serial adapter (ELM327-compatible) | Implemented and tested (vLinker FS USB, 2026-10-21) | Not hardware-verified (USB host bridge) | Not hardware-verified |
 | Bluetooth Classic adapter | Not hardware-verified (paired COM port) | Not hardware-verified (RFCOMM bridge) | Partially (bind with `rfcomm` first) |
 | Bluetooth Low Energy adapter | Planned | Planned | Planned |
 | Raw K-line cable (KKL / FTDI), generic OBD-II, fast and 5-baud init | Not hardware-verified | Not hardware-verified (USB OTG) | Not hardware-verified |
@@ -21,14 +21,14 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | Trucks, buses, machines (SAE J1939): engine values, hours, distance, VIN | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Wi-Fi / Ethernet (TCP) adapter | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | SAE J2534 PassThru | Planned | Unsupported | Unsupported |
-| Adapter identification and capability probe | Not hardware-verified | Not hardware-verified | Not hardware-verified |
+| Adapter identification and capability probe | Implemented and tested (STN1170, 2026-10-21) | Not hardware-verified | Not hardware-verified |
 | Generic OBD-II: VIN, calibration IDs, ECU names | Not hardware-verified | Not hardware-verified | Not hardware-verified |
-| Stored, pending, permanent fault codes | Not hardware-verified | Not hardware-verified | Not hardware-verified |
-| Freeze frame | Not hardware-verified | Not hardware-verified | Not hardware-verified |
-| Readiness monitors, MIL | Not hardware-verified | Not hardware-verified | Not hardware-verified |
+| Stored, pending, permanent fault codes | Implemented and tested: stored codes on ISO 9141-2 (pending: none present; permanent: not supported by that car) | Not hardware-verified | Not hardware-verified |
+| Freeze frame | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
+| Readiness monitors, MIL | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
 | Live data (standard PIDs) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Clear emissions codes (with safety checks) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
-| Reports, history, compatibility database, guided diagnostics (no vehicle hardware involved) | Not verified: the Windows app has not been run yet | Not verified: the APK builds but has not been run on a phone yet | Implemented and tested (desktop app driven by WebDriver, browser tests) |
+| Reports, history, compatibility database, guided diagnostics (no vehicle hardware involved) | Reports: implemented and tested (real scan saved and exported as JSON, 2026-10-21); the rest not verified yet | Not verified: the APK builds but has not been run on a phone yet | Implemented and tested (desktop app driven by WebDriver, browser tests) |
 | Manufacturer modules (UDS, read only) | Planned | Planned | Planned |
 | Vehicle configuration (levels 2–3) | Planned (no verified operations) | Planned | Planned |
 | ECU programming, security access, immobiliser (level 4) | Unsupported | Unsupported | Unsupported |
@@ -47,7 +47,7 @@ Kept **separately per operating system**. Add a row only after running the
 
 | Date | Adapter (+ firmware) | Link | Vehicle (make/model/year, ECU ids) | Protocol | Functions passed | Tester | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| – | *none yet* | | | | | | |
+| 2026-10-21 | Vgate vLinker FS USB (STN1170 v4.3.2, reports "ELM327 v2.3"; FTDI 0403:6015) | USB, COM10 @ 115200 | Škoda, petrol, model/year not recorded; engine ECU 036906034KE 7450; no VIN reported | ISO 9141-2 (K-line) | Connect, adapter probe, stored codes (P0322, P0343), freeze frame, readiness (7 monitors), PIDs during scan, report export. *Partial: scan only; the hardware test protocol is still to be run.* | Owner | Report JSON (opendiag-report-1.json), Test build 7 |
 
 ### Android
 
