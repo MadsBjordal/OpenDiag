@@ -29,6 +29,8 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | Live data (standard PIDs) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Clear emissions codes (with safety checks) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Reports, history, compatibility database, guided diagnostics (no vehicle hardware involved) | Reports: implemented and tested (real scan saved and exported as JSON, 2026-10-21); the rest not verified yet | Not verified: the APK builds but has not been run on a phone yet | Implemented and tested (desktop app driven by WebDriver, browser tests) |
+| Update prompt and silent update | Implemented and tested (Test build 7 → 8, 2026-10-21) | Implemented but not hardware-verified | Unsupported (development builds are not updated) |
+| Fault code titles (generic + manufacturer, offline) | Implemented and tested (P0322/P0343 on a real scan, Test build 8) | Implemented but not hardware-verified | Implemented and tested (unit tests; no vehicle needed) |
 | Manufacturer modules (UDS, read only) | Planned | Planned | Planned |
 | Vehicle configuration (levels 2–3) | Planned (no verified operations) | Planned | Planned |
 | ECU programming, security access, immobiliser (level 4) | Unsupported | Unsupported | Unsupported |
