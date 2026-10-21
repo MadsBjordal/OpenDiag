@@ -11,24 +11,24 @@ criteria on real hardware (see [hardware-testing.md](hardware-testing.md)).
 
 | # | Criterion | Windows | Android | Simulator |
 | --- | --- | --- | --- | --- |
-| 1 | Connect to a compatible physical OBD-II adapter | 🔶 serial (USB + paired BT COM), TCP | 🔶 USB host bridge, BT RFCOMM, TCP | ✅ |
-| 2 | Identify available generic capabilities | 🔶 | 🔶 | ✅ |
-| 3 | Read actual supported fault codes | 🔶 | 🔶 | ✅ |
-| 4 | Read supported live measurements | 🔶 | 🔶 | ✅ |
-| 5 | Clear applicable codes after explicit confirmation | 🔶 | 🔶 | ✅ |
-| 6 | Save and reopen a report | 🔶 (app build not yet run on Windows) | 🔶 | ✅ |
-| 7 | Work entirely offline | 🔶 (no network code paths) | 🔶 | ✅ |
-| 8 | Same workflows against simulated vehicles | 🔶 | 🔶 | ✅ (4 profiles) |
-| 9 | Display adapter/vehicle compatibility status | 🔶 | 🔶 | ✅ |
+| 1 | Connect to a compatible physical OBD-II adapter | ✅ USB (vLinker FS, 2026-10-21); 🔶 Bluetooth, TCP | 🔶 USB host bridge, BT RFCOMM, TCP | ✅ |
+| 2 | Identify available generic capabilities | ✅ | 🔶 | ✅ |
+| 3 | Read actual supported fault codes | ✅ (ISO 9141-2; CAN still to test) | 🔶 | ✅ |
+| 4 | Read supported live measurements | ✅ | 🔶 | ✅ |
+| 5 | Clear applicable codes after explicit confirmation | ✅ (refused while running, cleared engine off) | 🔶 | ✅ |
+| 6 | Save and reopen a report | ✅ | 🔶 | ✅ |
+| 7 | Work entirely offline | ✅ (update check and sharing are optional) | 🔶 | ✅ |
+| 8 | Same workflows against simulated vehicles | ✅ | 🔶 | ✅ (4 profiles) |
+| 9 | Display adapter/vehicle compatibility status | ✅ | 🔶 | ✅ |
 
 ### Remaining Phase 1 work
 
 | Item | Acceptance criteria |
 | --- | --- |
-| ⬜ Windows hardware run | All nine tests in hardware-testing.md pass with ≥ 1 USB and ≥ 1 Bluetooth adapter on Windows 10 or 11; results recorded in compatibility.md (Windows table). |
+| 🔶 Windows hardware run (USB done 2026-10-21; a Bluetooth adapter still to test) | All nine tests in hardware-testing.md pass with ≥ 1 USB and ≥ 1 Bluetooth adapter on Windows 10 or 11; results recorded in compatibility.md (Windows table). |
 | ⬜ Android hardware run | Same with ≥ 1 USB-C (OTG) and ≥ 1 Bluetooth adapter on Android 10+; recorded in the Android table. |
-| ⬜ Windows installer in CI | CI produces an NSIS/MSI installer; it installs and starts on a clean Windows 11 VM. |
-| ⬜ Signed Android release APK | Release build signed with the project key; installs on Android 8–15. |
+| 🔶 Windows installer in CI (built on every release, installs and updates on the owner's PC; clean-VM check not done) | CI produces an NSIS/MSI installer; it installs and starts on a clean Windows 11 VM. |
+| 🔶 Signed Android release APK (signed with the project key; not yet installed on a phone) | Release build signed with the project key; installs on Android 8–15. |
 | ⬜ Browser end-to-end tests in CI | Playwright runs the simulator flow on every pull request. |
 
 ## Phase 2 — broad connectivity

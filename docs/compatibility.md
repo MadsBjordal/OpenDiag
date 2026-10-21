@@ -26,8 +26,8 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | Stored, pending, permanent fault codes | Implemented and tested: stored codes on ISO 9141-2 (pending: none present; permanent: not supported by that car) | Not hardware-verified | Not hardware-verified |
 | Freeze frame | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
 | Readiness monitors, MIL | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
-| Live data (standard PIDs) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
-| Clear emissions codes (with safety checks) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
+| Live data (standard PIDs) | Implemented and tested (ISO 9141-2: 16 readings in 20 s, 0 errors) | Not hardware-verified | Not hardware-verified |
+| Clear emissions codes (with safety checks) | Implemented and tested (refused with the engine running, cleared with the engine off) | Not hardware-verified | Not hardware-verified |
 | Reports, history, compatibility database, guided diagnostics (no vehicle hardware involved) | Reports: implemented and tested (real scan saved and exported as JSON, 2026-10-21); the rest not verified yet | Not verified: the APK builds but has not been run on a phone yet | Implemented and tested (desktop app driven by WebDriver, browser tests) |
 | Update prompt and silent update | Implemented and tested (Test build 7 → 8, 2026-10-21) | Implemented but not hardware-verified | Unsupported (development builds are not updated) |
 | Fault code titles (generic + manufacturer, offline) | Implemented and tested (P0322/P0343 on a real scan, Test build 8) | Implemented but not hardware-verified | Implemented and tested (unit tests; no vehicle needed) |
@@ -49,7 +49,7 @@ Kept **separately per operating system**. Add a row only after running the
 
 | Date | Adapter (+ firmware) | Link | Vehicle (make/model/year, ECU ids) | Protocol | Functions passed | Tester | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2026-10-21 | Vgate vLinker FS USB (STN1170 v4.3.2, reports "ELM327 v2.3"; FTDI 0403:6015) | USB, COM10 @ 115200 | Škoda, petrol, model/year not recorded; engine ECU 036906034KE 7450; no VIN reported | ISO 9141-2 (K-line) | Connect, adapter probe, stored codes (P0322, P0343), freeze frame, readiness (7 monitors), PIDs during scan, report export. *Partial: scan only; the hardware test protocol is still to be run.* | Owner | Report JSON (opendiag-report-1.json), Test build 7 |
+| 2026-10-21 | Vgate vLinker FS USB (STN1170 v4.3.2, reports "ELM327 v2.3"; FTDI 0403:6015) | USB, COM10 @ 115200 | Škoda, petrol, model/year not recorded; engine ECU 036906034KE 7450; no VIN reported | ISO 9141-2 (K-line) | Scan (Test build 7): connect, adapter probe, stored codes (P0322, P0343), freeze frame, readiness (7 monitors), report export. Hardware test protocol (Test build 8): all 9 steps passed (live data 16 readings / 0 errors, clear refused with engine running and done with engine off, PDF report reopened, offline, disconnect and reconnect). Not applicable: VIN (the car reports none). | Owner | opendiag-report-1.json, opendiag-hardware-test.md |
 
 ### Android
 

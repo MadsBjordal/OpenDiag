@@ -106,11 +106,23 @@ export default function HardwareTest() {
       notes: '',
     });
     if (r.dtcs.length > 0) {
+      // A vehicle usually keeps one freeze frame (for the first fault); none is
+      // not a failure of OpenDiag, so it is noted but not recorded as a result.
+      const ff = r.freeze_frames.length > 0;
       await record({
         test: '4c Freeze frame',
-        fn: 'read_freeze_frame',
-        outcome: r.freeze_frames.length > 0 ? 'works' : 'partial',
-        notes: r.freeze_frames.length ? '' : 'codes present but no freeze frame',
+        fn: ff ? 'read_freeze_frame' : undefined,
+        outcome: ff ? 'works' : 'not_supported',
+        notes: ff ? '' : 'codes present, the vehicle stored no freeze frame',
+      });
+    }
+    if (!r.vehicle.vin) {
+      // Nothing to compare: many cars before about 2005 do not report the VIN.
+      await record({
+        test: '4d VIN reported by the vehicle',
+        fn: 'read_vehicle_info',
+        outcome: 'not_supported',
+        notes: r.vehicle.calibration_ids.length ? 'no VIN; calibration ID read' : 'no VIN',
       });
     }
   });
