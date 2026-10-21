@@ -6,7 +6,8 @@
   "name": "opendiag-data",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
-  // Created on the first deploy if it does not exist yet.
-  "d1_databases": [{ "binding": "DB", "database_name": "opendiag-data" }],
+  // Pinned to the database the first deploy created (2026-10-21), so a
+  // redeploy can never start a new, empty one.
+  "d1_databases": [{ "binding": "DB", "database_name": "opendiag-data", "database_id": "8ce84578-7729-48ad-a816-ef191babcf6c" }],
   "observability": { "enabled": true }
 }

@@ -19,7 +19,8 @@ Combinations and codes appear in the summaries only after **2 separate shares** 
 1. **Workers & Pages → Create → Import a repository → MadsBjordal/OpenDiag.**
 2. Project name `opendiag-data`; build command empty; deploy command `npx wrangler deploy`;
    **Advanced settings → Root directory `services/feedback`**; preview builds off. Deploy.
-3. The first deploy creates the D1 database `opendiag-data` by itself. If the log says it
+3. The D1 database `opendiag-data` is pinned by its ID in `wrangler.jsonc` (a fork with its
+   own Cloudflare account removes that `database_id` line once). The first deploy creates it by itself. If the log says it
    cannot (missing permission): **Storage & Databases → D1 → Create database** named
    `opendiag-data`, copy its **Database ID**, add `"database_id": "<id>"` to the `d1_databases`
    entry in `wrangler.jsonc`, commit, and deploy again.
