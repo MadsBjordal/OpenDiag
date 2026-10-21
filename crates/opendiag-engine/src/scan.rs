@@ -299,7 +299,6 @@ impl Engine {
             })
         };
         step(1);
-        let library_explain = |code: &str, lib: &opendiag_knowledge::DtcLibrary| lib.explain(code);
         let platform = self.platform.clone();
         let c = crate::vehicle_of(&mut self.conn)?;
         let simulated = c.simulated();
@@ -368,6 +367,21 @@ impl Engine {
             warnings.push("Permanent codes (service 0A) are not supported by this vehicle or were not reported.".into());
         }
 
+        // The make decides what manufacturer-specific codes mean: from the VIN,
+        // else from My Garage (older cars often report no VIN).
+        let make = identity
+            .vin
+            .as_ref()
+            .and_then(|v| v.manufacturer.clone())
+            .or_else(|| {
+                let id = c.vehicle_id?;
+                self.store
+                    .vehicles()
+                    .ok()?
+                    .into_iter()
+                    .find(|v| v.id == id)?
+                    .make
+            });
         let lib = &self.library;
         let findings: Vec<DtcFinding> = dtcs
             .findings
@@ -377,7 +391,7 @@ impl Engine {
                 ecu: ecu.clone(),
                 ecu_label: ecu_label(ecu),
                 kind: *kind,
-                explanation: library_explain(code, lib),
+                explanation: lib.explain_for(code, make.as_deref()),
             })
             .collect();
 

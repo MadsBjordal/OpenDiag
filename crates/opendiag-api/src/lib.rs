@@ -118,6 +118,9 @@ enum Cmd {
     DeleteAllData,
     DtcExplain {
         code: String,
+        /// The vehicle's make, for manufacturer-specific codes.
+        #[serde(default)]
+        make: Option<String>,
     },
     DtcSearch {
         q: String,
@@ -578,9 +581,9 @@ impl Api {
                 self.engine().store().delete_all_vehicle_data()?;
                 Value::Null
             }
-            Cmd::DtcExplain { code } => {
-                to(serde_json::to_value(self.engine().library().explain(&code)))?
-            }
+            Cmd::DtcExplain { code, make } => to(serde_json::to_value(
+                self.engine().library().explain_for(&code, make.as_deref()),
+            ))?,
             Cmd::DtcSearch { q } => to(serde_json::to_value(self.engine().library().search(&q)))?,
             Cmd::Procedures => to(serde_json::to_value(self.engine().procedures()))?,
             Cmd::Guided { id, answers } => {

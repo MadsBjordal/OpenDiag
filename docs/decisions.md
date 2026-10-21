@@ -66,3 +66,15 @@ separate shares, to avoid exposing a single vehicle. Shares come back to the
 app as a compatibility snapshot (format already used for offline snapshots) and
 are capped at `community_reported`, so the honesty rules hold. Users can delete
 their shares with a token kept only on their device.
+
+## Fault code titles from an open dataset (2026-10-21)
+
+The owner asked for descriptions of all fault codes after the first real scan
+showed "No description available". Writing thousands of titles by hand risks
+errors, so OpenDiag imports the MIT-licensed dtc-database: 9,075 generic titles
+(only SAE J2012 generic ranges; the source mislabels some manufacturer codes as
+generic) and 6,490 manufacturer-specific titles for 31 makes (definitions only;
+cause lists, the make-less "OTHER" group and a mis-copied Infiniti list are left
+out). Curated explanations (causes, tests, advice) still come first; titled-only
+codes say that no detailed guidance exists yet; manufacturer meanings need the
+make (VIN or My Garage) and are labelled "not verified".
