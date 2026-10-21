@@ -124,7 +124,7 @@ class TransportPlugin(private val activity: Activity) : Plugin(activity) {
         /** Standard Serial Port Profile UUID used by Bluetooth OBD adapters. */
         val SPP: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         const val USB_PERMISSION = "org.opendiag.transport.USB_PERMISSION"
-        val BAUD_RATES = intArrayOf(38400, 115200, 9600, 230400, 500000)
+        val BAUD_RATES = intArrayOf(38400, 115200, 9600, 230400, 500000, 1_000_000, 2_000_000)
     }
 
     private fun usbManager() = activity.getSystemService(Context.USB_SERVICE) as UsbManager
@@ -239,8 +239,7 @@ class TransportPlugin(private val activity: Activity) : Plugin(activity) {
             while (System.currentTimeMillis() < deadline) {
                 val n = port.read(buf, 100)
                 if (n > 0) got.append(String(buf, 0, n, Charsets.ISO_8859_1))
-                val text = got.toString().uppercase()
-                if (text.contains("ELM") || text.contains("STN")) {
+                if (looksLikeElm(got.toString())) {
                     Thread.sleep(100)
                     while (port.read(buf, 50) > 0) { /* drain */ }
                     return UsbConn(port, "${driver.device.productName ?: "USB adapter"} @ $baud")
@@ -249,6 +248,22 @@ class TransportPlugin(private val activity: Activity) : Plugin(activity) {
         }
         port.close()
         throw IOException("No ELM327-compatible answer from the USB adapter at any common speed.")
+    }
+
+    /**
+     * Whether an answer to ATI comes from an ELM327-compatible adapter: a known
+     * family name, or clean text ending in the ELM327 prompt (some compatible
+     * adapters, e.g. Vgate vLinker, use their own name). Same rule as
+     * `looks_like_elm` in crates/opendiag-transport/src/serial.rs.
+     */
+    private fun looksLikeElm(answer: String): Boolean {
+        val up = answer.uppercase()
+        if (listOf("ELM", "STN", "VLINKER", "VGATE", "OBDLINK").any { up.contains(it) }) return true
+        val end = answer.lastIndexOf('>')
+        if (end < 0) return false
+        val body = answer.substring(0, end)
+        val clean = body.all { it == ' ' || it == '\r' || it == '\n' || it == '\u0000' || (it in '!'..'~') }
+        return clean && body.count { it.isLetterOrDigit() && it.code < 128 } >= 3
     }
 
     /** Opens a USB serial K-line cable at 10400 baud without probing for an ELM327. */

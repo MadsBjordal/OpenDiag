@@ -5,8 +5,31 @@ use std::io::{ErrorKind, Read, Write};
 use std::time::{Duration, Instant};
 
 /// Baud rates tried when the adapter's rate is unknown. 38400 is the ELM327 default;
-/// many clones and Bluetooth adapters use 9600 or 115200.
-pub const BAUD_RATES: [u32; 5] = [38400, 115200, 9600, 230400, 500000];
+/// many clones and Bluetooth adapters use 9600 or 115200; some FTDI-based USB
+/// adapters run much faster.
+pub const BAUD_RATES: [u32; 7] = [38400, 115200, 9600, 230400, 500000, 1_000_000, 2_000_000];
+
+/// Whether an answer to `ATI` comes from an ELM327-compatible adapter: it names
+/// a known family, or it is clean text ending in the ELM327 prompt `>` (some
+/// compatible adapters, e.g. Vgate vLinker, use their own name). Garbage from a
+/// wrong baud rate is rarely clean text, so it is not mistaken for an answer.
+pub fn looks_like_elm(answer: &[u8]) -> bool {
+    let text = String::from_utf8_lossy(answer).to_ascii_uppercase();
+    if ["ELM", "STN", "VLINKER", "VGATE", "OBDLINK"]
+        .iter()
+        .any(|k| text.contains(k))
+    {
+        return true;
+    }
+    let Some(end) = answer.iter().rposition(|b| *b == b'>') else {
+        return false;
+    };
+    let body = &answer[..end];
+    let clean = body
+        .iter()
+        .all(|b| b.is_ascii_graphic() || matches!(b, b' ' | b'\r' | b'\n' | 0));
+    clean && body.iter().filter(|b| b.is_ascii_alphanumeric()).count() >= 3
+}
 
 pub struct SerialLink {
     port: Box<dyn SerialPort>,
@@ -72,8 +95,7 @@ impl SerialLink {
                 Ok(n) => got.extend_from_slice(&buf[..n]),
                 Err(_) => return false,
             }
-            let text = String::from_utf8_lossy(&got).to_ascii_uppercase();
-            if text.contains("ELM") || text.contains("STN") {
+            if looks_like_elm(&got) {
                 // Let the rest of the answer arrive, then drop it.
                 std::thread::sleep(Duration::from_millis(100));
                 let _ = self.port.clear(serialport::ClearBuffer::Input);
@@ -219,5 +241,22 @@ impl opendiag_core::KLinePort for SerialKLine {
             name: self.name.clone(),
             simulated: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::looks_like_elm;
+
+    #[test]
+    fn recognises_elm_compatible_answers() {
+        assert!(looks_like_elm(b"ATI\rELM327 v1.4b\r\r>"));
+        assert!(looks_like_elm(b"STN2120 v5.6.19\r>"));
+        // A compatible adapter with its own name.
+        assert!(looks_like_elm(b"\rACME Diag 2.1\r\r>"));
+        // Not yet finished, garbage from a wrong speed, or just a prompt.
+        assert!(!looks_like_elm(b"ACME Diag"));
+        assert!(!looks_like_elm(&[0xF0, 0x8E, 0x3E, 0x11, 0xFE, b'>']));
+        assert!(!looks_like_elm(b">"));
     }
 }
