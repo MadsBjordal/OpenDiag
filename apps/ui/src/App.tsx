@@ -19,6 +19,7 @@ import Simulator from './pages/Simulator';
 import Connectors from './pages/Connectors';
 import HardwareTest from './pages/HardwareTest';
 import Truck from './pages/Truck';
+import Suggest from './pages/Suggest';
 import { UpdateBanner } from './Update';
 import { format } from './units';
 
@@ -37,6 +38,7 @@ const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?:
   { page: 'compat', icon: '✔', label: 'Compatibility' },
   { page: 'hwtest', icon: '🧪', label: 'Hardware test' },
   { page: 'console', icon: '⌨', label: 'Expert console', expert: true },
+  { page: 'suggest', icon: '💡', label: 'Suggest a feature' },
   { page: 'settings', icon: '☰', label: 'Settings' },
 ];
 
@@ -82,6 +84,7 @@ export default function App() {
     connectors: <Connectors />,
     hwtest: <HardwareTest />,
     truck: <Truck />,
+    suggest: <Suggest />,
     menu: (
       <>
         <h1>{t('Menu')}</h1>

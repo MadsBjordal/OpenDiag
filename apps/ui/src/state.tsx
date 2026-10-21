@@ -20,7 +20,8 @@ export type Page =
   | 'menu'
   | 'connectors'
   | 'hwtest'
-  | 'truck';
+  | 'truck'
+  | 'suggest';
 
 interface AppState {
   page: Page;

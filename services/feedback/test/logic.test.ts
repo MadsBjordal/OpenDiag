@@ -69,3 +69,18 @@ test('shares from older app builds without the modified answer count as standard
   assert.equal(r.ok && r.share.modified, false);
   assert.equal(validate({ ...share(), modified: 'yes' }).ok, false);
 });
+
+test('suggestions become safe GitHub issues', async () => {
+  const { validateSuggestion, issueFor } = await import('../src/logic.ts');
+  const good = { kind: 'feature', text: 'Show fuel trims as a graph @someone please\nwould be nice', app_version: '0.1.0', os: 'windows' };
+  const v = validateSuggestion(good);
+  assert.equal(v.ok, true);
+  const issue = issueFor((v as { s: never }).s, 'test-build-9');
+  assert.equal(issue.title, 'Feature request: Show fuel trims as a graph @​someone please');
+  assert.deepEqual(issue.labels, ['feature request', 'from app']);
+  assert.match(issue.body, /test-build-9/);
+  assert.equal(validateSuggestion({ ...good, text: 'short' }).ok, false);
+  assert.equal(validateSuggestion({ ...good, email: 'x@y.z' }).ok, false);
+  assert.equal(validateSuggestion({ ...good, kind: 'spam' }).ok, false);
+  assert.equal(issueFor({ ...good, kind: 'problem', text: 'x'.repeat(100) } as never, null).title.length <= 81, true);
+});

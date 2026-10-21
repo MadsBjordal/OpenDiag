@@ -76,16 +76,39 @@ jobs:
   publish:
     needs: [windows, android]
     runs-on: ubuntu-latest
+    env:
+      TITLE: ${{ github.ref_type == 'tag' && github.ref_name || format('Test build {0}', github.run_number) }}
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with: { path: out, merge-multiple: true }
+      # Release notes = the "Unreleased" part of CHANGELOG.md (what the app shows as "What's new").
+      - name: Release notes from the changelog
+        run: |
+          python3 scripts/changelog.py notes > notes.md
+          cat >> notes.md <<'EOF2'
+
+          ---
+          Pre-release test build of OpenDiag. Functions marked "not hardware-verified" have only been tested against the simulator.
+          Windows: run the setup .exe (Windows may warn because it is not signed yet: More info → Run anyway).
+          Android: open the .apk on an arm64 phone and allow installing from this source. Installed builds offer the next update themselves.
+          Full history: CHANGELOG.md
+          EOF2
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.OPENDIAG_RELEASE }}
-          name: ${{ github.ref_type == 'tag' && github.ref_name || format('Test build {0}', github.run_number) }}
+          name: ${{ env.TITLE }}
           prerelease: true
-          body: |
-            Pre-release test build of OpenDiag. Functions marked "not hardware-verified" have only been tested against the simulator.
-            Windows: run the setup .exe (Windows may warn because it is not signed yet: More info → Run anyway).
-            Android: open the .apk on an arm64 phone and allow installing from this source. Installed builds offer the next update themselves.
+          body_path: notes.md
           files: out/*
+      # The released section gets the build's name; a new, empty "Unreleased" starts.
+      - name: Date the changelog section
+        if: github.ref_type == 'branch'
+        run: |
+          python3 scripts/changelog.py release "$TITLE" "$(date -u +%Y-%m-%d)"
+          if ! git diff --quiet CHANGELOG.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Changelog: $TITLE released" CHANGELOG.md
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

@@ -55,6 +55,24 @@ pub fn delete(id: &str, token: &str) -> Result<(), String> {
     }
 }
 
+/// Sends a feature request or problem the user typed; the data service turns
+/// it into a public GitHub issue. Returns `{number, url}`.
+pub fn suggest(kind: &str, text: &str) -> Result<Value, String> {
+    let mut req = agent().post(&format!("{}/v1/suggestions", base()));
+    if let Some(r) = crate::update::current_release() {
+        req = req.set("x-opendiag-release", r);
+    }
+    req.send_json(serde_json::json!({
+        "kind": kind,
+        "text": text,
+        "app_version": env!("CARGO_PKG_VERSION"),
+        "os": crate::platform(),
+    }))
+    .map_err(err)?
+    .into_json()
+    .map_err(|e| e.to_string())
+}
+
 /// The combined compatibility snapshot (as a JSON string, for the engine's import) and the fault code counts.
 pub fn fetch() -> Result<Value, String> {
     let snapshot = agent()

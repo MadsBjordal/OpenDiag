@@ -253,6 +253,8 @@ export interface UpdateInfo {
   url: string | null;
   size: number | null;
   sha256: string | null;
+  /** "What's new": the build's changelog section (Markdown). */
+  notes: string | null;
 }
 
 export interface Vehicle {

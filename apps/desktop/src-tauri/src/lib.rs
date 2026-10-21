@@ -129,6 +129,26 @@ async fn share_delete(id: String, token: String) -> Result<(), String> {
         .map_err(|e| e.to_string())?
 }
 
+/// Sends a feature request or problem report (it becomes a public GitHub issue).
+#[tauri::command]
+async fn suggest_send(kind: String, text: String) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || community::suggest(&kind, &text))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Opens one of the project's own GitHub pages in the browser (nothing else).
+#[tauri::command]
+fn open_project_page(app: AppHandle, url: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    if !url.starts_with("https://github.com/MadsBjordal/OpenDiag/") || url.contains("..") {
+        return Err("Refused: not an OpenDiag project page.".into());
+    }
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 /// Downloads the community summaries (compatibility snapshot + fault code counts).
 #[tauri::command]
 async fn community_fetch() -> Result<Value, String> {
@@ -158,7 +178,9 @@ pub fn run() {
             update_install,
             share_send,
             share_delete,
-            community_fetch
+            community_fetch,
+            suggest_send,
+            open_project_page
         ])
         .run(tauri::generate_context!())
         .expect("error while running OpenDiag");

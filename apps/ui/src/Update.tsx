@@ -4,6 +4,7 @@ import { ErrorBox, Spinner, useAction } from './components';
 import { t } from './i18n';
 import { useApp } from './state';
 import type { UpdateInfo } from './types';
+import { CHANGELOG, ProjectLink } from './links';
 
 const DISMISSED = 'opendiag.update.dismissed';
 
@@ -46,6 +47,28 @@ export function UpdateButton({ info }: { info: UpdateInfo }) {
   );
 }
 
+/** A build's changelog section: "### Added" headings and "- " items (Markdown kept simple). */
+export function WhatsNew({ notes }: { notes: string }) {
+  const plain = (l: string) => l.replace(/\*\*/g, '').replace(/\*/g, '');
+  return (
+    <div className="small" style={{ marginTop: 6 }}>
+      {notes.split('\n').map((l, i) =>
+        l.startsWith('### ') ? (
+          <div key={i} style={{ fontWeight: 600, marginTop: 6 }}>
+            {plain(l.slice(4))}
+          </div>
+        ) : l.startsWith('- ') ? (
+          <div key={i} style={{ paddingLeft: 14, textIndent: -10 }}>
+            • {plain(l.slice(2))}
+          </div>
+        ) : l.trim() ? (
+          <div key={i}>{plain(l)}</div>
+        ) : null,
+      )}
+    </div>
+  );
+}
+
 /** Shown at the top of the app when a newer build exists. Checked once per start. */
 export function UpdateBanner() {
   const { settings } = useApp();
@@ -85,6 +108,12 @@ export function UpdateBanner() {
       >
         {t('Later')}
       </button>
+      {info.notes && (
+        <details style={{ marginTop: 6 }}>
+          <summary>{t("What's new")}</summary>
+          <WhatsNew notes={info.notes} />
+        </details>
+      )}
     </div>
   );
 }
@@ -111,18 +140,20 @@ export function UpdateSettings({ onToggle }: { onToggle: (on: boolean) => void }
         <>
           <button className="btn small" disabled={check.busy} onClick={() => check.run()}>
             {check.busy ? <Spinner /> : null} {t('Check now')}
-          </button>
+          </button>{' '}
+          <ProjectLink href={CHANGELOG}>{t('Version history')}</ProjectLink>
           <ErrorBox error={check.error} />
           {info &&
             (info.current == null ? (
               <p className="small">{t('This is a development build: it is not updated from GitHub.')}</p>
             ) : info.available ? (
-              <p className="small">
+              <div className="small">
                 {t('New version: {name}.', {
                   name: info.name ?? info.tag ?? '',
                 })}{' '}
                 <UpdateButton info={info} />
-              </p>
+                {info.notes && <WhatsNew notes={info.notes} />}
+              </div>
             ) : (
               <p className="small">{t('You have the newest version ({v}).', { v: info.current })}</p>
             ))}

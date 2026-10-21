@@ -33,6 +33,9 @@ pub struct GhRelease {
     pub published_at: Option<String>,
     pub html_url: String,
     pub assets: Vec<GhAsset>,
+    /// Release notes (from CHANGELOG.md, see the release workflow).
+    #[serde(default)]
+    pub body: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -47,6 +50,8 @@ pub struct UpdateInfo {
     pub url: Option<String>,
     pub size: Option<u64>,
     pub sha256: Option<String>,
+    /// "What's new": the build's changelog section (Markdown, without the install notes).
+    pub notes: Option<String>,
 }
 
 fn asset_for<'a>(r: &'a GhRelease, platform: &str) -> Option<&'a GhAsset> {
@@ -74,6 +79,7 @@ pub fn choose(releases: &[GhRelease], current: Option<&str>, platform: &str) -> 
         url: None,
         size: None,
         sha256: None,
+        notes: None,
     };
     let Some((r, a)) = newest else { return info };
     info.available = current.is_some() && current != Some(r.tag_name.as_str());
@@ -83,6 +89,11 @@ pub fn choose(releases: &[GhRelease], current: Option<&str>, platform: &str) -> 
     info.page = Some(r.html_url.clone());
     info.url = Some(a.browser_download_url.clone());
     info.size = Some(a.size);
+    info.notes = r
+        .body
+        .as_deref()
+        .map(|b| b.split("\n---\n").next().unwrap_or(b).trim().to_string())
+        .filter(|b| !b.is_empty());
     info.sha256 = a
         .digest
         .as_deref()
@@ -195,6 +206,7 @@ mod tests {
             draft,
             published_at: None,
             html_url: format!("https://github.com/{REPO}/releases/tag/{tag}"),
+            body: Some("### Added\n- Things\n\n---\nInstall notes".into()),
             assets: files
                 .iter()
                 .map(|f| GhAsset {
@@ -222,6 +234,7 @@ mod tests {
         assert!(w.available);
         assert_eq!(w.tag.as_deref(), Some("test-build-2"));
         assert_eq!(w.sha256.as_deref(), Some("ab"));
+        assert_eq!(w.notes.as_deref(), Some("### Added\n- Things"));
         // The draft and the release without an APK are skipped on Android.
         let a = choose(&list, Some("test-build-1"), "android");
         assert!(!a.available);

@@ -9,5 +9,8 @@
   // Pinned to the database the first deploy created (2026-10-21), so a
   // redeploy can never start a new, empty one.
   "d1_databases": [{ "binding": "DB", "database_name": "opendiag-data", "database_id": "8ce84578-7729-48ad-a816-ef191babcf6c" }],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Suggestions from the app become issues here. The token is a secret
+  // (Settings → Variables and Secrets → GITHUB_TOKEN), never in this file.
+  "vars": { "GITHUB_REPO": "MadsBjordal/OpenDiag" }
 }

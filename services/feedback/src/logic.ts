@@ -154,3 +154,34 @@ export async function sha256(s: string): Promise<string> {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ── Suggestions from the app (become GitHub issues) ──────────────────────────
+
+export interface Suggestion {
+  kind: 'feature' | 'problem';
+  text: string;
+  app_version: string;
+  os: string;
+}
+
+/** A suggestion typed in the app: kind, 10–2000 characters of text, version and OS. Nothing else. */
+export function validateSuggestion(body: unknown): { ok: true; s: Suggestion } | { ok: false; error: string } {
+  if (!isObj(body) || !onlyKeys(body, ['kind', 'text', 'app_version', 'os'])) return { ok: false, error: 'unexpected or missing fields' };
+  if (body.kind !== 'feature' && body.kind !== 'problem') return { ok: false, error: 'kind' };
+  if (typeof body.text !== 'string' || body.text.trim().length < 10 || body.text.length > 2000) return { ok: false, error: 'text must be 10 to 2000 characters' };
+  if (!text(body.app_version, 20, /^[0-9A-Za-z.+-]+$/) || !['windows', 'android', 'linux', 'macos', 'ios'].includes(body.os as string)) return { ok: false, error: 'app version or os' };
+  return { ok: true, s: body as unknown as Suggestion };
+}
+
+/** The GitHub issue for a suggestion. Mentions are defused so nobody gets pinged. */
+export function issueFor(s: Suggestion, release: string | null) {
+  const clean = s.text.trim().replace(/\r\n/g, '\n').replace(/@(?=\w)/g, '@​');
+  const first = clean.split('\n')[0].trim();
+  const short = first.length > 70 ? `${first.slice(0, 67).trimEnd()}…` : first;
+  const label = s.kind === 'feature' ? 'feature request' : 'bug';
+  return {
+    title: `${s.kind === 'feature' ? 'Feature request' : 'Problem'}: ${short}`,
+    body: `${clean}\n\n---\nSent from the OpenDiag app (${s.os}, ${release ?? s.app_version}). Not reviewed yet.`,
+    labels: [label, 'from app'],
+  };
+}

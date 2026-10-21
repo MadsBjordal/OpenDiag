@@ -5,18 +5,24 @@
 //   GET    /v1/snapshot      combined compatibility records (app's snapshot format)
 //   GET    /v1/codes         fault codes per make / model / year
 //   GET    /v1/stats         totals for the download page
+//   POST   /v1/suggestions   a feature request or problem typed in the app → a GitHub issue
 //
 // Stored per share: the validated JSON, the day it arrived and a hash of the
 // delete token. No IP addresses are stored; the daily rate limit keeps only a
 // salted hash that changes every day and is deleted the next day.
 
-import { codeSummary, compatSnapshot, MAX_BODY, sha256, validate, type Share } from './logic';
+import { codeSummary, compatSnapshot, issueFor, MAX_BODY, sha256, validate, validateSuggestion, type Share } from './logic';
 
 interface Env {
   DB: D1Database;
+  /** Fine-grained GitHub token with Issues read/write on the repository (a Worker secret). */
+  GITHUB_TOKEN?: string;
+  /** "owner/repo" the suggestions go to. */
+  GITHUB_REPO: string;
 }
 
 const MAX_PER_DAY = 30;
+const MAX_SUGGESTIONS_PER_DAY = 5;
 const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS shares (id TEXT PRIMARY KEY, day TEXT NOT NULL, token_hash TEXT NOT NULL, data TEXT NOT NULL)',
   'CREATE TABLE IF NOT EXISTS rate (day TEXT NOT NULL, key TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (day, key))',
@@ -39,18 +45,18 @@ async function setup(db: D1Database) {
   ready = true;
 }
 
-/** Counts this sender's shares today without storing the address itself. */
-async function overLimit(db: D1Database, ip: string): Promise<boolean> {
+/** Counts this sender's requests today without storing the address itself. */
+async function overLimit(db: D1Database, ip: string, scope = 'shares', max = MAX_PER_DAY): Promise<boolean> {
   const day = today();
   await db.batch([db.prepare('DELETE FROM rate WHERE day < ?1').bind(day), db.prepare('DELETE FROM salt WHERE day < ?1').bind(day)]);
   await db.prepare('INSERT OR IGNORE INTO salt (day, value) VALUES (?1, ?2)').bind(day, crypto.randomUUID()).run();
   const salt = await db.prepare('SELECT value FROM salt WHERE day = ?1').bind(day).first<string>('value');
-  const key = await sha256(`${salt}|${ip}`);
+  const key = await sha256(`${salt}|${scope}|${ip}`);
   const row = await db
     .prepare('INSERT INTO rate (day, key, n) VALUES (?1, ?2, 1) ON CONFLICT (day, key) DO UPDATE SET n = n + 1 RETURNING n')
     .bind(day, key)
     .first<number>('n');
-  return (row ?? 0) > MAX_PER_DAY;
+  return (row ?? 0) > max;
 }
 
 async function allShares(db: D1Database): Promise<Share[]> {
@@ -83,6 +89,29 @@ export default {
         .bind(id, today(), await sha256(token), JSON.stringify(check.share))
         .run();
       return json({ id, delete_token: token }, 201);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/v1/suggestions') {
+      if (!env.GITHUB_TOKEN) return fail(503, 'suggestions are not set up yet');
+      const body = await req.text();
+      if (body.length > 8 * 1024) return fail(413, 'too large');
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(body);
+      } catch {
+        return fail(400, 'not JSON');
+      }
+      const check = validateSuggestion(parsed);
+      if (!check.ok) return fail(422, check.error);
+      if (await overLimit(env.DB, req.headers.get('cf-connecting-ip') ?? 'unknown', 'suggestions', MAX_SUGGESTIONS_PER_DAY)) return fail(429, 'too many suggestions today');
+      const r = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/issues`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${env.GITHUB_TOKEN}`, accept: 'application/vnd.github+json', 'user-agent': 'opendiag-data', 'content-type': 'application/json' },
+        body: JSON.stringify(issueFor(check.s, req.headers.get('x-opendiag-release'))),
+      });
+      if (!r.ok) return fail(502, `GitHub refused it (${r.status})`);
+      const issue = (await r.json()) as { number: number; html_url: string };
+      return json({ number: issue.number, url: issue.html_url }, 201);
     }
 
     const del = url.pathname.match(/^\/v1\/shares\/([0-9a-f-]{36})$/);

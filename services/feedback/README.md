@@ -11,6 +11,7 @@ What a share contains and why: `docs/privacy.md`, `crates/opendiag-engine/src/sh
 | `GET /v1/snapshot` | combined compatibility records (the app's snapshot format, "community reported") |
 | `GET /v1/codes` | fault codes per make / model / year |
 | `GET /v1/stats` | totals (shares, vehicles, adapters) |
+| `POST /v1/suggestions` | a feature request or problem from the app → a GitHub issue (5 per sender per day) |
 
 Combinations and codes appear in the summaries only after **2 separate shares** report them.
 
@@ -27,6 +28,13 @@ Combinations and codes appear in the summaries only after **2 separate shares** 
 4. **Settings → Domains & Routes → Add → Custom domain:** `opendiag-data.stencilshot.com`
    (the address built into the app). Check: opening `https://opendiag-data.stencilshot.com/v1/stats`
    shows `{"shares":0,…}`.
+
+5. **Suggestions → GitHub issues (once):** on GitHub, **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token**: name `opendiag-suggestions`, repository access **Only select
+   repositories → MadsBjordal/OpenDiag**, permissions **Issues: Read and write** (nothing else), expiry as you like.
+   Copy the token, then in Cloudflare: the `opendiag-data` Worker → **Settings → Variables and Secrets → Add →
+   Secret**, name `GITHUB_TOKEN`, paste, **Deploy**. Without it the app says "suggestions are not set up yet".
+   When the token expires, generate a new one and replace the secret.
 
 Updates deploy by themselves when this folder changes on GitHub.
 

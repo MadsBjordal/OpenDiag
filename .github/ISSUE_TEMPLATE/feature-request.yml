@@ -1,0 +1,13 @@
+name: Feature request
+description: Something OpenDiag should do, or do better.
+labels: [feature request]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like OpenDiag to do?
+      description: Describe the problem it solves for you. Do not include personal details (name, VIN, number plate).
+    validations: { required: true }
+  - type: input
+    id: vehicle
+    attributes: { label: "Vehicle and adapter it is for (optional)" }
