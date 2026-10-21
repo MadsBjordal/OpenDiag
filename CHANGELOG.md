@@ -9,6 +9,10 @@ Statuses such as "not hardware-verified" are explained in
 
 ## Unreleased
 
+Nothing yet.
+
+## Test build 11 (2026-10-21)
+
 ### Fixed
 - The update check and the download page now find the newest build by date. GitHub lists releases in an odd order, so Test builds 9 and 10 did not offer Test build 10. **Install this build once from opendiag.stencilshot.com**; updates work by themselves after that.
 
