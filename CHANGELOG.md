@@ -9,6 +9,10 @@ Statuses such as "not hardware-verified" are explained in
 
 ## Unreleased
 
+Nothing yet.
+
+## Test build 10 (2026-10-21)
+
 ### Added
 - **Suggest a feature** page: send a feature request or report a problem from inside the app. It becomes a public issue on GitHub (labelled "feature request" or "bug") that you can follow; no GitHub account needed.
 - This changelog, and **What's new** in the update prompt.
