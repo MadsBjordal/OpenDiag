@@ -78,3 +78,15 @@ cause lists, the make-less "OTHER" group and a mis-copied Infiniti list are left
 out). Curated explanations (causes, tests, advice) still come first; titled-only
 codes say that no detailed guidance exists yet; manufacturer meanings need the
 make (VIN or My Garage) and are labelled "not verified".
+
+## Lists from outside services are sorted by us (2026-10-21)
+
+GitHub's release list is not in date order: on 2026-10-21 it returned test
+builds 9, 8, 7, 6, 5, **10**, 4. The update check (`update.rs` `choose()`)
+and the download page took the first entry, so Test builds 9 and 10 never
+offered Test build 10. Both now pick the newest by `published_at`, and a test
+replays that exact order. The owner has seen the same kind of mistake in
+other projects, so it is a rule in every project's CLAUDE.md: never rely on
+the order an outside service returns; sort by the date or version yourself
+and test with a shuffled list. Builds made before the fix cannot find newer
+builds and must be installed once by hand (Test build 11).
