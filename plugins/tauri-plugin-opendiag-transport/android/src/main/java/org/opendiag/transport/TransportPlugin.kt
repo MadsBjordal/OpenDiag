@@ -263,7 +263,9 @@ class TransportPlugin(private val activity: Activity) : Plugin(activity) {
         if (end < 0) return false
         val body = answer.substring(0, end)
         val clean = body.all { it == ' ' || it == '\r' || it == '\n' || it == '\u0000' || (it in '!'..'~') }
-        return clean && body.count { it.isLetterOrDigit() && it.code < 128 } >= 3
+        // "?" + prompt: an ELM327 answering a command it does not know (e.g. vLinker FS and ATI).
+        val unknown = body.split('\r', '\n').any { it.trim() == "?" || it.trim() == "OK" }
+        return clean && (unknown || body.count { it.isLetterOrDigit() && it.code < 128 } >= 3)
     }
 
     /** Opens a USB serial K-line cable at 10400 baud without probing for an ELM327. */

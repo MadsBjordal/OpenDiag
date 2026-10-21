@@ -163,6 +163,27 @@ pub fn download(url: &str, sha256: Option<&str>) -> Result<std::path::PathBuf, S
     Ok(path)
 }
 
+/// Windows: runs the downloaded installer silently (/S: no windows, no
+/// questions; OpenDiag installs per user, so no administrator prompt), then
+/// starts the new OpenDiag. Runs in a hidden helper so this app can close first.
+#[cfg(windows)]
+pub fn install_silently(installer: &std::path::Path) -> std::io::Result<()> {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let exe = std::env::current_exe()?;
+    // ping = a two-second pause without a console, so OpenDiag has closed before the installer runs.
+    let line = format!(
+        "/C \"ping -n 3 127.0.0.1 >nul & \"{}\" /S & start \"\" \"{}\"\"",
+        installer.display(),
+        exe.display()
+    );
+    std::process::Command::new("cmd")
+        .raw_arg(line)
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .map(|_| ())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

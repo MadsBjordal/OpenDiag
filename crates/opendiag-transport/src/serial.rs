@@ -28,7 +28,13 @@ pub fn looks_like_elm(answer: &[u8]) -> bool {
     let clean = body
         .iter()
         .all(|b| b.is_ascii_graphic() || matches!(b, b' ' | b'\r' | b'\n' | 0));
-    clean && body.iter().filter(|b| b.is_ascii_alphanumeric()).count() >= 3
+    // "?" + prompt is what an ELM327 says to a command it does not know (some
+    // compatible adapters, e.g. the Vgate vLinker FS, answer ATI that way).
+    let text = String::from_utf8_lossy(body);
+    let unknown = text
+        .split(['\r', '\n'])
+        .any(|l| l.trim() == "?" || l.trim() == "OK");
+    clean && (unknown || body.iter().filter(|b| b.is_ascii_alphanumeric()).count() >= 3)
 }
 
 pub struct SerialLink {
@@ -298,5 +304,10 @@ mod tests {
         assert!(!looks_like_elm(b"ACME Diag"));
         assert!(!looks_like_elm(&[0xF0, 0x8E, 0x3E, 0x11, 0xFE, b'>']));
         assert!(!looks_like_elm(b">"));
+        // Seen from a Vgate vLinker FS USB at 115200 (2026-10-21).
+        assert!(looks_like_elm(b"\r?\r\r>\r?\r\r>"));
+        // The same adapter at a wrong speed: noise.
+        assert!(!looks_like_elm(&[0x8D, b'}', b'W', b'y', 0xFD]));
+        assert!(!looks_like_elm(&[0x00, 0x00]));
     }
 }

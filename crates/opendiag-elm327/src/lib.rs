@@ -95,7 +95,14 @@ impl Elm327 {
         // Some adapters keep a half-typed line from before; a lone CR clears it.
         let _ = self.link.write_all(b"\r");
         let _ = self.read_until_prompt(Duration::from_millis(300));
-        let reset = self.adapter_raw("ATZ", self.timeouts.reset)?;
+        // A compatible adapter may not know ATZ ("?"); go on and identify it below.
+        let reset = match self.adapter_raw("ATZ", self.timeouts.reset) {
+            Err(ElmError::Unsupported(_)) => {
+                self.note("Adapter does not know ATZ (reset)".into());
+                vec![]
+            }
+            r => r?,
+        };
         // Known families name themselves; ELM327-compatible adapters from other
         // makers (e.g. "vLinker FS …") may not mention ELM at all.
         let known = |l: &str| {
@@ -117,14 +124,17 @@ impl Elm327 {
                     None => {
                         // Accept an adapter that names itself differently only if it
                         // obeys the ELM327 command set (echo off answers OK).
+                        // Some (e.g. vLinker FS) answer ATI with "?": they are
+                        // still accepted when echo off answers OK.
                         let name = i.into_iter().find(|l| l != "?" && !l.is_empty());
-                        match name {
-                            Some(n) if self.adapter_ok("ATE0")? => {
-                                unnamed = Some(n.clone());
-                                n
-                            }
-                            _ => return Err(ElmError::NotElm(reset.join(" "))),
+                        if !self.adapter_ok("ATE0")? {
+                            return Err(ElmError::NotElm(reset.join(" ")));
                         }
+                        let n = name.unwrap_or_else(|| {
+                            "ELM327-compatible adapter (did not identify itself)".into()
+                        });
+                        unnamed = Some(n.clone());
+                        n
                     }
                 }
             }

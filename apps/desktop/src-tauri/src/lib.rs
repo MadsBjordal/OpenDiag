@@ -99,11 +99,12 @@ async fn update_install(app: AppHandle, url: String, sha256: Option<String>) -> 
             tauri::async_runtime::spawn_blocking(move || update::download(&url, sha256.as_deref()))
                 .await
                 .map_err(|e| e.to_string())??;
-        // /P: the installer runs without questions, showing its progress.
-        std::process::Command::new(&path)
-            .arg("/P")
-            .spawn()
+        // Silent install, then the new version starts by itself.
+        #[cfg(windows)]
+        update::install_silently(&path)
             .map_err(|e| format!("Could not start the installer: {e}"))?;
+        #[cfg(not(windows))]
+        let _ = path;
         app.exit(0);
         Ok(())
     } else {

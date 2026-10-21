@@ -177,6 +177,28 @@ fn accepts_compatible_adapters_with_their_own_name() {
 }
 
 #[test]
+fn accepts_an_adapter_that_does_not_identify_itself() {
+    // Like the Vgate vLinker FS USB: ATZ and ATI answer "?", the rest works.
+    let (link, _) = Scripted::new(&[
+        ("ATZ", "?"),
+        ("ATI", "?"),
+        ("ATE0", "OK"),
+        ("ATE0", "OK"),
+        ("*", "OK"),
+        ("*", "OK"),
+        ("*", "OK"),
+        ("*", "?"),
+        ("*", "?"),
+        ("*", "12.6V"),
+    ]);
+    let elm = Elm327::open_with(Box::new(link), fast()).unwrap();
+    assert!(elm
+        .capabilities()
+        .identity
+        .contains("did not identify itself"));
+}
+
+#[test]
 fn connects_on_can_and_reads_two_ecus() {
     let (mut elm, _) = open(&[
         ("ATSP0", "OK"),
