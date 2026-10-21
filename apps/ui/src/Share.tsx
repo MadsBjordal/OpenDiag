@@ -125,6 +125,8 @@ export function ShareCard({ reportId, simulated, tests = [] }: { reportId: numbe
   // Must be answered before sharing: modified vehicles are counted apart from standard ones.
   const [modified, setModified] = useState<boolean | null>(null);
   const [sent, setSent] = useState(false);
+  // Pressing "Share" before answering the question shows why nothing happens.
+  const [needAnswer, setNeedAnswer] = useState(false);
   const answer = useAction(async (yes: boolean) => setSettings(await call<Settings>('set_setting', { key: 'share_results', value: yes ? 'true' : 'false' })));
   const prepare = useAction(async () => setPreview(await call<SharePayload>('share_preview', { report_id: reportId, tests, modified })));
   const send = useAction(async () => {
@@ -154,7 +156,13 @@ export function ShareCard({ reportId, simulated, tests = [] }: { reportId: numbe
           <Preview s={preview} />
           <div className="row" style={{ marginTop: 10 }}>
             <button className="btn primary small" disabled={send.busy} onClick={() => send.run()}>
-              {send.busy ? <Spinner /> : null} {t('Send')}
+              {send.busy ? (
+                <>
+                  <Spinner /> {t('Sending…')}
+                </>
+              ) : (
+                t('Send')
+              )}
             </button>
             <button className="btn small" onClick={() => setPreview(null)}>
               {t('Cancel')}
@@ -178,9 +186,25 @@ export function ShareCard({ reportId, simulated, tests = [] }: { reportId: numbe
             </label>
             <span className="muted">{t('Results from modified vehicles are counted separately, so they never change what is known about standard ones.')}</span>
           </fieldset>
-          <button className="btn small" disabled={prepare.busy || modified === null} onClick={() => prepare.run()}>
+          <button
+            className="btn small"
+            disabled={prepare.busy}
+            onClick={() => {
+              if (modified === null) {
+                setNeedAnswer(true);
+                return;
+              }
+              setNeedAnswer(false);
+              prepare.run();
+            }}
+          >
             {prepare.busy ? <Spinner /> : '🤝'} {t('Share this result…')}
           </button>
+          {needAnswer && modified === null && (
+            <span className="small" style={{ color: 'var(--bad)', marginLeft: 8 }}>
+              {t('First choose whether the vehicle is standard or modified.')}
+            </span>
+          )}
         </>
       )}
       <ErrorBox error={answer.error ?? prepare.error ?? send.error} />
