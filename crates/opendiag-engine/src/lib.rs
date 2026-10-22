@@ -11,6 +11,7 @@
 pub mod catalog;
 mod clear;
 mod j1939;
+mod misfire;
 pub mod pdf;
 pub mod report;
 mod scan;
@@ -18,6 +19,7 @@ pub mod share;
 
 pub use clear::{ClearPlan, ClearResult, EcuClearResult};
 pub use j1939::{J1939Code, J1939Module, J1939Report};
+pub use misfire::{CylinderMisfire, MisfireReport};
 pub use scan::ScanProgress;
 
 use opendiag_core::{AdapterCapabilities, ByteLink, LinkInfo, ObdProtocol, SupportStatus};
@@ -78,6 +80,8 @@ pub(crate) struct Conn {
     pub vehicle_id: Option<i64>,
     pub calids: Vec<String>,
     pub baro: Option<f64>,
+    /// Service 06 test groups per ECU (asked once per connection).
+    pub mode06: Option<Vec<(String, BTreeSet<u8>)>>,
     pub last_request: Instant,
 }
 
@@ -257,6 +261,7 @@ impl Engine {
             vehicle_id: None,
             calids: Vec::new(),
             baro: None,
+            mode06: None,
             last_request: Instant::now() - MIN_REQUEST_GAP,
         });
         self.connect_vehicle()
@@ -268,6 +273,7 @@ impl Engine {
         match c.drv.connect_vehicle(None) {
             Ok((_proto, msgs)) => {
                 c.vehicle_error = None;
+                c.mode06 = None;
                 c.ecus.clear();
                 c.supported.clear();
                 for m in &msgs {

@@ -18,6 +18,7 @@ import Console from './pages/Console';
 import Simulator from './pages/Simulator';
 import Connectors from './pages/Connectors';
 import HardwareTest from './pages/HardwareTest';
+import Misfire from './pages/Misfire';
 import Truck from './pages/Truck';
 import Suggest from './pages/Suggest';
 import { UpdateBanner } from './Update';
@@ -30,6 +31,7 @@ const NAV: { page: Page; icon: string; label: string; mobile?: boolean; expert?:
   { page: 'scan', icon: '🩺', label: 'Scan Vehicle', mobile: true },
   { page: 'codes', icon: '⚠', label: 'Fault Codes' },
   { page: 'live', icon: '📈', label: 'Live Data', mobile: true },
+  { page: 'misfire', icon: '🔥', label: 'Misfires' },
   { page: 'truck', icon: '🚛', label: 'Trucks (J1939)' },
   { page: 'guided', icon: '🧭', label: 'Guided Diagnostics' },
   { page: 'config', icon: '⚙', label: 'Vehicle Settings' },
@@ -83,6 +85,7 @@ export default function App() {
     simulator: <Simulator />,
     connectors: <Connectors />,
     hwtest: <HardwareTest />,
+    misfire: <Misfire />,
     truck: <Truck />,
     suggest: <Suggest />,
     menu: (

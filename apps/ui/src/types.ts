@@ -401,6 +401,23 @@ export interface Connector {
   notes: string[];
 }
 
+// ── Misfire counts (OBD service 06) ──────────────────────────────────────────
+export interface CylinderMisfire {
+  cylinder: number;
+  current: number | null;
+  average: number | null;
+}
+
+export interface MisfireReport {
+  simulated: boolean;
+  supported: boolean;
+  reason: string | null;
+  ecu: string | null;
+  cylinders: CylinderMisfire[];
+  notes: string[];
+  at_ms: number;
+}
+
 // ── J1939 (trucks, buses, machines) ─────────────────────────────────────────
 
 export type LampState = 'off' | 'on' | 'error' | 'not_available';

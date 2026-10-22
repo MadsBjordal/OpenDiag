@@ -27,6 +27,7 @@ Nothing is listed as "tested" because a protocol is "theoretically supported".
 | Freeze frame | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
 | Readiness monitors, MIL | Implemented and tested (ISO 9141-2) | Not hardware-verified | Not hardware-verified |
 | Live data (standard PIDs) | Implemented and tested (ISO 9141-2: 16 readings in 20 s, 0 errors) | Not hardware-verified | Not hardware-verified |
+| Misfire counts per cylinder (service 06, CAN) | Not hardware-verified | Not hardware-verified | Not hardware-verified |
 | Clear emissions codes (with safety checks) | Implemented and tested (refused with the engine running, cleared with the engine off) | Not hardware-verified | Not hardware-verified |
 | Reports, history, compatibility database, guided diagnostics (no vehicle hardware involved) | Reports: implemented and tested (real scan saved and exported as JSON, 2026-10-21); the rest not verified yet | Not verified: the APK builds but has not been run on a phone yet | Implemented and tested (desktop app driven by WebDriver, browser tests) |
 | Update prompt and silent update | Implemented and tested (Test build 7 → 8, 2026-10-21) | Implemented but not hardware-verified | Unsupported (development builds are not updated) |

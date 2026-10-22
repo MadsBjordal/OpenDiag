@@ -90,3 +90,15 @@ other projects, so it is a rule in every project's CLAUDE.md: never rely on
 the order an outside service returns; sort by the date or version yourself
 and test with a shuffled list. Builds made before the fix cannot find newer
 builds and must be installed once by hand (Test build 11).
+
+## Misfire counts per cylinder from service 06 (2026-10-22)
+
+The Misfires page reads the misfire monitor's test results (SAE J1979 /
+ISO 15031-5 OBDMIDs A2–AD = cylinders 1–12, test ID 0C = this or the last
+drive, 0B = weighted average of the last ten drives, unit 24 = counts). Only
+the CAN format is decoded: on K-line and J1850 service 06 is manufacturer
+defined, so the page says it cannot read them there. Supported groups are asked
+once per connection; each refresh then asks one request per cylinder. Read only
+(service 06 is in the safety policy's read-only list). Status: implemented,
+not hardware-verified; the simulated car misfires on the cylinder named in its
+P030x code.

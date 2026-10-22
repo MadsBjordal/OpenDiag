@@ -5,6 +5,7 @@
 //! public ones from SAE J1979 for the standard PIDs.
 
 pub mod dtc;
+pub mod mode06;
 pub mod pid;
 pub mod readiness;
 pub mod response;
@@ -27,6 +28,7 @@ pub mod service {
     pub const FREEZE_FRAME: u8 = 0x02;
     pub const STORED_DTCS: u8 = 0x03;
     pub const CLEAR_DTCS: u8 = 0x04;
+    pub const MONITOR_RESULTS: u8 = 0x06;
     pub const PENDING_DTCS: u8 = 0x07;
     pub const VEHICLE_INFO: u8 = 0x09;
     pub const PERMANENT_DTCS: u8 = 0x0A;

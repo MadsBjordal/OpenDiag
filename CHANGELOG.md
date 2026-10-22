@@ -9,7 +9,8 @@ Statuses such as "not hardware-verified" are explained in
 
 ## Unreleased
 
-Nothing yet.
+### Added
+- **Misfires** page: the engine computer's misfire counters per cylinder (OBD service 06), refreshed every 2 seconds, with what was added since you pressed Start and the average of the last 10 drives. Cars on CAN only (most from about 2008); many diesels do not report them. Not yet tried on a real vehicle.
 
 ## Test build 11 (2026-10-21)
 

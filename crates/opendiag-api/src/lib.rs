@@ -188,6 +188,8 @@ enum Cmd {
     HondaDisconnect,
     /// Trucks, buses and machines: switch to J1939 and read codes and values.
     J1939Scan,
+    /// Misfire counts per cylinder (OBD service 06, CAN vehicles).
+    Misfires,
     /// The anonymous data that sharing a saved report would send (nothing is sent).
     SharePreview {
         report_id: i64,
@@ -478,6 +480,7 @@ impl Api {
             }
             Cmd::Summary => to(serde_json::to_value(self.engine().summary()?))?,
             Cmd::J1939Scan => to(serde_json::to_value(self.engine().j1939_scan()?))?,
+            Cmd::Misfires => to(serde_json::to_value(self.engine().misfire_read()?))?,
             Cmd::SharePreview {
                 report_id,
                 tests,

@@ -582,3 +582,36 @@ fn community_summaries_import_as_community_reported() {
         .is_empty());
     assert!(e.community_updated().is_some());
 }
+
+#[test]
+fn misfire_counts_per_cylinder() {
+    let (mut e, sim) = engine(profiles::car());
+    let r = e.misfire_read().unwrap();
+    assert!(r.supported, "{:?}", r.reason);
+    assert_eq!(r.cylinders.len(), 4);
+    // P0301 is stored: cylinder 1 has the ten-drive average, the others none.
+    assert_eq!(r.cylinders[0].average, Some(42));
+    assert_eq!(r.cylinders[1].average, Some(0));
+    assert!(r.notes.is_empty(), "{:?}", r.notes);
+    // Engine off: nothing new counts in this drive.
+    let mut s = sim.settings();
+    s.engine_running = false;
+    sim.set(s);
+    assert_eq!(e.misfire_read().unwrap().cylinders[0].current, Some(0));
+}
+
+#[test]
+fn misfire_counts_not_on_legacy_protocols() {
+    let (mut e, _) = engine(profiles::legacy_car());
+    let r = e.misfire_read().unwrap();
+    assert!(!r.supported);
+    assert!(r.reason.unwrap().contains("older protocol"));
+}
+
+#[test]
+fn misfire_counts_not_reported() {
+    let (mut e, _) = engine(profiles::motorcycle());
+    let r = e.misfire_read().unwrap();
+    assert!(!r.supported);
+    assert!(r.reason.is_some());
+}

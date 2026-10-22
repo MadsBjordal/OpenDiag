@@ -665,9 +665,65 @@ impl State {
                     }
                 }
             }
+            // Service 06 misfire counts: CAN cars only, on the engine ECU.
+            0x06 if req.len() >= 2
+                && is_can
+                && self.vehicle.profile.kind == profiles::VehicleKind::Car
+                && ecu.pids.contains(&0x01) =>
+            {
+                self.misfire_answer(ecu, req[1], t)
+            }
             0x10..=0x3E | 0x85 | 0x87 if is_can => vec![vec![0x7F, sid, 0x11]],
             _ => vec![],
         }
+    }
+
+    /// Service 06 answers for a 4-cylinder engine. Cylinders named in a stored
+    /// or pending P030x code misfire while the engine runs.
+    fn misfire_answer(&self, ecu: &SimEcu, mid: u8, t: f64) -> Vec<Vec<u8>> {
+        use opendiag_obd::mode06::{self as m6, TestRecord};
+        const CYLINDERS: u8 = 4;
+        let mids: Vec<u8> = (m6::MISFIRE_GENERAL..m6::MISFIRE_CYL_FIRST + CYLINDERS).collect();
+        if mid.is_multiple_of(0x20) {
+            let mut s = mids.clone();
+            if mid < 0xA0 {
+                s.push(mid + 0x20);
+            }
+            let bm = bitmap_for(mid, &s);
+            return if bm == [0; 4] {
+                vec![]
+            } else {
+                vec![[vec![0x46, mid], bm.to_vec()].concat()]
+            };
+        }
+        let Some(cyl) = m6::misfire_cylinder(mid).filter(|c| *c <= CYLINDERS) else {
+            return vec![];
+        };
+        let code = format!("P03{cyl:02}");
+        let faulty = ecu.stored.iter().chain(&ecu.pending).any(|c| *c == code);
+        let running = self.settings.engine_running;
+        let current = match (faulty, running) {
+            (true, true) => (t * 1.5) as u16,
+            (false, true) => ((t / 45.0) as u16 + cyl as u16) % 3,
+            _ => 0,
+        };
+        let average = if faulty && !self.vehicle.cleared {
+            42
+        } else {
+            0
+        };
+        let rec = |tid, value| TestRecord {
+            mid,
+            tid,
+            uasid: m6::UASID_COUNTS,
+            value,
+            min: 0,
+            max: 0xFFFF,
+        };
+        let mut m = vec![0x46];
+        m.extend(m6::encode_record(&rec(m6::TID_MISFIRE_AVERAGE, average)));
+        m.extend(m6::encode_record(&rec(m6::TID_MISFIRE_CURRENT, current)));
+        vec![m]
     }
 
     /// Turns one message into the text lines an ELM327 prints for it.

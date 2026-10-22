@@ -21,6 +21,7 @@ export type Page =
   | 'connectors'
   | 'hwtest'
   | 'truck'
+  | 'misfire'
   | 'suggest';
 
 interface AppState {
